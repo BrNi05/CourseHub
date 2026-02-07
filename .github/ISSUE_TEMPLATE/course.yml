@@ -1,0 +1,85 @@
+name: Course Submission
+description: Edited or additional course submission
+title: "[COURSE] "
+labels: [course]
+body:
+  - type: input
+    id: university_name
+    attributes:
+      label: University
+      description: The name of the university offering the course
+      placeholder: "Budapesti Műszaki és Gazdaságtudományi Egyetem"
+    validations:
+      required: true
+
+  - type: input
+    id: faculty_name
+    attributes:
+      label: Faculty
+      description: The name of the faculty offering the course
+      placeholder: "Villamosmérnöki és Informatikai Kar"
+    validations:
+      required: true
+
+  - type: input
+    id: course_name
+    attributes:
+      label: Course
+      description: The name of the course
+      placeholder: "Adatbázisok"
+    validations:
+      required: true
+
+  - type: input
+    id: course_code
+    attributes:
+      label: Course code
+      description: The official course code
+      placeholder: "BMEVITMAB04"
+    validations:
+      required: true
+
+  - type: input
+    id: course_page
+    attributes:
+      label: Course page
+      description: The URL of the official course page (if available)
+      placeholder: "https://www.db.bme.hu/adatbazisok/"
+    validations:
+      required: false
+
+  - type: input
+    id: course_tad_page
+    attributes:
+      label: Course TAD page
+      description: The URL of the course's page on the TAD system (if available)
+      placeholder: "https://portal.vik.bme.hu/kepzes/targyak/VITMAB04/"
+    validations:
+      required: false
+
+  - type: input
+    id: course_moodle_page
+    attributes:
+      label: Course Moodle page
+      description: The URL of the course's page on the faculty / university Moodle (if available)
+      placeholder: "https://edu.vik.bme.hu/course/view.php?id=15152"
+    validations:
+      required: false
+
+  - type: input
+    id: course_teams_link
+    attributes:
+      label: Course Teams link
+      description: The URL of the course's page on Microsoft Teams (if available)
+      placeholder: "https://teams.microsoft.com/l/team/..."
+    validations:
+      required: false
+
+  - type: input
+    id: course_extra_page
+    attributes:
+      label: Additional course page
+      description: The URL of some kind of additional course page (e.g. wiki, a GitHub repo, etc.) that contains useful information about the course (if available)
+      placeholder: "https://vik.wiki/Adatb%C3%A1zisok"
+    validations:
+      required: false

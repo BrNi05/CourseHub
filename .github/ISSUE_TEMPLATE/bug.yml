@@ -1,0 +1,48 @@
+name: Bug Report
+description: Report something that is not working (as it should)
+title: "[BUG] "
+labels: [bug]
+body:
+  - type: dropdown
+    id: affected
+    attributes:
+      label: Affected Component(s)
+      description: Select which component is affected
+      options:
+        - Backend (API) or API docs
+        - CI (and GitHub related)
+        - Release process
+        - Desktop release
+        - Android release
+        - iOS release
+        - SDK (and related docs)
+        - VS Code related
+        - Docs
+        - More of these (specify in description)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A short but clear description of the issue. What happened and what was expected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce_steps
+    attributes:
+      label: Steps to reproduce
+      description: A detailed list of steps to reproduce the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste any relevant app logs here
+    validations:
+      required: false
