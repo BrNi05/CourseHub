@@ -1,0 +1,36 @@
+// Default behaviour
+* text=auto
+
+// TS and JS files
+*.ts text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+
+// dotenv
+*.env text eol=lf
+*.env.example text eol=lf
+
+// JSON files
+*.json text eol=lf
+
+// .prettierrc
+*.prettierrc text eol=lf
+
+// markdown files
+*.md text eol=lf
+
+// Husky scripts
+.husky/* text eol=lf
+
+// GUI files
+*.html text eol=lf
+*.css text eol=lf
+*.vue text eol=lf
+
+// YML and YAML files
+*.yml text eol=lf
+*.yaml text eol=lf
+
+// Scripts
+*.sh text eol=lf
+*.ps1 text eol=lf
