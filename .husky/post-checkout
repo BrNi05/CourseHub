@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Passed args:
+# $1 = previous HEAD commit SHA
+# $2 = new HEAD commit SHA
+# $3 = 1 if branch checkout, 0 if file checkout
+
+if [ "$3" -eq 1 ]; then
+  branch_name=$(git rev-parse --abbrev-ref HEAD)
+  echo "Checked out branch: $branch_name"
+
+  pnpm install
+  pnpm run build
+
+  echo "Dependencies updated. CourseHub is built."
+fi
