@@ -96,10 +96,11 @@ body:
     validations:
       required: true
 
-  - type: checkbox
+  - type: checkboxes
     id: data_consent
     attributes:
       label: Data consent
-      description: I explicity state that the information I provided in this submission is accurate to the best of my knowledge, and I consent to the processing of this data for the purpose of maintaining the course database.
-    validations:
-      required: true
+      description: I explicitly state that the information I provided in this submission is accurate to the best of my knowledge, and I consent to the processing of this data for the purpose of maintaining the course database.
+      options:
+        - label: I agree
+          required: true
