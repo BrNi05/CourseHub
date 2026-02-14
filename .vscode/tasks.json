@@ -1,0 +1,119 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    /* Global */
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "pnpm build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    /* Backend */
+    {
+      "label": "Backend Dev Server",
+      "type": "shell",
+      "command": "pnpm --filter backend start:dev",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Backend Tests",
+      "type": "shell",
+      "command": "pnpm --filter backend test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Open Prisma Studio",
+      "type": "shell",
+      "command": "pnpm --filter backend db:view",
+      "group": "build",
+      "problemMatcher": []
+    },
+    /* SDK tasks */
+    {
+      "label": "Run SDK Tests",
+      "type": "shell",
+      "command": "pnpm --filter sdk test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    /* Desktop app tasks */
+    {
+      "label": "Desktop Dev Server",
+      "type": "shell",
+      "command": "pnpm --filter desktop start:dev",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+        "label": "Desktop Tests",
+        "type": "shell",
+        "command": "pnpm --filter desktop test",
+        "group": "test",
+        "problemMatcher": []
+    },    
+    /* iOS app tasks */
+    {
+      "label": "iOS Dev Server",
+      "type": "shell",
+      "command": "pnpm --filter ios start:dev",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "iOS Tests",
+      "type": "shell",
+      "command": "pnpm --filter ios test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    /* Android app tasks */
+    {
+      "label": "Android Dev Server",
+      "type": "shell",
+      "command": "pnpm --filter android start:dev",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android Tests",
+      "type": "shell",
+      "command": "pnpm --filter android test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    /* Dev tools */
+    {
+      "label": "Update Node",
+      "type": "shell",
+      "command": "pnpm update:node",
+      "detail": "Update Node to the latest LTS version",
+      "problemMatcher": []
+    },
+    {
+        "label": "Clear All",
+        "type": "shell",
+        "command": "pnpm clear:all",
+        "detail": "Clear all build artifacts and node_modules",
+        "problemMatcher": []
+    },
+    {
+      "label": "Lint",
+      "type": "shell",
+      "command": "pnpm lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "Push Backend to GHCR",
+      "type": "shell",
+      "options": {
+        "cwd": "${workspaceFolder}/hosting"
+      },
+      "command": "./push-to-ghcr.sh",
+      "detail": "Build and push the backend Docker image to GitHub Container Registry",
+      "problemMatcher": []
+    }
+  ]
+}
