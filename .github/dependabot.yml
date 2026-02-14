@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    commit-message:
+      prefix: "GitHub deps update: "
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: 'npm'
+    directory: '/' # pnpm lockfile
+    schedule:
+      interval: 'weekly'
+    commit-message:
+      prefix: "CourseHub deps update: "
+    labels:
+      - "dependencies"
