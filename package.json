@@ -1,0 +1,38 @@
+{
+  "name": "@coursehub/coursehub",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.js,.vue --cache --max-warnings=0",
+    "build": "turbo build",
+    "test": "turbo test",
+    "refresh:sdk": "pnpm --filter ./apps/backend api:gen && pnpm --filter ./packages/sdk gen:sdk",
+    "clear:all": "pnpm -r exec rimraf node_modules .build build .turbo .eslintcache openapi.json && rm -rf node_modules",
+    "update:node": "node ./dev-tools/update-node.js",
+    "safe": "git config core.hooksPath .husky",
+    "unsafe": "git config --unset core.hooksPath"
+  },
+  "keywords": [],
+  "author": "BrNi05",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.29.1",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@hey-api/client-axios": "^0.9.1",
+    "@hey-api/openapi-ts": "^0.92.4",
+    "@types/node": "^25.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "@typescript-eslint/utils": "^8.54.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.1.2",
+    "turbo": "^2.8.3",
+    "typescript": "^5.9.3",
+    "vue-eslint-parser": "^10.2.0"
+  }
+}
