@@ -34,7 +34,7 @@ body:
     id: course_code
     attributes:
       label: Course code
-      description: The official course code
+      description: The official course code. Should have the university abbreviation as a prefix (e.g. BME, ELTE, etc.) to ensure global uniqueness.
       placeholder: "BMEVITMAB04"
     validations:
       required: true
