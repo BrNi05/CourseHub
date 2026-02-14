@@ -1,0 +1,68 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "tasks": {
+    // Global lint task
+    "lint": {
+        "outputs": [".eslintcache"]
+    },
+    // Backend (API) build
+    "@coursehub/backend#build": {
+      "dependsOn": ["lint"],
+      "outputs": ["build/**/*"]
+    },
+    // Prisma client generation
+    "@coursehub/backend#db:generate": {
+      "dependsOn": ["@coursehub/backend#build"],
+      "cache": true,
+      "outputs": ["prisma/generated"],
+      "persistent": false
+    },
+    // API docs generation (openapi.json)
+    "@coursehub/backend#api:gen": {
+      "dependsOn": ["@coursehub/backend#build"],
+      "outputs": ["openapi.json"]
+    },
+    // SDK generation from OpenAPI spec
+    "@coursehub/sdk#gen:sdk": {
+      "dependsOn": ["@coursehub/backend#api:gen"],
+      "outputs": ["src/**/*"]
+    },
+    // SDK build
+    "@coursehub/sdk#build": {
+      "dependsOn": ["@coursehub/sdk#gen:sdk", "lint"],
+      "outputs": ["build/**/*"]
+    },
+    // Shared UI (Vue) build
+    "@coursehub/shared-ui#build": {
+      "dependsOn": ["@coursehub/sdk#build", "lint"],
+      "outputs": ["dist/**/*"]
+    },
+    // Desktop (Win, macOS, Linux) release build
+    "@coursehub/desktop#build": {
+      "dependsOn": ["@coursehub/sdk#build", "lint"],
+      "outputs": ["dist/**/*"]
+    },
+    // Mobile (iOS) build
+    "@coursehub/ios#build": {
+      "dependsOn": ["@coursehub/sdk#build", "lint"],
+      "outputs": ["dist/**/*"]
+    },
+    // Mobile (Android) build
+    "@coursehub/android#build": {
+      "dependsOn": ["@coursehub/sdk#build", "lint"],
+      "outputs": ["dist/**/*"]
+    },
+    // General build task
+    "build": {
+    "dependsOn": ["^build", "lint"],
+    "outputs": ["build/**", "dist/**", "prisma/generated/**"]
+    },
+    // Global test task
+    "test": {
+    "dependsOn": ["build"],
+    "outputs": [],
+    "cache": false
+    },
+  },
+  "globalDependencies": [".env", "tsconfig.base.json"]
+}
