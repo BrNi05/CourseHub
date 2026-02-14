@@ -1,0 +1,128 @@
+// Schema docs: https://pris.ly/d/prisma-schema
+
+// Generate the Prisma Client: npx prisma generate
+// To create the tables: npx prisma migrate dev --name init
+
+generator client {
+  provider = "prisma-client"
+  output = "../src/prisma/generated/client"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
+  compilerBuild = "fast" // https://github.com/prisma/prisma/releases/tag/7.3.0
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// University
+// Assume name is not unique (yet it is)
+// Assume eduIdAffiliationId can change (yet it shouldn't really) so it is not a good candidate for primary key, but it is unique
+// A university has many faculties and users
+// Based on the EduID system, a user can be only mapped to a university and not a faculty
+model University {
+  id                 String    @id @default(uuid())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+
+  name               String    @unique
+  abbrevName         String    @unique
+
+  faculties          Faculty[]
+}
+
+// Faculty
+// Name is not neccessarily unique
+// A faculty belongs to a university and has many courses
+model Faculty {
+  id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+
+  name         String
+  abbrevName   String
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  courses      Course[]
+
+  @@unique([name, universityId]) // A faculty name is unique within a university
+  @@unique([abbrevName, universityId]) // A faculty abbrev name is unique within a university
+}
+
+// Course
+// Name and code are not necessarily unique
+// A course belongs to a faculty and can be pinned by many users
+model Course {
+  id              String   @id @default(uuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  name            String
+  code            String   @unique
+
+  facultyId       String
+  faculty         Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+
+  pinnedBy        User[]   @relation("UserPinnedCourses")
+
+  coursePageUrl   String   @default("") // official (lecturer) page
+  courseTadUrl    String   @default("") // TAD (uni) page
+  courseMoodleUrl String   @default("") // Moodle page
+  courseTeamsUrl  String   @default("") // Microsoft Teams page
+  courseExtraUrl  String   @default("") // Additional course page (Wiki, Github)
+
+  // CourseHub assumes course codes are unique, globally. This is made sure like so:
+  // Course code at BME: BMEVIIIAB12 --> BMEVIIIAB12
+  // Course code at ELTE: EGTI24MN105 --> ELTEGTI24MN105
+  // Rule: append university abbreviated name if not already
+
+  //@@unique([name, facultyId]) // A course name is unique within a faculty
+  //@@unique([code, facultyId]) // A course code is unique within a faculty
+}
+
+// User
+// A user belongs to a university (EduID scope) and can pin many courses
+// A user is authenticated with EduID, and inside CourseHub with JWT
+model User {
+  id            String     @id @default(uuid())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now()) @updatedAt
+
+  googleId      String     @unique
+  googleEmail   String     @unique
+
+  // Possible other roles in the future (like contributor (reduced rights) or so)
+  isAdmin       Boolean    @default(false)
+
+  pinnedCourses Course[]   @relation("UserPinnedCourses")
+
+  clientPings   ClientPing[] // 
+}
+
+// Daily ping from the client to track usage statistics
+model ClientPing {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  userId    String   // internal user ID, not the Google ID
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date      DateTime // normalized UTC start-of-day
+
+  platform  ClientPlatform
+  version   String
+
+  @@unique([userId, date, platform]) // One ping per user per day per platform
+  @@index([date]) // Fast lookup of pings by date for statistics
+  @@index([platform]) // Fast lookup of pings by platform for statistics
+}
+
+// Separate desktop releases for better usage statistics and error reporting
+enum ClientPlatform {
+  windows
+  linux
+  macos
+  android
+  ios
+}
