@@ -1,0 +1,25 @@
+{
+  "name": "@coursehub/sdk",
+  "version": "1.0.0",
+  "description": "SDK for CourseHub",
+  "author": "BrNi05",
+  "license": "Apache-2.0",
+  "private": true,
+  "packageManager": "pnpm@10.29.1",
+  "type": "module",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "gen:sdk": "openapi-ts"
+  },
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": "./build/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "axios": "^1.12.2"
+  }
+}
