@@ -35,7 +35,7 @@ export class ClientController {
   @Post('ping/:id') // identify and authorize the user
   @RequiresAuthAndOwnership()
   @ApiOperation({
-    summary: 'AUTH',
+    summary: 'USER AUTH',
     description: 'Ping CourseHub so it can track usage statistics',
   })
   @ApiOkResponse({ description: 'Ping received' })
@@ -49,7 +49,7 @@ export class ClientController {
   @Post('error-report/:id') // identify and authorize the user
   @RequiresAuthAndOwnership()
   @ApiOperation({
-    summary: 'AUTH',
+    summary: 'USER AUTH',
     description: 'Report a client error for later analysis',
   })
   @ApiCreatedResponse({ description: 'Error report received' })
