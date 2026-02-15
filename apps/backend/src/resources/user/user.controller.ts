@@ -82,9 +82,9 @@ export class UserController {
   }
 
   @Delete(':id')
-  @Admin()
+  @RequiresAuthAndOwnership()
   @ApiOperation({
-    summary: 'ADMIN',
+    summary: 'USER AUTH / ADMIN',
     description: 'Deletes an existing user from the database',
   })
   @ApiNoContentResponse({ description: 'Deleted' })
