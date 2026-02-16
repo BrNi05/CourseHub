@@ -37,6 +37,7 @@ apps/backend/src/prisma/generated
 
 # API error reports
 apps/backend/error-reports/**
+error-reports/**
 
 # SDK and generated
 openapi.json

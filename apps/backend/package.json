@@ -13,13 +13,13 @@
     "start": "pnpm prebuild && nest start",
     "start:dev": "pnpm prebuild && nest start --watch",
     "start:debug": "pnpm prebuild && nest start --debug --watch",
+    "start:prod": "node build/main.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "prisma generate --no-hints",
     "db:seed": "prisma db seed",
     "db:view": "prisma studio",
     "api:gen": "ts-node --project tsconfig.json openapi.generate.ts",
-    "docker:build": "docker build -t coursehub-backend:latest .",
     "docker:prune": "docker system prune -a -f"
   },
   "dependencies": {

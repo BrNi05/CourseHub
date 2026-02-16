@@ -1,0 +1,44 @@
+# Repo root
+.git
+.github
+.husky
+.vscode
+dev-tools
+hosting
+node_modules
+.eslintcache
+.gitattributes
+.gitignore
+LICENSE
+openapitools.json
+openapi.json
+README.md
+SECUIRTY.md
+
+# Build artifacts and other generated files
+**/.turbo
+**/build
+**/tsconfig.build.tsbuildinfo
+tsconfig.tsbuildinfo
+**/apps/*/prisma/generated/
+
+# General
+**/.env
+*/.md
+*/.log
+**/.DS_Store
+
+# NestJS specific
+logs
+*.log
+npm-debug.log*
+**/coverage
+**/jest.config.ts
+*/.spec.ts
+*/.test.ts
+*/.test.tsx
+*/.spec.tsx
+
+# Extensions
+*.tgz
+*.sh

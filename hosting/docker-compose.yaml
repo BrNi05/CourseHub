@@ -29,6 +29,7 @@ services:
   backend:
     image: ghcr.io/BrNi05/coursehub-backend:latest
     container_name: coursehub_backend_prod
+    restart: unless-stopped
     cap_drop:
       - ALL
     security_opt:
@@ -50,6 +51,9 @@ services:
       timeout: 5s
       retries: 2
       start_period: 5s
+    volumes:
+          - ./logs/CourseHub-Backend.log:/app/CourseHub-Backend.log
+          - ./error-reports:/app/error-reports
 
 networks:
   coursehub_test_coursehub-network:

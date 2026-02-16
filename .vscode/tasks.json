@@ -106,6 +106,20 @@
       "problemMatcher": []
     },
     {
+      "label": "Build Backend Docker Image",
+      "type": "shell",
+      "command": "docker build -t coursehub-backend:latest .",
+      "detail": "Build the backend Docker image locally",
+      "problemMatcher": []
+    },
+    {
+      "label": "Docker Compose Up",
+      "type": "shell",
+      "command": "docker-compose up -d",
+      "detail": "Start the application using Docker Compose",
+      "problemMatcher": []
+    },
+    {
       "label": "Push Backend to GHCR",
       "type": "shell",
       "options": {

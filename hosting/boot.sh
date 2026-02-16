@@ -20,6 +20,9 @@ TARGET_DIR="/home/barni/Documents/coursehub_prod"
 
 # Manually create the docker compose file
 
+# Create log file for compose volume bind
+touch "$TARGET_DIR/CourseHub-Backend.log"
+
 # Create systemd service for compose up on boot
 cat <<EOF > /etc/systemd/system/compose-up-coursehub_prod.service
 [Unit]
