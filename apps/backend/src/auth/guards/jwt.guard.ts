@@ -9,7 +9,6 @@ import { getClientIp } from '../../common/security/ip.resolver.js';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private readonly logger: LoggerService) {
     super();
-    this.logger.setContext(JwtAuthGuard.name);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
