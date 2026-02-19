@@ -7,7 +7,7 @@ import type { UpdateUniversityDto } from './dto/update-university.dto.js';
 
 describe('UniversityController', () => {
   let controller: UniversityController;
-  let service: UniversityService;
+  let serviceMock: Partial<UniversityService>;
 
   const mockFindAll = vi.fn();
   const mockFindAllWithFaculties = vi.fn();
@@ -18,15 +18,16 @@ describe('UniversityController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    service = {
+    serviceMock = {
       findAll: mockFindAll,
       findAllWithFaculties: mockFindAllWithFaculties,
       create: mockCreate,
       update: mockUpdate,
       remove: mockRemove,
-    } as unknown as UniversityService;
+      resetAllCache: vi.fn().mockResolvedValue(undefined),
+    };
 
-    controller = new UniversityController(service);
+    controller = new UniversityController(serviceMock as UniversityService);
   });
 
   describe('findAll', () => {
@@ -88,6 +89,15 @@ describe('UniversityController', () => {
       await controller.remove('1');
 
       expect(mockRemove).toHaveBeenCalledWith('1');
+    });
+  });
+
+  describe('deleteAll', () => {
+    it('should call resetAllUniversityCache and return void', async () => {
+      const result = await controller.deleteAll();
+
+      expect(serviceMock.resetAllCache).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
     });
   });
 });

@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, seconds } from '@nestjs/throttler';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
-import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 import Joi from 'joi';
+
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
 
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ResourcesModule } from './resources/resources.module.js';
@@ -52,6 +56,9 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
         GOOGLE_CLIENT_ID: Joi.string().required(),
         GOOGLE_CLIENT_SECRET: Joi.string().required(),
         GOOGLE_CALLBACK_URL: Joi.string().uri().required(),
+        REDIS_HOST: Joi.string().required(),
+        REDIS_PASSWORD: Joi.string().required(),
+        REDIS_PORT: Joi.number().port().required(),
       }),
       validationOptions: {
         abortEarly: true,
@@ -65,6 +72,25 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
         limit: 500,
       },
     ]),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        store: new KeyvRedis(
+          `redis://:${encodeURIComponent(
+            configService.getOrThrow('REDIS_PASSWORD'),
+          )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
+        ),
+        ttl: 0, // no expiration by default
+      }),
+      inject: [ConfigService],
+    }),
+    EventEmitterModule.forRoot({
+      wildcard: true,
+      delimiter: '.',
+      maxListeners: 10,
+      ignoreErrors: false,
+    }),
   ],
   controllers: [AppController],
   providers: [

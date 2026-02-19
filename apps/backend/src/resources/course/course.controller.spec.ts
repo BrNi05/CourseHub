@@ -10,18 +10,19 @@ import type { Course } from './entity/course.entity.js';
 
 describe('CourseController', () => {
   let controller: CourseController;
-  let service: Partial<CourseService>;
+  let serviceMock: Partial<CourseService>;
 
   beforeEach(() => {
-    service = {
+    serviceMock = {
       findById: vi.fn(),
       findByQuery: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       remove: vi.fn(),
+      clearSearchQueryCache: vi.fn(),
     };
 
-    controller = new CourseController(service as CourseService);
+    controller = new CourseController(serviceMock as CourseService);
   });
 
   describe('findOne', () => {
@@ -35,10 +36,10 @@ describe('CourseController', () => {
         updatedAt: new Date(),
       };
 
-      (service.findById as any).mockResolvedValue(course);
+      (serviceMock.findById as any).mockResolvedValue(course);
 
       const result = await controller.findOne('c1');
-      expect(service.findById).toHaveBeenCalledWith('c1');
+      expect(serviceMock.findById).toHaveBeenCalledWith('c1');
       expect(result).toEqual(course);
     });
   });
@@ -57,10 +58,10 @@ describe('CourseController', () => {
         },
       ];
 
-      (service.findByQuery as any).mockResolvedValue(courses);
+      (serviceMock.findByQuery as any).mockResolvedValue(courses);
 
       const result = await controller.search(query);
-      expect(service.findByQuery).toHaveBeenCalledWith(query);
+      expect(serviceMock.findByQuery).toHaveBeenCalledWith(query);
       expect(result).toEqual(courses);
     });
   });
@@ -70,16 +71,16 @@ describe('CourseController', () => {
       const dto: CreateCourseDto = { name: 'Math', code: 'M101', facultyId: 'f1' };
       const course: Course = { ...dto, id: 'c1', createdAt: new Date(), updatedAt: new Date() };
 
-      (service.create as any).mockResolvedValue(course);
+      (serviceMock.create as any).mockResolvedValue(course);
 
       const result = await controller.create(dto);
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(serviceMock.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual(course);
     });
 
     it('should propagate service exceptions', async () => {
       const dto: CreateCourseDto = { name: 'Math', code: 'M101', facultyId: 'f1' };
-      (service.create as any).mockRejectedValue(new ConflictException());
+      (serviceMock.create as any).mockRejectedValue(new ConflictException());
 
       await expect(controller.create(dto)).rejects.toBeInstanceOf(ConflictException);
     });
@@ -97,32 +98,41 @@ describe('CourseController', () => {
         updatedAt: new Date(),
       };
 
-      (service.update as any).mockResolvedValue(course);
+      (serviceMock.update as any).mockResolvedValue(course);
 
       const result = await controller.update('c1', dto);
-      expect(service.update).toHaveBeenCalledWith('c1', dto);
+      expect(serviceMock.update).toHaveBeenCalledWith('c1', dto);
       expect(result).toEqual(course);
     });
 
     it('should propagate service exceptions', async () => {
       const dto: UpdateCourseDto = { code: 'M102' };
-      (service.update as any).mockRejectedValue(new ConflictException());
+      (serviceMock.update as any).mockRejectedValue(new ConflictException());
 
       await expect(controller.update('c1', dto)).rejects.toBeInstanceOf(ConflictException);
     });
   });
 
   describe('delete', () => {
-    it('should call service.remove with ID', async () => {
-      (service.remove as any).mockResolvedValue(undefined);
+    it('should call serviceMock.remove with ID', async () => {
+      (serviceMock.remove as any).mockResolvedValue(undefined);
 
       await controller.delete('c1');
-      expect(service.remove).toHaveBeenCalledWith('c1');
+      expect(serviceMock.remove).toHaveBeenCalledWith('c1');
     });
 
     it('should propagate service exceptions', async () => {
-      (service.remove as any).mockRejectedValue(new BadRequestException());
+      (serviceMock.remove as any).mockRejectedValue(new BadRequestException());
       await expect(controller.delete('c1')).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
+  describe('deleteAll', () => {
+    it('should call clearSearchQueryCache and return void', () => {
+      const result = controller.deleteAll();
+
+      expect(serviceMock.clearSearchQueryCache).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
     });
   });
 });

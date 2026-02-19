@@ -1,4 +1,14 @@
-import { Controller, Get, Put, Delete, Param, Body, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Post,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -92,5 +102,19 @@ export class UserController {
   @Throttable(60, 3)
   async delete(@Param('id') id: string): Promise<void> {
     return this.userService.deleteUser(id);
+  }
+
+  @Delete()
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Reset all user related caches.',
+  })
+  @ApiNoContentResponse({ description: 'Resetted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  async deleteAll(): Promise<void> {
+    return await this.userService.resetAllUsersCache();
   }
 }

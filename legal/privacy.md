@@ -76,19 +76,33 @@ A rendszer a visszaéléseket, támadásokat (pl. DDoS) és hibás kéréseket k
 
 ### Hibabejelentés
 
-A felhasználó hibajelentést küldhet a kliensen keresztül.
+A felhasználó a kliensen keresztül önkéntes alapon hibajelentést küldhet. Az Adatkezelő a bejelentést a kapott adatok alapján megvizsgálja, és amennyiben a hiba jellege megköveteli, az email címen keresztül kapcsolatba léphet az Érintettel a hiba további kivizsgálása vagy egyedi megoldási javaslat közlése céljából.
 
 - **Kezelt adatok:** email cím, kliens verzió, operációs rendszer típusa, meghívott API végpont, felhasználói cselekmény, stack trace, egyéb üzenet, időbélyeg.
 
-- **Cél:** Az informatikai rendszer javítása, működési hibák vizsgálata.
+- **Cél:** Az informatikai rendszer javítása, működési hibák vizsgálata. Kapcsolatfelvétel az Érintettel az email címén keresztül.
 
 - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
 
 - **Időtartam:** legfeljebb 1 év.
 
+- **Különös törlési szabály:** A felhasználói fiók (profil) törlése **nem vonja magával** a korábban beküldött hibajelentések automatikus törlését, azok a hibajavítási folyamatok folytonossága érdekében a megőrzési idő végéig tárolódnak. Az Érintett az elfeledtetéshez való jogát (törlési kérelmét) a hibajelentésekre vonatkozóan a maximális 1 éves időtartamon belül bármikor, egyedileg is gyakorolhatja a megadott elérhetőségen.
+
 ### GitHub alapú kurzusjavaslat
 
 Amennyiben a felhasználó a CourseHub GitHub repository-n keresztül küld kurzus javaslatot, úgy az adatkezelésére a GitHub saját [adatvédelmi szabályzata](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) vonatkozik.
+
+## Inaktivitás és automatikus adattörlés
+
+A GDPR 5. cikk (1) bekezdés c) pontjában rögzített adattakarékosság elve, valamint az e) pont szerinti korlátozott tárolhatóság elve alapján az Adatkezelő törekszik arra, hogy ne tároljon olyan személyes adatokat, amelyek a cél eléréséhez már nem szükségesek.
+
+- Törlési feltétel: Amennyiben az Érintett a fiókjában 12 hónapig (1 évig) nem végez aktív tevékenységet (ideértve a ping eseményeket, új kurzus rögzítését vagy meglévő kurzus-preferenciák módosítását), a rendszer a felhasználói profilt inaktívnak minősíti.
+
+- A törlés folyamata: Az inaktivitási időszak leteltét követően a rendszer automatikusan és véglegesen törli a Felhasználóhoz kapcsolódó összes személyes adatot.
+
+- Következmény: A törlést követően az adatok nem állíthatóak helyre. Amennyiben az Érintett újra igénybe kívánja venni a szolgáltatást, új regisztráció (hitelesítés) szükséges.
+
+- Kivétel: A biztonsági naplókban és a rendszerdiagnosztikai ("ping") adatokban szereplő azonosítók a fenti 1 éves megőrzési idő után, vagy a fiók törlésekor azonnal anonimizálásra kerülnek, így azok a továbbiakban nem minősülnek személyes adatnak.
 
 ## Adatbiztonsági intézkedések
 

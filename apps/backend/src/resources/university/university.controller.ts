@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiCreatedResponse,
@@ -88,9 +98,24 @@ export class UniversityController {
     description: 'Deletes an existing university',
   })
   @ApiNoContentResponse({ description: 'Deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @DatabaseOperation()
   @Throttable(60, 3)
   async remove(@Param('id') id: string): Promise<void> {
     await this.universityService.remove(id);
+  }
+
+  @Delete()
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Reset all university related caches.',
+  })
+  @ApiNoContentResponse({ description: 'Resetted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  async deleteAll(): Promise<void> {
+    return await this.universityService.resetAllCache();
   }
 }

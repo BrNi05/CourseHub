@@ -1,13 +1,15 @@
-/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { CourseService } from './course.service.js';
-import type { PrismaService } from '../../prisma/prisma.service.js';
 
 describe('CourseService', () => {
   let service: CourseService;
-  let prisma: PrismaService;
+  let prisma: any;
+  let cacheManager: any;
+  let eventEmitter: any;
 
   beforeEach(() => {
     prisma = {
@@ -21,32 +23,76 @@ describe('CourseService', () => {
       faculty: {
         findUnique: vi.fn(),
       },
-    } as unknown as PrismaService;
+    };
 
-    service = new CourseService(prisma);
+    cacheManager = {
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+    };
+
+    eventEmitter = {
+      emitAsync: vi.fn(),
+    };
+
+    service = new CourseService(cacheManager, prisma, eventEmitter);
   });
 
   describe('findById', () => {
-    it('should return a course by ID', async () => {
-      const course = { id: 'c1', name: 'Math', code: 'M101', facultyId: 'f1' };
-      (prisma.course.findUniqueOrThrow as any).mockResolvedValue(course);
+    it('should return course from DB and cache it if not cached', async () => {
+      const course = { id: 'c1', name: 'Math', code: 'M101' };
+
+      cacheManager.get.mockResolvedValue(null);
+      prisma.course.findUniqueOrThrow.mockResolvedValue(course);
 
       const result = await service.findById('c1');
-      expect(prisma.course.findUniqueOrThrow).toHaveBeenCalledWith({ where: { id: 'c1' } });
+
+      expect(cacheManager.get).toHaveBeenCalledWith('course_c1');
+
+      expect(prisma.course.findUniqueOrThrow).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+      });
+
+      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', course, 0);
+      expect(result).toEqual(course);
+    });
+
+    it('should return cached course if exists', async () => {
+      const course = { id: 'c1', name: 'Math' };
+
+      cacheManager.get.mockResolvedValue(course);
+
+      const result = await service.findById('c1');
+
+      expect(prisma.course.findUniqueOrThrow).not.toHaveBeenCalled();
       expect(result).toEqual(course);
     });
   });
 
   describe('create', () => {
-    it('should create a course if code starts with university abbrev', async () => {
-      const dto = { name: 'Databases', code: 'BMECS101', facultyId: 'f1' };
-      const faculty = { id: 'f1', university: { abbrevName: 'BME' } };
+    it('should create course if code starts with university abbrev', async () => {
+      const dto = {
+        name: 'Databases',
+        code: 'BMECS101',
+        facultyId: 'f1',
+      };
 
-      (prisma.faculty.findUnique as any).mockResolvedValue(faculty);
-      (prisma.course.create as any).mockResolvedValue({ ...dto, id: 'c1' });
+      const faculty = {
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      };
+
+      const createdCourse = { ...dto, id: 'c1' };
+
+      prisma.faculty.findUnique.mockResolvedValue(faculty);
+      prisma.course.create.mockResolvedValue(createdCourse);
 
       const result = await service.create(dto);
-      expect(result).toEqual({ ...dto, id: 'c1' });
+
+      expect(prisma.faculty.findUnique).toHaveBeenCalledWith({
+        where: { id: dto.facultyId },
+        include: { university: true },
+      });
 
       expect(prisma.course.create).toHaveBeenCalledWith({
         data: {
@@ -60,13 +106,23 @@ describe('CourseService', () => {
           courseExtraUrl: '',
         },
       });
+
+      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', createdCourse, 0);
+
+      expect(result).toEqual(createdCourse);
     });
 
     it('should throw if course code does not start with university abbrev', async () => {
-      const dto = { name: 'Databases', code: 'CS101', facultyId: 'f1' };
-      const faculty = { id: 'f1', university: { abbrevName: 'BME' } };
+      const dto = {
+        name: 'Databases',
+        code: 'CS101',
+        facultyId: 'f1',
+      };
 
-      (prisma.faculty.findUnique as any).mockResolvedValue(faculty);
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
 
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
     });
@@ -77,8 +133,8 @@ describe('CourseService', () => {
       const dto = {
         name: 'Advanced DB',
         code: 'BMECS102',
-        coursePageUrl: undefined,
       };
+
       const existingCourse = {
         id: 'c1',
         facultyId: 'f1',
@@ -89,22 +145,29 @@ describe('CourseService', () => {
         courseTeamsUrl: 'https://oldteams.com',
         courseExtraUrl: 'https://oldextra.com',
       };
-      const faculty = { id: 'f1', university: { abbrevName: 'BME' } };
 
-      (prisma.course.findUniqueOrThrow as any).mockResolvedValue(existingCourse);
-      (prisma.faculty.findUnique as any).mockResolvedValue(faculty);
-      (prisma.course.update as any).mockResolvedValue({ ...existingCourse, ...dto });
+      prisma.course.findUniqueOrThrow.mockResolvedValue(existingCourse);
+
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
+
+      prisma.course.update.mockResolvedValue({
+        ...existingCourse,
+        ...dto,
+      });
 
       const result = await service.update('c1', dto);
 
-      expect(result).toEqual({ ...existingCourse, ...dto });
+      expect(cacheManager.del).toHaveBeenCalledWith('course_c1');
 
       expect(prisma.course.update).toHaveBeenCalledWith({
         where: { id: 'c1' },
         data: {
           name: dto.name,
           code: dto.code,
-          facultyId: undefined,
+          facultyId: existingCourse.facultyId,
           coursePageUrl: existingCourse.coursePageUrl,
           courseTadUrl: existingCourse.courseTadUrl,
           courseMoodleUrl: existingCourse.courseMoodleUrl,
@@ -112,44 +175,65 @@ describe('CourseService', () => {
           courseExtraUrl: existingCourse.courseExtraUrl,
         },
       });
+
+      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', { ...existingCourse, ...dto }, 0);
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(result).toEqual({ ...existingCourse, ...dto });
     });
 
     it('should throw if updated code does not start with university abbrev', async () => {
       const dto = { code: 'CS102' };
-      const existingCourse = { id: 'c1', facultyId: 'f1', code: 'BMECS101' };
-      const faculty = { id: 'f1', university: { abbrevName: 'BME' } };
 
-      (prisma.course.findUniqueOrThrow as any).mockResolvedValue(existingCourse);
-      (prisma.faculty.findUnique as any).mockResolvedValue(faculty);
+      prisma.course.findUniqueOrThrow.mockResolvedValue({
+        id: 'c1',
+        facultyId: 'f1',
+        code: 'BMECS101',
+      });
+
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
 
       await expect(service.update('c1', dto)).rejects.toThrow(BadRequestException);
     });
   });
 
   describe('remove', () => {
-    it('should delete a course', async () => {
-      (prisma.course.delete as any).mockResolvedValue({});
+    it('should delete course, clear cache and emit event', async () => {
+      prisma.course.delete.mockResolvedValue({});
+
       await service.remove('c1');
-      expect(prisma.course.delete).toHaveBeenCalledWith({ where: { id: 'c1' } });
+
+      expect(prisma.course.delete).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+      });
+
+      expect(cacheManager.del).toHaveBeenCalledWith('course_c1');
+
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted');
     });
   });
 
   describe('findByQuery', () => {
-    it('should return courses matching query', async () => {
-      const courses = [
-        { id: 'c1', name: 'Math', code: 'BMEMATH101' },
-        { id: 'c2', name: 'Physics', code: 'BMEPHY101' },
-      ];
-      (prisma.course.findMany as any).mockResolvedValue(courses);
+    const query = {
+      universityId: 'u1',
+      courseName: 'Math',
+      courseCode: undefined,
+    };
 
-      const result = await service.findByQuery({
-        universityId: 'u1',
-        courseName: 'Math',
-        courseCode: undefined,
-      });
+    it('should query DB and cache result on first call and return cached on second call', async () => {
+      const courses = [{ id: 'c1', name: 'Math', code: 'BMEMATH101' }];
 
-      expect(result).toEqual(courses);
-      expect(prisma.course.findMany).toHaveBeenCalled();
+      prisma.course.findMany.mockResolvedValue(courses);
+
+      const firstResult = await service.findByQuery(query);
+      expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
+      expect(firstResult).toEqual(courses);
+
+      const secondResult = await service.findByQuery(query);
+      expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
+      expect(secondResult).toBe(firstResult);
     });
   });
 });

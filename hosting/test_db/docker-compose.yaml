@@ -26,8 +26,35 @@ services:
     labels:
       - "dozzle.sigsegv.include=true"
 
+  redis:
+      image: redis:latest
+      container_name: coursehub_redis_test
+      restart: unless-stopped
+      command: redis-server --appendonly yes --appendfsync everysec --requirepass ${REDIS_PASSWORD} --maxmemory 1gb --maxmemory-policy allkeys-lru
+      ports:
+        - "10.200.0.1:${REDIS_PORT}:6379"
+      env_file:
+        - .env
+      volumes:
+        - redis_data:/data
+      healthcheck:
+        test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+        interval: 30s
+        timeout: 5s
+        retries: 5
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "50m"
+          max-file: "5"
+      networks:
+        - coursehub-network
+      labels:
+        - "dozzle.sigsegv.include=true"
+
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   coursehub-network:

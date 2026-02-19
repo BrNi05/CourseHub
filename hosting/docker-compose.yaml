@@ -26,6 +26,31 @@ services:
     labels:
       - "dozzle.sigsegv.include=true"
 
+  redis:
+      image: redis:latest
+      container_name: coursehub_redis_prod
+      restart: unless-stopped
+      command: redis-server --appendonly yes --appendfsync everysec --requirepass ${REDIS_PASSWORD} --maxmemory 1gb --maxmemory-policy allkeys-lru
+      ports:
+        - "10.200.0.1:6379:6379"
+      volumes:
+        - redis_data:/data
+      healthcheck:
+        test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+        interval: 30s
+        timeout: 5s
+        retries: 5
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "50m"
+          max-file: "5"
+      networks:
+        - coursehub-network
+      labels:
+        - "dozzle.sigsegv.include=true"
+
+
   backend:
     image: ghcr.io/BrNi05/coursehub-backend:latest
     container_name: coursehub_backend_prod
@@ -61,3 +86,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:

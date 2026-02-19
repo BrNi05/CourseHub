@@ -26,6 +26,7 @@ describe('UserController', () => {
       getUserById: vi.fn().mockResolvedValue(mockUser),
       updateUser: vi.fn().mockResolvedValue(mockUser),
       deleteUser: vi.fn().mockResolvedValue(undefined),
+      resetAllUsersCache: vi.fn().mockResolvedValue(undefined),
     };
 
     controller = new UserController(serviceMock as UserService);
@@ -74,6 +75,15 @@ describe('UserController', () => {
       await controller.delete('user1');
 
       expect(serviceMock.deleteUser).toHaveBeenCalledWith('user1');
+    });
+  });
+
+  describe('deleteAll', () => {
+    it('should call resetAllUsersCache and return void', async () => {
+      const result = await controller.deleteAll();
+
+      expect(serviceMock.resetAllUsersCache).toHaveBeenCalledTimes(1);
+      expect(result).toBeUndefined();
     });
   });
 });

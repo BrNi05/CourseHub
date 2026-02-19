@@ -23,6 +23,13 @@ ufw allow in on wg0 from 10.200.0.16 to 10.200.0.1 port 32000 proto tcp
 ufw allow in on wg0 from 10.200.0.17 to 10.200.0.1 port 32000 proto tcp
 ufw reload
 
+# Redis
+cat <<EOF > "/etc/sysctl.conf"
+vm.overcommit_memory = 1
+EOF
+
+sysctl -p
+
 # Create systemd service for compose up on boot
 cat <<EOF > /etc/systemd/system/compose-up-coursehub_test.service
 [Unit]

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { FacultyService } from './faculty.service.js';
@@ -8,12 +9,14 @@ import type { UpdateFacultyDto } from './dto/update-faculty.dto.js';
 describe('FacultyService', () => {
   let service: FacultyService;
   let prisma: PrismaService;
+  let eventEmitter: any;
 
   const mockFindMany = vi.fn();
   const mockFindUniqueOrThrow = vi.fn();
   const mockCreate = vi.fn();
   const mockUpdate = vi.fn();
   const mockDelete = vi.fn();
+  const mockEmitAsync = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,7 +31,9 @@ describe('FacultyService', () => {
       },
     } as unknown as PrismaService;
 
-    service = new FacultyService(prisma);
+    eventEmitter = { emitAsync: mockEmitAsync };
+
+    service = new FacultyService(prisma, eventEmitter);
   });
 
   describe('getAllByUniversity', () => {
@@ -44,6 +49,12 @@ describe('FacultyService', () => {
         orderBy: { name: 'asc' },
       });
       expect(result).toEqual(mockData);
+    });
+
+    it('should return empty array if no faculties exist', async () => {
+      mockFindMany.mockResolvedValue([]);
+      const result = await service.getAllByUniversity('u2');
+      expect(result).toEqual([]);
     });
   });
 
@@ -92,15 +103,26 @@ describe('FacultyService', () => {
       });
       expect(result).toEqual(mockResult);
     });
+
+    it('should throw if faculty does not exist', async () => {
+      mockUpdate.mockRejectedValue(new Error('Not found'));
+      await expect(service.update('nonexistent', {} as any)).rejects.toThrow('Not found');
+    });
   });
 
   describe('remove', () => {
-    it('should delete a faculty by id', async () => {
+    it('should delete a faculty by id and emit event', async () => {
       mockDelete.mockResolvedValue(undefined);
 
       await service.remove('f1');
 
       expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'f1' } });
+      expect(mockEmitAsync).toHaveBeenCalledWith('faculty.deleted');
+    });
+
+    it('should propagate error if delete fails', async () => {
+      mockDelete.mockRejectedValue(new Error('Delete failed'));
+      await expect(service.remove('f1')).rejects.toThrow('Delete failed');
     });
   });
 });

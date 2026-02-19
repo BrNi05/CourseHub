@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UniversityService } from './university.service.js';
@@ -7,104 +8,158 @@ import type { UpdateUniversityDto } from './dto/update-university.dto.js';
 
 describe('UniversityService', () => {
   let service: UniversityService;
-  let prisma: PrismaService;
-
-  const mockFindMany = vi.fn();
-  const mockCreate = vi.fn();
-  const mockUpdate = vi.fn();
-  const mockDelete = vi.fn();
+  let prisma: any;
+  let cacheManager: any;
+  let eventEmitter: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
 
     prisma = {
       university: {
-        findMany: mockFindMany,
-        create: mockCreate,
-        update: mockUpdate,
-        delete: mockDelete,
+        findMany: vi.fn(),
+        create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
       },
     } as unknown as PrismaService;
 
-    service = new UniversityService(prisma);
+    cacheManager = {
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+    };
+
+    eventEmitter = {
+      emitAsync: vi.fn(),
+    };
+
+    service = new UniversityService(cacheManager, prisma, eventEmitter);
   });
 
   describe('findAll', () => {
-    it('should return universities without faculties', async () => {
-      const mockData = [{ id: '1', name: 'Test Uni' }];
-      mockFindMany.mockResolvedValue(mockData);
+    it('should return universities from cache if available', async () => {
+      const cached = [{ id: '1', name: 'Cached Uni' }];
+      cacheManager.get.mockResolvedValue(cached);
 
       const result = await service.findAll();
 
-      expect(mockFindMany).toHaveBeenCalledWith({
+      expect(cacheManager.get).toHaveBeenCalledWith('all_universities_nofaculties');
+      expect(prisma.university.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual(cached);
+    });
+
+    it('should query DB and cache result if not cached', async () => {
+      const dbData = [{ id: '1', name: 'DB Uni' }];
+      cacheManager.get.mockResolvedValue(null);
+      prisma.university.findMany.mockResolvedValue(dbData);
+
+      const result = await service.findAll();
+
+      expect(prisma.university.findMany).toHaveBeenCalledWith({
         include: { faculties: false },
         orderBy: { name: 'asc' },
       });
 
-      expect(result).toEqual(mockData);
+      expect(cacheManager.set).toHaveBeenCalledWith('all_universities_nofaculties', dbData);
+      expect(result).toEqual(dbData);
     });
   });
 
   describe('findAllWithFaculties', () => {
-    it('should return universities with faculties', async () => {
-      const mockData = [{ id: '1', name: 'Test Uni', faculties: [{ id: 'f1' }] }];
-      mockFindMany.mockResolvedValue(mockData);
+    it('should return universities from cache if available', async () => {
+      const cached = [{ id: '1', name: 'Cached Uni', faculties: [] }];
+      cacheManager.get.mockResolvedValue(cached);
 
       const result = await service.findAllWithFaculties();
 
-      expect(mockFindMany).toHaveBeenCalledWith({
+      expect(cacheManager.get).toHaveBeenCalledWith('all_universities_withfaculties');
+      expect(prisma.university.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual(cached);
+    });
+
+    it('should query DB and cache result if not cached', async () => {
+      const dbData = [{ id: '1', name: 'DB Uni', faculties: [] }];
+      cacheManager.get.mockResolvedValue(null);
+      prisma.university.findMany.mockResolvedValue(dbData);
+
+      const result = await service.findAllWithFaculties();
+
+      expect(prisma.university.findMany).toHaveBeenCalledWith({
         include: { faculties: true },
         orderBy: { name: 'asc' },
       });
 
-      expect(result).toEqual(mockData);
+      expect(cacheManager.set).toHaveBeenCalledWith('all_universities_withfaculties', dbData);
+      expect(result).toEqual(dbData);
     });
   });
 
   describe('create', () => {
-    it('should create a university', async () => {
+    it('should clear caches and create a university', async () => {
       const dto: CreateUniversityDto = { name: 'New Uni' } as any;
-      const mockResult = { id: '1', ...dto };
+      const created = { id: '1', ...dto };
 
-      mockCreate.mockResolvedValue(mockResult);
+      cacheManager.del.mockResolvedValue(undefined);
+      prisma.university.create.mockResolvedValue(created);
 
       const result = await service.create(dto);
 
-      expect(mockCreate).toHaveBeenCalledWith({
-        data: dto,
-      });
+      // Cache cleared
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
 
-      expect(result).toEqual(mockResult);
+      expect(prisma.university.create).toHaveBeenCalledWith({ data: dto });
+      expect(result).toEqual(created);
     });
   });
 
   describe('update', () => {
-    it('should update a university', async () => {
+    it('should clear caches and update a university', async () => {
       const dto: UpdateUniversityDto = { name: 'Updated Uni' } as any;
-      const mockResult = { id: '1', ...dto };
+      const updated = { id: '1', ...dto };
 
-      mockUpdate.mockResolvedValue(mockResult);
+      cacheManager.del.mockResolvedValue(undefined);
+      prisma.university.update.mockResolvedValue(updated);
 
       const result = await service.update('1', dto);
 
-      expect(mockUpdate).toHaveBeenCalledWith({
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
+
+      expect(prisma.university.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: dto,
       });
 
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(updated);
     });
   });
 
   describe('remove', () => {
-    it('should delete a university', async () => {
-      mockDelete.mockResolvedValue(undefined);
+    it('should clear caches, delete university, and emit event', async () => {
+      cacheManager.del.mockResolvedValue(undefined);
+      prisma.university.delete.mockResolvedValue(undefined);
+      eventEmitter.emitAsync.mockResolvedValue(undefined);
 
       await service.remove('1');
 
-      expect(mockDelete).toHaveBeenCalledWith({
-        where: { id: '1' },
-      });
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
+
+      expect(prisma.university.delete).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('university.deleted');
+    });
+  });
+
+  describe('resetAllCache', () => {
+    it('should delete both caches', async () => {
+      cacheManager.del.mockResolvedValue(undefined);
+
+      await service.resetAllCache();
+
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
+      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
     });
   });
 });

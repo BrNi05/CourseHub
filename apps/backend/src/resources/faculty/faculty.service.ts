@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 import { Faculty } from './entity/faculty.entity.js';
@@ -8,7 +10,10 @@ import { FacultyWithoutCoursesDto } from './dto/faculty-response-nocourse.dto.js
 
 @Injectable()
 export class FacultyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2
+  ) {}
 
   async getAllByUniversity(universityId: string): Promise<FacultyWithoutCoursesDto[]> {
     return await this.prisma.faculty.findMany({
@@ -39,5 +44,7 @@ export class FacultyService {
 
   async remove(id: string): Promise<void> {
     await this.prisma.faculty.delete({ where: { id } });
+
+    await this.eventEmitter.emitAsync('faculty.deleted');
   }
 }

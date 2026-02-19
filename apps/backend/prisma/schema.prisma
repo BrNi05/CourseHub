@@ -105,8 +105,8 @@ model ClientPing {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
 
-  userId    String   // internal user ID, not the Google ID
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?   // Internal user ID, not the Google ID
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   date      DateTime // normalized UTC start-of-day
 
