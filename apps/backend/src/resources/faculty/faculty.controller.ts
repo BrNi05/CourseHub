@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiNoContentResponse,
@@ -24,8 +35,9 @@ export class FacultyController {
   constructor(private readonly facultyService: FacultyService) {}
 
   @Get()
+  @Admin()
   @ApiOperation({
-    summary: 'PUBLIC',
+    summary: 'ADMIN',
     description:
       'Get faculties of a university without courses. Specify universityId as query parameter',
   })
@@ -35,22 +47,23 @@ export class FacultyController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 10000)
+  @Throttable(60, 3)
   async getAll(@Query() query: GetFacultiesQueryDto) {
     return this.facultyService.getAllByUniversity(query.universityId);
   }
 
   @Get(':id')
+  @Admin()
   @DatabaseOperation()
   @ApiOperation({
-    summary: 'PUBLIC',
+    summary: 'ADMIN',
     description: 'Get faculty by ID with courses',
   })
   @ApiOkResponse({
     type: Faculty,
     description: 'Success',
   })
-  @Throttable(60, 10000)
+  @Throttable(60, 3)
   async getOne(@Param('id') id: string) {
     return this.facultyService.getOne(id);
   }
@@ -85,6 +98,7 @@ export class FacultyController {
   @Admin()
   @ApiOperation({ summary: 'ADMIN', description: 'Delete existing faculty' })
   @ApiNoContentResponse({ description: 'Deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @DatabaseOperation()
   @Throttable(60, 3)
   async remove(@Param('id') id: string) {
