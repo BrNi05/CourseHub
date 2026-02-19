@@ -83,6 +83,20 @@ export class CourseController {
     return this.courseService.update(id, dto);
   }
 
+  @Delete('cache')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Reset all course related caches',
+  })
+  @ApiNoContentResponse({ description: 'Resetted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  deleteAll(): void {
+    return this.courseService.clearSearchQueryCache();
+  }
+
   @Delete(':id')
   @Admin()
   @ApiOperation({
@@ -95,19 +109,5 @@ export class CourseController {
   @Throttable(60, 3)
   async delete(@Param('id') id: string): Promise<void> {
     return this.courseService.remove(id);
-  }
-
-  @Delete()
-  @Admin()
-  @ApiOperation({
-    summary: 'ADMIN',
-    description: 'Reset all course related caches.',
-  })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @DatabaseOperation()
-  @Throttable(60, 1)
-  deleteAll(): void {
-    return this.courseService.clearSearchQueryCache();
   }
 }

@@ -91,6 +91,20 @@ export class UniversityController {
     return this.universityService.update(id, dto);
   }
 
+  @Delete('cache')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Reset all university related caches',
+  })
+  @ApiNoContentResponse({ description: 'Resetted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  async deleteAll(): Promise<void> {
+    return await this.universityService.resetAllCache();
+  }
+
   @Delete(':id')
   @Admin()
   @ApiOperation({
@@ -103,19 +117,5 @@ export class UniversityController {
   @Throttable(60, 3)
   async remove(@Param('id') id: string): Promise<void> {
     await this.universityService.remove(id);
-  }
-
-  @Delete()
-  @Admin()
-  @ApiOperation({
-    summary: 'ADMIN',
-    description: 'Reset all university related caches.',
-  })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @DatabaseOperation()
-  @Throttable(60, 1)
-  async deleteAll(): Promise<void> {
-    return await this.universityService.resetAllCache();
   }
 }

@@ -13,9 +13,9 @@ import { Serialize } from './decorators/serialize.decorator.js';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+  @Get('health')
   @ApiOperation({
-    summary: 'Health Check',
+    summary: 'PUBLIC',
     description:
       'Health check endpoint for Docker and CourseHub clients. Health status is determined based on server load.',
   })

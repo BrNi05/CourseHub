@@ -127,7 +127,7 @@ describe('CourseController', () => {
     });
   });
 
-  describe('deleteAll', () => {
+  describe('deleteAll-cache', () => {
     it('should call clearSearchQueryCache and return void', () => {
       const result = controller.deleteAll();
 

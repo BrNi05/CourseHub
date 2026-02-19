@@ -91,6 +91,20 @@ export class UserController {
     return this.userService.updateUser(id, dto);
   }
 
+  @Delete('cache')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Reset all user related caches',
+  })
+  @ApiNoContentResponse({ description: 'Resetted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  async deleteAll(): Promise<void> {
+    return await this.userService.resetAllUsersCache();
+  }
+
   @Delete(':id')
   @RequiresAuthAndOwnership()
   @ApiOperation({
@@ -102,19 +116,5 @@ export class UserController {
   @Throttable(60, 3)
   async delete(@Param('id') id: string): Promise<void> {
     return this.userService.deleteUser(id);
-  }
-
-  @Delete()
-  @Admin()
-  @ApiOperation({
-    summary: 'ADMIN',
-    description: 'Reset all user related caches.',
-  })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @DatabaseOperation()
-  @Throttable(60, 1)
-  async deleteAll(): Promise<void> {
-    return await this.userService.resetAllUsersCache();
   }
 }

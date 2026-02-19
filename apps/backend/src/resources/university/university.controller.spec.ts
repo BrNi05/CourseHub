@@ -92,7 +92,7 @@ describe('UniversityController', () => {
     });
   });
 
-  describe('deleteAll', () => {
+  describe('deleteAll-cache', () => {
     it('should call resetAllUniversityCache and return void', async () => {
       const result = await controller.deleteAll();
 
