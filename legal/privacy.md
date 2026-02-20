@@ -1,12 +1,12 @@
 # CourseHub Adatkezelési Tájékoztató
 
+**Hatályba lép:** 2026.02.20. (első verzió)
+
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
 - **GDPR:** Az Európai Parlament és a Tanács (EU) 2016/679 Rendelete.
 
 - **Infotv.:** Az információs önrendelkezési jogról és az információszabadságról szóló 2011. évi CXII. törvény.
-
-**Hatályba lép:** 2026.02.18. (első verzió)
 
 ## Az Adatkezelő adatai
 
@@ -44,7 +44,7 @@ Személyes adatokat kizárólag meghatározott célból, jogalappal rendelkező 
 
 - **Kezelt adatok:** A felhasználó által rögzített kurzusok listája és esetleges kapcsolódó beállítások.
 
-- **Cél:** A szolgáltatás személyre szabása.
+- **Cél:** A szolgáltatás személyre szabása és a felhasználói élmény javítása. _Felhívjuk az Érintettek figyelmét, hogy ilyen módon az Adatkezelő birtokába juthatnak olyan közvetett információk, amelyekből következtetni lehet az Érintett oktatási intézményére (pl. egyetem, kar) és tanulmányi területére (szak)._
 
 - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
 
