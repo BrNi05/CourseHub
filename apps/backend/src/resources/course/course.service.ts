@@ -15,7 +15,7 @@ import { CourseQueryDto } from './dto/query-course.dto.js';
 @Injectable()
 export class CourseService {
   private readonly queryCache = new LRUCache<string, Course[]>({
-    max: 10000, // max 5000 queries in cache
+    max: 10000, // max 10000 queries in cache
     ttl: 1000 * 60 * 60 * 24 * 5, // 5 days
   });
 
