@@ -3,14 +3,15 @@ import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'node:path';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 import Joi from 'joi';
-
-import { CacheModule } from '@nestjs/cache-manager';
-import KeyvRedis from '@keyv/redis';
 
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ResourcesModule } from './resources/resources.module.js';
@@ -78,7 +79,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       useFactory: (configService: ConfigService) => ({
         store: new KeyvRedis(
           `redis://:${encodeURIComponent(
-            configService.getOrThrow('REDIS_PASSWORD'),
+            configService.getOrThrow('REDIS_PASSWORD')
           )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
         ),
         ttl: 0, // no expiration by default
@@ -90,6 +91,9 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       delimiter: '.',
       maxListeners: 10,
       ignoreErrors: false,
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'build', 'public'),
     }),
   ],
   controllers: [AppController],

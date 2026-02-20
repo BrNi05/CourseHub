@@ -1,0 +1,41 @@
+.swagger-button-container {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.swagger-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+  margin-left: 12px;
+  flex-shrink: 0;
+  order: 2;
+}
+
+.swagger-button:hover {
+  background-color: #45a049;
+  transform: translateY(-0.5px);
+}
+
+.swagger-ui .topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding-right: 8px;
+}
+
+.swagger-ui .topbar-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
+}

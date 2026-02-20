@@ -125,7 +125,8 @@ export default defineConfig([
       '**/generated/**',
       '**/.turbo/**',
       'dev-tools/**',
-      'packages/sdk/src/**'
+      'packages/sdk/src/**',
+      'apps/backend/public/**',
     ],
   },
 

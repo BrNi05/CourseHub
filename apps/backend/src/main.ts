@@ -43,6 +43,8 @@ try {
     origin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: false,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   // HTTPS(S) headers configuration
@@ -66,7 +68,7 @@ try {
 
   // Redirect non-API requests to the GitHub repo
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.path.startsWith('/api')) {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/swagger')) {
       return res.redirect('https://github.com/BrNi05/CourseHub');
     }
     next();

@@ -10,10 +10,6 @@ export function setupSwagger(app: INestApplication<unknown>): OpenAPIObject {
     // This will also be reflected in the SDK: Bearer header / access token will be expected for each function
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'jwt' // protected endpoints (SAML and JWT auth)
-    )
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
       'jwt' // used by both @RequiresAuth() and @Admin()
     )
     .build();
@@ -30,6 +26,8 @@ export function setupSwagger(app: INestApplication<unknown>): OpenAPIObject {
       deepLinking: true,
     },
     customSiteTitle: 'CourseHub API Docs',
+    customCssUrl: '/swagger/custom.css',
+    customJs: ['/swagger/custom.js'],
   });
 
   return swaggerFactory;
