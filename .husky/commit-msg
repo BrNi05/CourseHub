@@ -2,7 +2,7 @@
 
 msg=$(cat "$1")
 
-if ! echo "$msg" | grep -qE '^(FEATURE|FIX|DOCS|REFACTOR|PERF|TEST|BUILD|CI|CHORE|SECURITY|LEGAL|GITHUB|REVERT|DEV|HOSTING): .{1,}$'; then
+if ! echo "$msg" | grep -qE '^(FEATURE|FIX|DOCS|REFACTOR|PERF|TEST|BUILD|CI|CHORE|SECURITY|LEGAL|GITHUB|REVERT|DEV|HOSTING|VERSIONING|PACKAGES): .{1,}$'; then
   echo "Invalid commit message format!"
   exit 1
 fi
