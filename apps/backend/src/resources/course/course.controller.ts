@@ -1,21 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  Query,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiNoContentResponse,
-  ApiOperation,
-  ApiCreatedResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiCreatedResponse } from '@nestjs/swagger';
 
 import { Course } from './entity/course.entity.js';
 import { CourseService } from './course.service.js';
@@ -27,6 +11,7 @@ import { Admin } from '../../decorators/admin.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { Serialize } from '../../decorators/serialize.decorator.js';
+import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
 
 @Controller('courses')
 @Serialize(Course)
@@ -89,8 +74,7 @@ export class CourseController {
     summary: 'ADMIN',
     description: 'Reset all course related caches',
   })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse('Resetted')
   @DatabaseOperation()
   @Throttable(60, 1)
   deleteAll(): void {
@@ -103,8 +87,7 @@ export class CourseController {
     summary: 'ADMIN',
     description: 'Deletes an existing course',
   })
-  @ApiNoContentResponse({ description: 'Deleted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse()
   @DatabaseOperation()
   @Throttable(60, 3)
   async delete(@Param('id') id: string): Promise<void> {

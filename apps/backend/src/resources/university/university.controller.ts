@@ -1,20 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiCreatedResponse,
-  ApiNoContentResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { ApiOkResponse, ApiCreatedResponse, ApiOperation } from '@nestjs/swagger';
 
 import { UniversityService } from './university.service.js';
 import { University } from './entity/university.entity.js';
@@ -26,6 +11,7 @@ import { Serialize } from '../../decorators/serialize.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Admin } from '../../decorators/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
+import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
 
 @Controller('universities')
 @Serialize(University)
@@ -97,8 +83,7 @@ export class UniversityController {
     summary: 'ADMIN',
     description: 'Reset all university related caches',
   })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse('Resetted')
   @DatabaseOperation()
   @Throttable(60, 1)
   async deleteAll(): Promise<void> {
@@ -111,8 +96,7 @@ export class UniversityController {
     summary: 'ADMIN',
     description: 'Deletes an existing university',
   })
-  @ApiNoContentResponse({ description: 'Deleted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse()
   @DatabaseOperation()
   @Throttable(60, 3)
   async remove(@Param('id') id: string): Promise<void> {

@@ -1,21 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Param,
-  Body,
-  Query,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiOkResponse,
-  ApiNoContentResponse,
-  ApiOperation,
-  ApiCreatedResponse,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiCreatedResponse } from '@nestjs/swagger';
 
 import { Faculty } from './entity/faculty.entity.js';
 import { FacultyService } from './faculty.service.js';
@@ -28,6 +12,7 @@ import { Serialize } from '../../decorators/serialize.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Admin } from '../../decorators/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
+import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
 
 @Controller('faculties')
 @Serialize(Faculty)
@@ -97,8 +82,7 @@ export class FacultyController {
   @Delete(':id')
   @Admin()
   @ApiOperation({ summary: 'ADMIN', description: 'Delete existing faculty' })
-  @ApiNoContentResponse({ description: 'Deleted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse()
   @DatabaseOperation()
   @Throttable(60, 3)
   async remove(@Param('id') id: string) {

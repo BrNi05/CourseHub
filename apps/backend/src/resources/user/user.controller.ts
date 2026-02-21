@@ -1,20 +1,5 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Delete,
-  Param,
-  Body,
-  Post,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiCreatedResponse,
-  ApiNoContentResponse,
-  ApiOkResponse,
-  ApiOperation,
-} from '@nestjs/swagger';
+import { Controller, Get, Put, Delete, Param, Body, Post } from '@nestjs/common';
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { User } from './entity/user.entity.js';
 import { UserService } from './user.service.js';
@@ -27,6 +12,7 @@ import { Admin } from '../../decorators/admin.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { RequiresAuthAndOwnership } from '../../decorators/ownership.decorator.js';
+import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
 
 @Controller('users')
 @Serialize(User)
@@ -97,8 +83,7 @@ export class UserController {
     summary: 'ADMIN',
     description: 'Reset all user related caches',
   })
-  @ApiNoContentResponse({ description: 'Resetted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @DeletedResponse('Resetted')
   @DatabaseOperation()
   @Throttable(60, 1)
   async deleteAll(): Promise<void> {
@@ -111,7 +96,7 @@ export class UserController {
     summary: 'USER AUTH / ADMIN',
     description: 'Deletes an existing user from the database',
   })
-  @ApiNoContentResponse({ description: 'Deleted' })
+  @DeletedResponse()
   @DatabaseOperation()
   @Throttable(60, 3)
   async delete(@Param('id') id: string): Promise<void> {

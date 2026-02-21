@@ -16,6 +16,8 @@ import { Admin } from '../../decorators/admin.decorator.js';
 import { RequiresAuthAndOwnership } from '../../decorators/ownership.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
+import { FileSystemOperation } from '../../decorators/filesys-operation.decorator.js';
+import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
 
 @Controller('client')
 export class ClientController {
@@ -56,6 +58,7 @@ export class ClientController {
   })
   @ApiCreatedResponse({ description: 'Error report received' })
   @Throttable(60, 20000)
+  @FileSystemOperation()
   async errorReport(@Param('id') userId: string, @Body() body: ErrorReportDto) {
     await this.clientService.reportError(userId, body);
   }
@@ -68,6 +71,7 @@ export class ClientController {
   })
   @ApiOkResponse({ description: 'Success', type: [ErrorReportResponseDto] })
   @Throttable(60, 3)
+  @FileSystemOperation()
   async listErrorReports(): Promise<ErrorReportResponseDto[]> {
     return await this.clientService.listErrorReports();
   }
@@ -78,8 +82,9 @@ export class ClientController {
     summary: 'ADMIN',
     description: 'Delete an error report',
   })
-  @ApiOkResponse({ description: 'Deleted' })
+  @DeletedResponse()
   @Throttable(60, 3)
+  @FileSystemOperation()
   async deleteErrorReport(@Param('fileName') fileName: string): Promise<void> {
     await this.clientService.deleteErrorReport(fileName);
   }
