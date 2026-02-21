@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { LoggerService } from '../../logger/logger.service.js';
@@ -9,7 +10,6 @@ import { LoggerService } from '../../logger/logger.service.js';
 import { User } from './entity/user.entity.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UserResponseWithoutPinnedDto } from './dto/user-response-nopinned.dto.js';
-import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class UserService {
@@ -119,7 +119,7 @@ export class UserService {
   }
 
   // Remove users who haven't updated their profile in the last year (inactive users)
-  @Cron('0 5 * * *')
+  @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async removeInactiveUsers(): Promise<void> {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
