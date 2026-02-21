@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: 'weekly'
     commit-message:
-      prefix: "Actions update: "
+      prefix: "ACTIONS: "
     labels:
       - "dependencies"
 
@@ -14,7 +14,7 @@ updates:
     schedule:
       interval: 'weekly'
     commit-message:
-      prefix: "Package update: "
+      prefix: "PACKAGES: "
     labels:
       - "dependencies"
     groups:
