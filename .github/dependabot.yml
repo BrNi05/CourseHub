@@ -3,9 +3,9 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
     commit-message:
-      prefix: "GitHub deps update: "
+      prefix: "Actions update: "
     labels:
       - "dependencies"
 
@@ -14,6 +14,71 @@ updates:
     schedule:
       interval: 'weekly'
     commit-message:
-      prefix: "CourseHub deps update: "
+      prefix: "Package update: "
     labels:
       - "dependencies"
+    groups:
+      root-dev:
+        patterns:
+          - "@eslint/*"
+          - "@hey-api/*"
+          - "@types/node"
+          - "@typescript-eslint/*"
+          - "eslint*"
+          - "globals"
+          - "prettier"
+          - "rimraf"
+          - "turbo"
+          - "typescript"
+          - "vue-eslint-parser"
+      nestjs:
+        patterns:
+          - "@nestjs/*"
+          - "@types/node"
+          - "reflect-metadata"
+          - "rxjs"
+          - "class-transformer"
+          - "class-validator"
+          - "express"
+          - "@types/express"
+
+      database-and-prisma:
+        patterns:
+          - "@prisma/*"
+          - "prisma"
+          - "pg"
+          - "@types/pg"
+      security-and-auth:
+        patterns:
+          - "passport*"
+          - "bcrypt"
+          - "@nestjs/jwt"
+          - "helmet"
+          - "hpp"
+          - "@types/bcrypt"
+          - "@types/hpp"
+          - "@types/passport*"
+      caching:
+        patterns:
+          - "cache-manager"
+          - "keyv"
+          - "@keyv/*"
+          - "lru-cache"
+      testing:
+        patterns:
+          - "vitest"
+          - "supertest"
+          - "@types/supertest"
+      tooling:
+        patterns:
+          - "joi"
+          - "semver"
+          - "@types/semver"
+          - "ts-node"
+          - "tsx"
+          - "ts-loader"
+          - "tsconfig-paths"
+          - "vite-tsconfig-paths"
+          - "cross-env"
+          - "dotenv"
+          - "source-map-support"
