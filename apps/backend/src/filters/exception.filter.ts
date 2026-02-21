@@ -38,6 +38,11 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
       this.logger.error(`${request.method} ${request.url} - ${message}`, exception.stack);
     }
 
+    // Prevent leaking paths on server static errors
+    if (message.includes('ENOENT') || request.url.includes('/assets')) {
+      message = 'Resource not found';
+    }
+
     const errorResponse = new ErrorResponse(status, message, request.url, request.method);
     response.status(status).json(errorResponse);
   }

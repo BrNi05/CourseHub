@@ -1,9 +1,11 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module.js';
 import { ConfigService } from '@nestjs/config';
+
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Request, Response, NextFunction } from 'express';
+
+import { AppModule } from './app.module.js';
 
 // Security
 import helmet from 'helmet';
@@ -67,8 +69,9 @@ try {
   app.set('trust proxy', 1);
 
   // Redirect non-API requests to the GitHub repo
+  // Static assets are served from /assets, those are allowed
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.path.startsWith('/api') && !req.path.startsWith('/swagger')) {
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/assets')) {
       return res.redirect('https://github.com/BrNi05/CourseHub');
     }
     next();

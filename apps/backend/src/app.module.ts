@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
@@ -86,6 +87,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       }),
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
     EventEmitterModule.forRoot({
       wildcard: true,
       delimiter: '.',
@@ -94,6 +96,11 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'build', 'public'),
+      serveRoot: '/assets',
+      exclude: ['/api'],
+      serveStaticOptions: {
+        fallthrough: false, // An error here will reach to the global exception filter
+      },
     }),
   ],
   controllers: [AppController],
