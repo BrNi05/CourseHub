@@ -1,5 +1,5 @@
 /* eslint-disable internal/no-serializer */
-import { Controller, Post, Param, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import {
   ApiIAmATeapotResponse,
   ApiOkResponse,
@@ -10,7 +10,9 @@ import {
 import { ClientService } from './client.service.js';
 import { ClientIdDto } from './dto/client-id.dto.js';
 import { ErrorReportDto } from './dto/error-report.dto.js';
+import { ErrorReportResponseDto } from './dto/error-report-response.dto.js';
 
+import { Admin } from '../../decorators/admin.decorator.js';
 import { RequiresAuthAndOwnership } from '../../decorators/ownership.decorator.js';
 import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
@@ -56,5 +58,29 @@ export class ClientController {
   @Throttable(60, 20000)
   async errorReport(@Param('id') userId: string, @Body() body: ErrorReportDto) {
     await this.clientService.reportError(userId, body);
+  }
+
+  @Get('error-reports')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'List all error report files content',
+  })
+  @ApiOkResponse({ description: 'Success', type: [ErrorReportResponseDto] })
+  @Throttable(60, 3)
+  async listErrorReports(): Promise<ErrorReportResponseDto[]> {
+    return await this.clientService.listErrorReports();
+  }
+
+  @Delete('error-reports/:fileName')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Delete an error report',
+  })
+  @ApiOkResponse({ description: 'Deleted' })
+  @Throttable(60, 3)
+  async deleteErrorReport(@Param('fileName') fileName: string): Promise<void> {
+    await this.clientService.deleteErrorReport(fileName);
   }
 }

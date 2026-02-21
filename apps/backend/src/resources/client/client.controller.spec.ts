@@ -14,6 +14,8 @@ describe('ClientController', () => {
       isVersionSupported: vi.fn(),
       ping: vi.fn(),
       reportError: vi.fn(),
+      listErrorReports: vi.fn(),
+      deleteErrorReport: vi.fn(),
     };
 
     controller = new ClientController(clientService as unknown as ClientService);
@@ -74,5 +76,41 @@ describe('ClientController', () => {
     await expect(controller.errorReport('user-1', { message: 'x' } as any)).rejects.toThrow(
       'Write failed'
     );
+  });
+
+  it('should return error reports from service', async () => {
+    const reports = [
+      { userId: 'u1', message: 'err1' },
+      { userId: 'u2', message: 'err2' },
+    ];
+
+    clientService.listErrorReports.mockResolvedValue(reports);
+
+    const result = await controller.listErrorReports();
+
+    expect(clientService.listErrorReports).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(reports);
+  });
+
+  it('should propagate errors from clientService.listErrorReports', async () => {
+    clientService.listErrorReports.mockRejectedValue(new Error('Read failed'));
+
+    await expect(controller.listErrorReports()).rejects.toThrow('Read failed');
+  });
+
+  it('should call clientService.deleteErrorReport with correct fileName', async () => {
+    clientService.deleteErrorReport.mockResolvedValue(undefined);
+
+    const fileName = 'report-123.json';
+
+    await controller.deleteErrorReport(fileName);
+
+    expect(clientService.deleteErrorReport).toHaveBeenCalledWith(fileName);
+  });
+
+  it('should propagate errors from clientService.deleteErrorReport', async () => {
+    clientService.deleteErrorReport.mockRejectedValue(new Error('Delete failed'));
+
+    await expect(controller.deleteErrorReport('bad-file.json')).rejects.toThrow('Delete failed');
   });
 });

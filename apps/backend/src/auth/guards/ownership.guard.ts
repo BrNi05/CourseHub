@@ -48,10 +48,14 @@ export class UserOwnershipGuard implements CanActivate {
         select: { isAdmin: true },
       });
 
+      // If AuthAndOwnership() decorator is used not just for security but data input as well
+      const doNotAllowAdminOverride =
+        context.getHandler().name === 'ping' || context.getHandler().name === 'errorReport';
+
       // User does not exist anymore
       if (!user) throw new ForbiddenException('User not found');
 
-      if (user.isAdmin) {
+      if (user.isAdmin && !doNotAllowAdminOverride) {
         this.logger.debug(
           `Admin override granted for user ${payload.sub} (${payload.email}) on user resource ${resourceUserId}`
         );

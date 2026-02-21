@@ -1,7 +1,13 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { ErrorReportDto } from './dto/error-report.dto.js';
+import { ErrorReportResponseDto } from './dto/error-report-response.dto.js';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ClientPlatform } from '../../prisma/generated/client/client.js';
@@ -10,7 +16,6 @@ import { LoggerService } from '../../logger/logger.service.js';
 
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
-
 import * as semver from 'semver';
 
 @Injectable()
@@ -71,7 +76,7 @@ export class ClientService {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async cleanOldPings() {
     const cutoffDate = new Date();
-    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 365); // Ping log retention: 365 days ago
+    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 364); // Ping log retention: 364 days ago (buffer)
 
     try {
       await this.prisma.clientPing.deleteMany({
@@ -95,12 +100,61 @@ export class ClientService {
 
     const filePath = path.join(this.reportsDir, fileName);
 
-    const payload: ErrorReportDto & { userId: string; receivedAt: string } = {
+    const payload: ErrorReportResponseDto = {
       userId,
       receivedAt: new Date().toISOString(),
       ...data,
     };
 
     await fs.writeFile(filePath, JSON.stringify(payload, null, 2), 'utf-8');
+  }
+
+  async listErrorReports(): Promise<ErrorReportResponseDto[]> {
+    const files = await fs.readdir(this.reportsDir);
+
+    const reports: ErrorReportResponseDto[] = [];
+
+    for (const file of files) {
+      const content = await fs.readFile(path.join(this.reportsDir, file), 'utf-8');
+      reports.push(JSON.parse(content) as ErrorReportResponseDto);
+    }
+
+    return reports;
+  }
+
+  async deleteErrorReport(fileName: string): Promise<void> {
+    const filePath = path.join(this.reportsDir, fileName);
+
+    try {
+      await fs.unlink(filePath);
+    } catch {
+      this.logger.error(`Failed to delete error report: ${fileName}.`);
+      throw new InternalServerErrorException('Failed to delete error report');
+    }
+  }
+
+  // GDPR compliance: delete error reports after 30 days
+  // 28 days: ensure that no late deletation happens, e.g. due to server downtime
+  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  async cleanOldErrorReports() {
+    try {
+      const files = await fs.readdir(this.reportsDir);
+
+      const now = Date.now();
+
+      for (const file of files) {
+        // File name format: {email}-{timestamp}.json
+        const timestampPart = file.split('-').at(-1)!.replace('.json', '');
+        const timestamp = Number.parseInt(timestampPart, 10);
+
+        if (Number.isNaN(timestamp)) throw new TypeError(`Invalid file name format: ${file}`);
+
+        if (now - timestamp > 28 * 24 * 60 * 60 * 1000) {
+          await fs.unlink(path.join(this.reportsDir, file));
+        }
+      }
+    } catch {
+      this.logger.error('Failed to clean old error reports.');
+    }
   }
 }
