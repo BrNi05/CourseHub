@@ -6,6 +6,8 @@ tmp
 
 # Logs
 logs
+!apps/backend/src/resources/logs/
+!apps/backend/src/resources/logs/**
 *.log
 npm-debug.log*
 pnpm-debug.log*

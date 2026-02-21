@@ -6,6 +6,7 @@ import { CourseModule } from './course/course.module.js';
 import { UserModule } from './user/user.module.js';
 import { StatisticsModule } from './statistics/statistics.module.js';
 import { ClientModule } from './client/client.module.js';
+import { LogsModule } from './logs/logs.module.js';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { ClientModule } from './client/client.module.js';
     UserModule,
     ClientModule,
     StatisticsModule,
+    LogsModule,
   ],
   controllers: [],
 })
