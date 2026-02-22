@@ -92,6 +92,18 @@ A felhasználó a kliensen keresztül önkéntes alapon hibajelentést küldhet.
 
 Amennyiben a felhasználó a CourseHub GitHub repository-n keresztül küld kurzus javaslatot, úgy az adatkezelésére a GitHub saját [adatvédelmi szabályzata](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) vonatkozik.
 
+### Alkalmazáson belüli kurzusajánlás
+
+A felhasználóknak lehetősége van a kliensen keresztül új kurzusok felvételét vagy meglevő kurzusok módosítását javasolni. Az ajánlás beküldése önkéntes.
+
+- **Kezelt adatok:** Érintett email címe, a beküldés pontos dátuma, valamint a javasolt intézmény, kar és kurzus adatai (intézmény és kar neve és rövidítése, kurzus neve, kódja, és a kapcsolódó elérhetőségek: weboldal, TAD, Moodle, Teams, egyéb).
+
+- **Cél:** A szolgáltatás adatbázisának bővítése, az intézményi és kurzuskínálat naprakészen tartása a felhasználói közösség bevonásával. Az email cím és dátum tárolásának célja a beküldések hitelességének ellenőrzése és az esetleges visszaélések (spam) megelőzése.
+
+- **Jogalap:** Az Érintett önkéntes hozzájárulása (GDPR 6. cikk (1) a) bekezdés).
+
+- **Időtartam és Törlés:** 30 nap. A fő adatbázisba átemelt kurzusinformációk a továbbiakban nem minősülnek személyes adatnak, és nem kapcsolhatók vissza a beküldő felhasználóhoz.
+
 ## Inaktivitás és automatikus adattörlés
 
 A GDPR 5. cikk (1) bekezdés c) pontjában rögzített adattakarékosság elve, valamint az e) pont szerinti korlátozott tárolhatóság elve alapján az Adatkezelő törekszik arra, hogy ne tároljon olyan személyes adatokat, amelyek a cél eléréséhez már nem szükségesek.

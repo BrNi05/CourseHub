@@ -1,7 +1,7 @@
 // Schema docs: https://pris.ly/d/prisma-schema
 
-// Generate the Prisma Client: npx prisma generate
-// To create the tables: npx prisma migrate dev --name init
+// Generate the Prisma Client: pnpm prisma generate
+// To create the tables: pnpm prisma migrate dev --name ...
 
 generator client {
   provider = "prisma-client"
@@ -81,6 +81,31 @@ model Course {
   //@@unique([code, facultyId]) // A course code is unique within a faculty
 }
 
+// SuggestedCourse
+// A course suggested by a user, but not yet verified by admins
+// On accept, it is deleted and a new Course (and faculty, and university) is created with the same data
+model SuggestedCourse {
+  id                String   @id @default(uuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
+  userEmail         String
+
+  uniName           String
+  uniAbbrevName     String
+
+  facultyName       String
+  facultyAbbrevName String
+
+  courseName        String
+  courseCode        String   @unique      // only one suggestion per course at a time
+
+  coursePageUrl     String   @default("") // official (lecturer) page
+  courseTadUrl      String   @default("") // TAD (uni) page
+  courseMoodleUrl   String   @default("") // Moodle page
+  courseTeamsUrl    String   @default("") // Microsoft Teams page
+  courseExtraUrl    String   @default("") // Additional course page (Wiki, Github)
+}
+
 // User
 // A user belongs to a university (EduID scope) and can pin many courses
 // A user is authenticated with EduID, and inside CourseHub with JWT
@@ -97,7 +122,7 @@ model User {
 
   pinnedCourses Course[]   @relation("UserPinnedCourses")
 
-  clientPings   ClientPing[] // 
+  clientPings   ClientPing[]
 }
 
 // Daily ping from the client to track usage statistics

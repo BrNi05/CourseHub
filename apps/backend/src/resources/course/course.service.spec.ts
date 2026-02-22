@@ -19,6 +19,7 @@ describe('CourseService', () => {
         create: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
+        upsert: vi.fn(),
       },
       faculty: {
         findUnique: vi.fn(),
@@ -125,6 +126,82 @@ describe('CourseService', () => {
       });
 
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('upsert', () => {
+    it('should create a new course if it does not exist', async () => {
+      const dto = {
+        name: 'Databases',
+        code: 'BMECS101',
+        facultyId: 'f1',
+      };
+
+      const createdCourse = {
+        ...dto,
+        id: 'c1',
+        coursePageUrl: '',
+        courseTadUrl: '',
+        courseMoodleUrl: '',
+        courseTeamsUrl: '',
+        courseExtraUrl: '',
+      };
+
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
+
+      prisma.course.upsert.mockResolvedValue(createdCourse);
+
+      const result = await service.upsert(dto);
+
+      expect(prisma.course.upsert).toHaveBeenCalledWith({
+        where: { code: dto.code },
+        create: dto,
+        update: dto,
+      });
+
+      expect(cacheManager.set).toHaveBeenCalledWith(`course_${createdCourse.id}`, createdCourse, 0);
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(result).toEqual(createdCourse);
+    });
+
+    it('should update the course if it already exists', async () => {
+      const dto = {
+        name: 'Databases Updated',
+        code: 'BMECS101',
+        facultyId: 'f1',
+      };
+
+      const updatedCourse = {
+        ...dto,
+        id: 'c1',
+        coursePageUrl: '',
+        courseTadUrl: '',
+        courseMoodleUrl: '',
+        courseTeamsUrl: '',
+        courseExtraUrl: '',
+      };
+
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
+
+      prisma.course.upsert.mockResolvedValue(updatedCourse);
+
+      const result = await service.upsert(dto);
+
+      expect(prisma.course.upsert).toHaveBeenCalledWith({
+        where: { code: dto.code },
+        create: dto,
+        update: dto,
+      });
+
+      expect(cacheManager.set).toHaveBeenCalledWith(`course_${updatedCourse.id}`, updatedCourse, 0);
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(result).toEqual(updatedCourse);
     });
   });
 

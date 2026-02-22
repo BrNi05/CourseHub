@@ -89,6 +89,22 @@ export class CourseService {
     return course;
   }
 
+  async upsert(dto: CreateCourseDto): Promise<Course> {
+    await this.courseCodeStartsWithUniversityAbbrevNameHandler(dto.code, dto.facultyId);
+
+    const course = await this.prisma.course.upsert({
+      where: { code: dto.code },
+      create: dto,
+      update: dto,
+    });
+
+    await this.cacheManager.set(`course_${course.id}`, course, 0);
+    this.clearSearchQueryCache();
+    await this.eventEmitter.emitAsync('course.updated');
+
+    return course;
+  }
+
   async update(id: string, dto: UpdateCourseDto): Promise<Course> {
     await this.cacheManager.del(`course_${id}`);
     this.clearSearchQueryCache();
