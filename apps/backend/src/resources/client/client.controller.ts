@@ -37,7 +37,7 @@ export class ClientController {
     this.clientService.isVersionSupported(dto.platform, dto.version);
   }
 
-  @Post('ping') // identify and authorize the user
+  @Post('ping')
   @RequiresAuth()
   @ApiOperation({
     summary: 'USER AUTH',
@@ -52,7 +52,7 @@ export class ClientController {
     await this.clientService.ping(userId, body.platform, body.version);
   }
 
-  @Post('error-report') // identify and authorize the user
+  @Post('error-report')
   @RequiresAuth()
   @ApiOperation({
     summary: 'USER AUTH',

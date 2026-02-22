@@ -1,9 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Max } from 'class-validator';
-
 import { ClientPlatform } from '../../../prisma/generated/client/client.js';
 import { SemverVersion } from '../../../decorators/validators/semver.dto.js';
 import { IsClientPlatform } from '../../../decorators/validators/client-platform.dto.js';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class ErrorReportDto {
   @SemverVersion()
@@ -12,36 +10,26 @@ export class ErrorReportDto {
   @IsClientPlatform()
   platform!: ClientPlatform;
 
-  @ApiProperty({
-    description: 'Route where the error occurred',
-    example: '/courses/:id',
-  })
-  @IsString()
-  @Max(128)
+  @IsValidString('/courses/:id', 'Route where the error occurred', 4, 128)
   route!: string;
 
-  @ApiProperty({
-    description: 'Action the user was performing when the error occurred',
-    example: 'Loading course details',
-  })
-  @IsString()
-  @Max(128)
+  @IsValidString(
+    'Loading course details, Submitting assignment, etc.',
+    'Action the user was performing when the error occurred',
+    4,
+    128
+  )
   userAction!: string;
 
-  @ApiProperty({
-    description: 'Stack trace of the error',
-    example: 'Error: Something went wrong at Object.<anonymous> (/app/src/main.ts:10:15)',
-  })
-  @IsString()
-  @Max(1024)
+  @IsValidString(
+    'Error: Something went wrong at Object.<anonymous> (/app/src/main.ts:10:15)',
+    'Stack trace of the error',
+    0,
+    1024
+  )
   trace!: string;
 
-  @ApiProperty({
-    description: 'Error message',
-    example: 'Something went wrong',
-  })
-  @IsString()
-  @Max(128)
+  @IsValidString('Something went wrong', 'Error message', 0, 128)
   message!: string;
 }
 
