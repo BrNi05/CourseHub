@@ -1,13 +1,6 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsPinnedCourses } from '../../../decorators/validators/pinned-courses.dto.js';
 
 export class UpdatePinnedCoursesDto {
-  @ApiPropertyOptional({
-    type: 'array',
-    items: { type: 'string' },
-    description: 'Updated pinned courses IDs',
-    example: ['uuid-of-course1', 'uuid-of-course2'],
-  })
-  @IsOptional()
+  @IsPinnedCourses()
   pinnedCourses?: string[]; // course IDs
 }

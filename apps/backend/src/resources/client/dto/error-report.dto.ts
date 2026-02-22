@@ -1,22 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
+import { IsString, Max } from 'class-validator';
 
 import { ClientPlatform } from '../../../prisma/generated/client/client.js';
+import { SemverVersion } from '../../../decorators/validators/semver.dto.js';
+import { IsClientPlatform } from '../../../decorators/validators/client-platform.dto.js';
 
 export class ErrorReportDto {
-  @ApiProperty({
-    description: 'Client version',
-    example: '1.0.0',
-  })
-  @IsString()
+  @SemverVersion()
   version!: string;
 
-  @ApiProperty({
-    enum: ClientPlatform,
-    description: 'Client platform',
-    example: ClientPlatform.windows,
-  })
-  @IsEnum(ClientPlatform)
+  @IsClientPlatform()
   platform!: ClientPlatform;
 
   @ApiProperty({
@@ -24,6 +17,7 @@ export class ErrorReportDto {
     example: '/courses/:id',
   })
   @IsString()
+  @Max(128)
   route!: string;
 
   @ApiProperty({
@@ -31,6 +25,7 @@ export class ErrorReportDto {
     example: 'Loading course details',
   })
   @IsString()
+  @Max(128)
   userAction!: string;
 
   @ApiProperty({
@@ -38,6 +33,7 @@ export class ErrorReportDto {
     example: 'Error: Something went wrong at Object.<anonymous> (/app/src/main.ts:10:15)',
   })
   @IsString()
+  @Max(1024)
   trace!: string;
 
   @ApiProperty({
@@ -45,6 +41,7 @@ export class ErrorReportDto {
     example: 'Something went wrong',
   })
   @IsString()
+  @Max(128)
   message!: string;
 }
 

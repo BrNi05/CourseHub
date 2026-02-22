@@ -1,28 +1,20 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional } from 'class-validator';
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class CourseQueryDto {
-  @ApiPropertyOptional({
-    description: 'Filter by course name (partial, case-insensitive)',
-    example: 'Datab',
-  })
   @IsOptional()
-  @IsString()
+  @IsValidString('Datab', 'Filter by course name (partial, case-insensitive)', 0, 64, false)
   courseName?: string;
 
-  @ApiPropertyOptional({
-    description: 'Filter by course code (partial, case-insensitive)',
-    example: 'BMEVI',
-  })
   @IsOptional()
-  @IsString()
+  @IsValidString('BMEVI', 'Filter by course code (partial, case-insensitive)', 0, 16, false)
   courseCode?: string;
 
-  @ApiPropertyOptional({
-    description: 'University ID to filter courses by',
-    example: 'uuid-of-university',
-  })
-  @IsUUID()
-  // mandatory
-  universityId!: string;
+  @IsUUIDCustom(
+    'universityId must be a valid UUID',
+    'uuid-of-university',
+    'University ID to filter courses by'
+  )
+  universityId!: string; // mandatory
 }

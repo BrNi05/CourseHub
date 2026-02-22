@@ -1,68 +1,49 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUrl, IsUUID, Length } from 'class-validator';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
+import { CourseLink } from '../../../decorators/validators/course-link.dto.js';
 
 export class CreateCourseDto {
-  @ApiProperty({ example: 'Databases', description: 'Name of the course' })
-  @IsString()
-  @Length(1, 255)
+  @IsValidString('Databases', 'Name of the course', 6, 32)
   name!: string;
 
-  @ApiProperty({ example: 'BMEVITMAB04', description: 'Course code' })
-  @IsString()
-  @Length(1, 50)
+  @IsValidString('BMEVITMAB04', 'Course code', 6, 16)
   code!: string;
 
-  @ApiProperty({ example: 'faculty-uuid', description: 'ID of the parent faculty' })
-  @IsUUID('4', { message: 'facultyId must be a valid UUID' })
+  @IsUUIDCustom('facultyId must be a valid UUID', 'faculty-uuid', 'ID of the parent faculty')
   facultyId!: string;
 
-  @ApiProperty({
-    example: 'https://www.db.bme.hu/adatbazisok/BMEVITMAB04',
-    description: "URL to the lecturer's course page, if available",
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsUrl({}, { message: 'coursePageUrl must be a valid URL' })
+  @CourseLink(
+    'coursePageUrl must be a valid URL',
+    'https://www.db.bme.hu/adatbazisok/BMEVITMAB04',
+    "URL to the lecturer's course page, if available"
+  )
   coursePageUrl?: string;
 
-  @ApiProperty({
-    example: 'https://portal.vik.bme.hu/kepzes/targyak/VITMAB04/',
-    description: "URL to the course's TAD page, if available",
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsUrl({}, { message: 'courseTadUrl must be a valid URL' })
+  @CourseLink(
+    'courseTadUrl must be a valid URL',
+    'https://portal.vik.bme.hu/kepzes/targyak/VITMAB04/',
+    "URL to the course's TAD page, if available"
+  )
   courseTadUrl?: string;
 
-  @ApiProperty({
-    example: 'https://edu.vik.bme.hu/course/view.php?id=12345',
-    description: "URL to the course's Moodle page, if available",
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsUrl({}, { message: 'courseMoodleUrl must be a valid URL' })
+  @CourseLink(
+    'courseMoodleUrl must be a valid URL',
+    'https://edu.vik.bme.hu/course/view.php?id=12345',
+    "URL to the course's Moodle page, if available"
+  )
   courseMoodleUrl?: string;
 
-  @ApiProperty({
-    example: 'https://teams.microsoft.com/l/team/...',
-    description: "URL to the course's Microsoft Teams group, if available",
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsUrl({}, { message: 'courseTeamsUrl must be a valid URL' })
+  @CourseLink(
+    'courseTeamsUrl must be a valid URL',
+    'https://teams.microsoft.com/l/team/...',
+    "URL to the course's Microsoft Teams group, if available"
+  )
   courseTeamsUrl?: string;
 
-  @ApiProperty({
-    example: 'https://vik.wiki/Adatb%C3%A1zisok',
-    description: 'URL to additional course resources (Wiki, GitHub, etc.), if available',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  @IsUrl({}, { message: 'courseExtraUrl must be a valid URL' })
+  @CourseLink(
+    'courseExtraUrl must be a valid URL',
+    'https://vik.wiki/Adatb%C3%A1zisok',
+    'URL to additional course resources (Wiki, GitHub, etc.), if available'
+  )
   courseExtraUrl?: string;
 }

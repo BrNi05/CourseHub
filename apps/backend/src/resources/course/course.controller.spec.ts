@@ -25,25 +25,6 @@ describe('CourseController', () => {
     controller = new CourseController(serviceMock as CourseService);
   });
 
-  describe('findOne', () => {
-    it('should call service.findById with the ID and return the course', async () => {
-      const course: Course = {
-        id: 'c1',
-        name: 'Math',
-        code: 'M101',
-        facultyId: 'f1',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      (serviceMock.findById as any).mockResolvedValue(course);
-
-      const result = await controller.findOne('c1');
-      expect(serviceMock.findById).toHaveBeenCalledWith('c1');
-      expect(result).toEqual(course);
-    });
-  });
-
   describe('search', () => {
     it('should call service.findByQuery with the query DTO and return courses', async () => {
       const query: CourseQueryDto = { universityId: 'u1', courseName: 'Math', courseCode: 'M101' };
@@ -63,6 +44,25 @@ describe('CourseController', () => {
       const result = await controller.search(query);
       expect(serviceMock.findByQuery).toHaveBeenCalledWith(query);
       expect(result).toEqual(courses);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should call service.findById with the ID and return the course', async () => {
+      const course: Course = {
+        id: 'c1',
+        name: 'Math',
+        code: 'M101',
+        facultyId: 'f1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      (serviceMock.findById as any).mockResolvedValue(course);
+
+      const result = await controller.findOne('c1');
+      expect(serviceMock.findById).toHaveBeenCalledWith('c1');
+      expect(result).toEqual(course);
     });
   });
 

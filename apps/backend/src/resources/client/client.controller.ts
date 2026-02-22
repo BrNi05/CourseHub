@@ -12,12 +12,12 @@ import { ClientIdDto } from './dto/client-id.dto.js';
 import { ErrorReportDto } from './dto/error-report.dto.js';
 import { ErrorReportResponseDto } from './dto/error-report-response.dto.js';
 
-import { Admin } from '../../decorators/admin.decorator.js';
-import { RequiresAuthAndOwnership } from '../../decorators/ownership.decorator.js';
-import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
+import { Admin } from '../../decorators/auth/admin.decorator.js';
+import { RequiresAuthAndOwnership } from '../../decorators/auth/ownership.decorator.js';
+import { DatabaseOperation } from '../../decorators/responses/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
-import { FileSystemOperation } from '../../decorators/filesys-operation.decorator.js';
-import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
+import { FileSystemOperation } from '../../decorators/responses/filesys-operation.decorator.js';
+import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
 @Controller('client')
 export class ClientController {

@@ -1,11 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
 
 export class GetFacultiesQueryDto {
-  @ApiProperty({
-    description: 'UUID of the university to list faculties for',
-    example: 'uuid-of-university',
-  })
-  @IsUUID('4', { message: 'universityId must be a valid UUID' })
+  @IsUUIDCustom(
+    'universityId must be a valid UUID',
+    'uuid-of-university',
+    'UUID of the university to list faculties for'
+  )
   universityId!: string;
 }

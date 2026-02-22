@@ -1,26 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
 
 export class CreateFacultyDto {
-  @ApiProperty({ example: 'Faculty of Engineering', description: 'Name of the faculty' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(10)
-  @MaxLength(255)
+  @IsValidString('Faculty of Engineering', 'Name of the faculty', 2, 96)
   name!: string;
 
-  @ApiProperty({
-    example: 'FEEI',
-    description: 'Abbreviated name of the faculty, unique within the university',
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(50)
+  @IsValidString('FEEI', 'Abbreviated name of the faculty', 2, 8)
   abbrevName!: string;
 
-  @ApiProperty({ example: 'uuid-of-parent-university', description: 'ID of the parent university' })
-  @IsString()
-  @IsNotEmpty()
+  @IsUUIDCustom(
+    'universityId must be a valid UUID',
+    'uuid-of-parent-university',
+    'ID of the parent university'
+  )
   universityId!: string;
 }

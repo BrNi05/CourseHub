@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { ApiOkResponse, ApiOperation, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
-import { DatabaseOperation } from '../decorators/database-operation.decorator.js';
+import { DatabaseOperation } from '../decorators/responses/database-operation.decorator.js';
 import { Throttable } from '../common/throttling/throttler.decorator.js';
 import { GoogleCallbackDto } from './dto/google-callback.dto.js';
 

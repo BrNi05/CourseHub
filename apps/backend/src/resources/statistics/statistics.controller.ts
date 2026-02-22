@@ -8,8 +8,8 @@ import { CoursesPinnedDto } from './dto/pins-response.dto.js';
 import { UniversityUsersDto } from './dto/users-reponse.dto.js';
 import { UniversityCoursesDto } from './dto/courses-reponse.dto.js';
 
-import { Admin } from '../../decorators/admin.decorator.js';
-import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
+import { Admin } from '../../decorators/auth/admin.decorator.js';
+import { DatabaseOperation } from '../../decorators/responses/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 
 @Controller('statistics')

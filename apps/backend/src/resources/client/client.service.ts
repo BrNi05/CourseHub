@@ -79,11 +79,14 @@ export class ClientService {
     cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 364); // Ping log retention: 364 days ago (buffer)
 
     try {
-      await this.prisma.clientPing.deleteMany({
+      const deletedCount = await this.prisma.clientPing.deleteMany({
         where: {
           date: { lte: cutoffDate },
         },
       });
+
+      // GDPR compliance: log success and metadata
+      this.logger.log(`Deleted ${deletedCount.count} old client pings.`);
     } catch {
       this.logger.error('Failed to clean old client pings.');
     }
@@ -151,6 +154,7 @@ export class ClientService {
 
         if (now - timestamp > 28 * 24 * 60 * 60 * 1000) {
           await fs.unlink(path.join(this.reportsDir, file));
+          this.logger.log(`Deleted old error report: [email]-${timestampPart}.json`);
         }
       }
     } catch {

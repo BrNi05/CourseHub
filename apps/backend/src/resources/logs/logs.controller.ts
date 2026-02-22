@@ -6,10 +6,10 @@ import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { LogsService } from './logs.service.js';
 
-import { Admin } from '../../decorators/admin.decorator.js';
+import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
-import { FileSystemOperation } from '../../decorators/filesys-operation.decorator.js';
-import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
+import { FileSystemOperation } from '../../decorators/responses/filesys-operation.decorator.js';
+import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
 @Controller('logs')
 export class LogsController {

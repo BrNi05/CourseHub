@@ -1,7 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
-import { ErrorResponse } from '../common/responses/error.response.js';
+import { ErrorResponse } from '../../common/responses/error.response.js';
 
 export function FileSystemOperation() {
   return applyDecorators(

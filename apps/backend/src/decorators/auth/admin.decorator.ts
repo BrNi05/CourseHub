@@ -1,10 +1,10 @@
 import { applyDecorators, UseGuards, SetMetadata } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
-import { ErrorResponse } from '../common/responses/error.response.js';
+import { ErrorResponse } from '../../common/responses/error.response.js';
 
-import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
-import { AdminGuard } from '../auth/guards/admin.guard.js';
+import { JwtAuthGuard } from '../../auth/guards/jwt.guard.js';
+import { AdminGuard } from '../../auth/guards/admin.guard.js';
 
 import { RequiresAuth } from './auth.decorator.js';
 

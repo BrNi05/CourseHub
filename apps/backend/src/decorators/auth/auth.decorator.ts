@@ -1,8 +1,8 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
-import { JwtAuthGuard } from '../auth/guards/jwt.guard.js';
-import { ErrorResponse } from '../common/responses/error.response.js';
+import { JwtAuthGuard } from '../../auth/guards/jwt.guard.js';
+import { ErrorResponse } from '../../common/responses/error.response.js';
 
 export function RequiresAuth() {
   return applyDecorators(

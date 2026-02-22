@@ -9,10 +9,10 @@ import { GetFacultiesQueryDto } from './dto/get-faculty.dto.js';
 import { FacultyWithoutCoursesDto } from './dto/faculty-response-nocourse.dto.js';
 
 import { Serialize } from '../../decorators/serialize.decorator.js';
-import { DatabaseOperation } from '../../decorators/database-operation.decorator.js';
-import { Admin } from '../../decorators/admin.decorator.js';
+import { DatabaseOperation } from '../../decorators/responses/database-operation.decorator.js';
+import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
-import { DeletedResponse } from '../../decorators/deleted-response.decorator.js';
+import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
 @Controller('faculties')
 @Serialize(Faculty)
