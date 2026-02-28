@@ -34,11 +34,8 @@ export default defineConfig([
         project: [
           path.join(__dirname, 'tsconfig.base.json'),
           path.join(__dirname, 'apps/backend/tsconfig.json'),
-          path.join(__dirname, 'apps/desktop/tsconfig.json'),
-          path.join(__dirname, 'apps/android/tsconfig.json'),
-          path.join(__dirname, 'apps/ios/tsconfig.json'),
+          path.join(__dirname, 'apps/client/tsconfig.json'),
           path.join(__dirname, 'packages/sdk/tsconfig.json'),
-          path.join(__dirname, 'packages/shared-ui/tsconfig.json'),
           path.join(__dirname, 'tsconfig.eslint.json'),
         ],
         tsconfigRootDir: __dirname,

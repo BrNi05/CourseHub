@@ -14,7 +14,7 @@
     {
       "label": "Backend Dev Server",
       "type": "shell",
-      "command": "pnpm --filter backend start:dev",
+      "command": "pnpm --filter @coursehub/backend start:dev",
       "detail": "Start the backend development server with hot reloading",
       "group": "build",
       "problemMatcher": []
@@ -22,7 +22,7 @@
     {
       "label": "Run Backend Tests",
       "type": "shell",
-      "command": "pnpm --filter backend test",
+      "command": "pnpm --filter @coursehub/backend test",
       "detail": "Run all backend unit tests",
       "group": "test",
       "problemMatcher": []
@@ -30,60 +30,34 @@
     {
       "label": "Open Prisma Studio",
       "type": "shell",
-      "command": "pnpm --filter backend db:view",
+      "command": "pnpm --filter @coursehub/backend db:view",
       "detail": "Open Prisma Studio",
       "group": "build",
       "problemMatcher": []
     },
-    /* Desktop app tasks */
+    /* Frontend tasks */
     {
-      "label": "Desktop Dev Server",
+      "label": "Client Dev",
       "type": "shell",
-      "command": "pnpm --filter desktop start:dev",
-      "detail": "Start the desktop development server with hot reloading",
+      "command": "pnpm --filter @coursehub/client start:dev",
+      "detail": "Starts the client development server with hot reloading",
       "group": "build",
       "problemMatcher": []
     },
     {
-        "label": "Desktop Tests",
-        "type": "shell",
-        "command": "pnpm --filter desktop test",
-        "detail": "Run all desktop unit tests",
-        "group": "test",
-        "problemMatcher": []
-    },    
-    /* iOS app tasks */
-    {
-      "label": "iOS Dev Server",
+      "label": "Client Preview",
       "type": "shell",
-      "command": "pnpm --filter ios start:dev",
-      "detail": "Start the iOS development server with hot reloading",
+      "command": "pnpm --filter @coursehub/client start:preview",
+      "detail": "Starts the client preview server",
       "group": "build",
       "problemMatcher": []
     },
     {
-      "label": "iOS Tests",
+      "label": "Client Build",
       "type": "shell",
-      "command": "pnpm --filter ios test",
-      "detail": "Run all iOS unit tests",
-      "group": "test",
-      "problemMatcher": []
-    },
-    /* Android app tasks */
-    {
-      "label": "Android Dev Server",
-      "type": "shell",
-      "command": "pnpm --filter android start:dev",
-      "detail": "Start the Android development server with hot reloading",
+      "command": "pnpm --filter @coursehub/client build",
+      "detail": "Builds the client application",
       "group": "build",
-      "problemMatcher": []
-    },
-    {
-      "label": "Android Tests",
-      "type": "shell",
-      "command": "pnpm --filter android test",
-      "detail": "Run all Android unit tests",
-      "group": "test",
       "problemMatcher": []
     },
     /* Dev tools */
