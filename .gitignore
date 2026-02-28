@@ -44,3 +44,6 @@ error-reports/**
 # SDK and generated
 openapi.json
 packages/sdk/src
+
+# Backend static assets
+apps/backend/public/frontend
