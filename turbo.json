@@ -2,12 +2,12 @@
   "$schema": "https://turborepo.org/schema.json",
   "tasks": {
     // Global lint task
-    "lint": {
-        "outputs": [".eslintcache"]
+    "lint:all": {
+      "cache": false
     },
     // Backend (API) build
     "@coursehub/backend#build": {
-      "dependsOn": ["lint"],
+      "dependsOn": [],
       "outputs": ["build/**/*"]
     },
     // Prisma client generation
@@ -20,7 +20,7 @@
     // API docs generation (openapi.json)
     "@coursehub/backend#api:gen": {
       "dependsOn": ["@coursehub/backend#build"],
-      "outputs": ["openapi.json"]
+      "outputs": ["../../openapi.json"]
     },
     // SDK generation from OpenAPI spec
     "@coursehub/sdk#gen:sdk": {
@@ -29,28 +29,28 @@
     },
     // SDK build
     "@coursehub/sdk#build": {
-      "dependsOn": ["@coursehub/sdk#gen:sdk", "lint"],
+      "dependsOn": ["@coursehub/sdk#gen:sdk"],
       "outputs": ["build/**/*"]
     },
     // Frontend
     "@coursehub/client#build": {
-      "dependsOn": ["@coursehub/sdk#build", "lint"],
+      "dependsOn": ["@coursehub/sdk#build"],
       "outputs": ["dist/**/*"]
     },
     // Bundle frontend static assets to backend public dir
     "@coursehub/coursehub#bundle:static": {
-      "dependsOn": ["@coursehub/client#build"],
+      "dependsOn": ["@coursehub/client#build", "@coursehub/backend#build"],
       "outputs": ["public/**"],
       "cache": false
     },
     // Build backend Docker image
     "docker:build": {
-      "dependsOn": ["@coursehub/client#build", "lint"],
+      "dependsOn": ["@coursehub/client#build"],
       "outputs": []
     },
     // General build task
     "build": {
-      "dependsOn": ["^build", "lint", "@coursehub/coursehub#bundle:static", "docker:build"],
+      "dependsOn": ["^build", "lint:all", "@coursehub/coursehub#bundle:static", "docker:build"],
       "outputs": ["build/**", "dist/**", "prisma/generated/**", "public/**"]
     },
     // Global test task
