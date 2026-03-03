@@ -8,6 +8,7 @@ import { StatisticsModule } from './statistics/statistics.module.js';
 import { SuggestionModule } from './suggestion/suggestion.module.js';
 import { ClientModule } from './client/client.module.js';
 import { LogsModule } from './logs/logs.module.js';
+import { NewsModule } from './news/news.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { LogsModule } from './logs/logs.module.js';
     ClientModule,
     StatisticsModule,
     LogsModule,
+    NewsModule,
   ],
   controllers: [],
 })
