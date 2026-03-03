@@ -74,7 +74,7 @@ export default defineConfig([
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/triple-slash-reference': 'warn',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
+      //'@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/consistent-type-imports': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/prefer-ts-expect-error': 'warn',
@@ -124,6 +124,8 @@ export default defineConfig([
       'dev-tools/**',
       'packages/sdk/src/**',
       'apps/backend/public/**',
+      'apps/backend/openapi.generate.ts',
+      'apps/client/dist/**',
     ],
   },
 

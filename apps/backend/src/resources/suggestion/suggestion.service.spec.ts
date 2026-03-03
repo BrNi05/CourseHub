@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { SuggestionService } from './suggestion.service.js';
 

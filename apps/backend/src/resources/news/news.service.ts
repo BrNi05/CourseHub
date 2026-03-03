@@ -55,9 +55,9 @@ export class NewsService {
 
     if (cached) {
       this.news.push(...cached);
-      this.logger.log(`Loaded ${cached.length} news items from cache with key.`);
+      this.logger.log(`Loaded ${cached.length} news items from cache.`);
     } else {
-      this.logger.log('No news items found in cache with key .');
+      this.logger.log('No news items found in cache.');
     }
   }
 }

@@ -34,7 +34,6 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
 
     // Log internal server errors
     if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       this.logger.error(`${request.method} ${request.url} - ${message}`, exception.stack);
     }
 

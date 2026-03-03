@@ -37,7 +37,6 @@ describe('PrismaService', () => {
     it('should retry on failure and exit after 3 attempts', async () => {
       mockConnect.mockRejectedValue(new Error('DB error'));
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {
         throw new Error('process.exit called');
       }) as any);

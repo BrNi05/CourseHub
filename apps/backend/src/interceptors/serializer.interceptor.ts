@@ -16,7 +16,6 @@ export class SerializerInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         plainToInstance(dto, data, {
           enableImplicitConversion: true,
         })
