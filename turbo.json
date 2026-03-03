@@ -32,37 +32,33 @@
       "dependsOn": ["@coursehub/sdk#gen:sdk", "lint"],
       "outputs": ["build/**/*"]
     },
-    // Shared UI (Vue) build
-    "@coursehub/shared-ui#build": {
+    // Frontend
+    "@coursehub/client#build": {
       "dependsOn": ["@coursehub/sdk#build", "lint"],
       "outputs": ["dist/**/*"]
     },
-    // Desktop (Win, macOS, Linux) release build
-    "@coursehub/desktop#build": {
-      "dependsOn": ["@coursehub/sdk#build", "lint"],
-      "outputs": ["dist/**/*"]
+    // Bundle frontend static assets to backend public dir
+    "@coursehub/coursehub#bundle:static": {
+      "dependsOn": ["@coursehub/client#build"],
+      "outputs": ["public/**"],
+      "cache": false
     },
-    // Mobile (iOS) build
-    "@coursehub/ios#build": {
-      "dependsOn": ["@coursehub/sdk#build", "lint"],
-      "outputs": ["dist/**/*"]
-    },
-    // Mobile (Android) build
-    "@coursehub/android#build": {
-      "dependsOn": ["@coursehub/sdk#build", "lint"],
-      "outputs": ["dist/**/*"]
+    // Build backend Docker image
+    "docker:build": {
+      "dependsOn": ["@coursehub/client#build", "lint"],
+      "outputs": []
     },
     // General build task
     "build": {
-    "dependsOn": ["^build", "lint"],
-    "outputs": ["build/**", "dist/**", "prisma/generated/**"]
+      "dependsOn": ["^build", "lint", "@coursehub/coursehub#bundle:static", "docker:build"],
+      "outputs": ["build/**", "dist/**", "prisma/generated/**", "public/**"]
     },
     // Global test task
     "test": {
     "dependsOn": ["build"],
     "outputs": [],
     "cache": false
-    },
+    }
   },
   "globalDependencies": [".env", "tsconfig.base.json"]
 }

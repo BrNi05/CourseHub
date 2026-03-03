@@ -26,8 +26,8 @@ export function setupSwagger(app: INestApplication<unknown>): OpenAPIObject {
       deepLinking: true,
     },
     customSiteTitle: 'CourseHub API Docs',
-    customCssUrl: '/assets/swagger/custom.css',
-    customJs: ['/assets/swagger/custom.js'],
+    customCssUrl: '/swagger/custom.css',
+    customJs: ['/swagger/custom.js'],
   });
 
   return swaggerFactory;

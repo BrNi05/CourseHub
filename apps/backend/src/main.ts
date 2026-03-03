@@ -3,7 +3,6 @@ import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/comm
 import { ConfigService } from '@nestjs/config';
 
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import type { Request, Response, NextFunction } from 'express';
 
 import { AppModule } from './app.module.js';
 
@@ -67,15 +66,6 @@ try {
   // Trust proxy (last one)
   // Mostly redundant with Cloudflare Tunnels
   app.set('trust proxy', 1);
-
-  // Redirect non-API requests to the GitHub repo
-  // Static assets are served from /assets, those are allowed
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.path.startsWith('/api') && !req.path.startsWith('/assets')) {
-      return res.redirect('https://github.com/BrNi05/CourseHub');
-    }
-    next();
-  });
 
   // Class serialization
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));

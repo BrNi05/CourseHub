@@ -96,13 +96,18 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       maxListeners: 10,
       ignoreErrors: false,
     }),
+    // Swagger static on "/swagger"
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'build', 'public'),
-      serveRoot: '/assets',
+      rootPath: join(process.cwd(), 'build', 'public', 'swagger'),
+      serveRoot: '/swagger',
       exclude: ['/api'],
-      serveStaticOptions: {
-        fallthrough: false, // An error here will reach to the global exception filter
-      },
+      serveStaticOptions: { fallthrough: false },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'build', 'public', 'frontend'),
+      serveRoot: '/',
+      exclude: ['/api', '/swagger'],
+      serveStaticOptions: { fallthrough: false },
     }),
   ],
   controllers: [AppController],
