@@ -1,0 +1,29 @@
+{
+  "name": "@coursehub/client",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "typeface-fira-code": "^1.1.13",
+    "vue": "^3.5.24"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@unocss/preset-wind3": "^66.6.4",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "globals": "^17.3.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.3",
+    "unocss": "^66.6.4",
+    "vite": "^7.2.4",
+    "vue-tsc": "^3.2.4"
+  }
+}
