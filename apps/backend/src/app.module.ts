@@ -77,15 +77,17 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        store: new KeyvRedis(
-          `redis://:${encodeURIComponent(
-            configService.getOrThrow('REDIS_PASSWORD')
-          )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
-        ),
+        stores: [
+          new KeyvRedis(
+            `redis://:${encodeURIComponent(
+              configService.getOrThrow('REDIS_PASSWORD')
+            )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
+          ),
+        ],
         ttl: 0, // no expiration by default
       }),
-      inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot({
