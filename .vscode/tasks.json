@@ -69,6 +69,13 @@
       "problemMatcher": []
     },
     {
+      "label": "Update Dependencies",
+      "type": "shell",
+      "command": "pnpm update:deps",
+      "detail": "Update all dependencies",
+      "problemMatcher": []
+    },
+    {
         "label": "Clear All",
         "type": "shell",
         "command": "pnpm clear:all",
