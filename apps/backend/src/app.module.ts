@@ -27,6 +27,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
     PrismaModule,
     LoggerModule.forRoot('AppService'),
     ResourcesModule,
+    // .env validation
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -67,6 +68,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
         allowUnknown: true,
       },
     }),
+    // Throttle default profile
     ThrottlerModule.forRoot([
       {
         name: 'default',
@@ -74,6 +76,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
         limit: 500,
       },
     ]),
+    // Redis cache
     CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
@@ -89,7 +92,9 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
         ttl: 0, // no expiration by default
       }),
     }),
+    // Cron jobs
     ScheduleModule.forRoot(),
+    // Event emitter registration
     EventEmitterModule.forRoot({
       wildcard: true,
       delimiter: '.',
@@ -101,14 +106,15 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       rootPath: join(process.cwd(), 'build', 'public', 'swagger'),
       serveRoot: '/swagger',
       exclude: ['/api'],
-      serveStaticOptions: { fallthrough: false, maxAge: '7d', },
+      serveStaticOptions: { fallthrough: false, maxAge: '7d' },
     }),
+    // Frontend generated static
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'build', 'public', 'frontend'),
       serveRoot: '/',
       exclude: ['/api', '/swagger'],
       serveStaticOptions: {
-        fallthrough: false,
+        fallthrough: true, // let the global exception filter handle 404 errors
         setHeaders: (res, path) => {
           if (path.endsWith('index.html')) {
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
