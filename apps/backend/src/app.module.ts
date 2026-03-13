@@ -106,23 +106,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       rootPath: join(process.cwd(), 'build', 'public', 'swagger'),
       serveRoot: '/swagger',
       exclude: ['/api'],
-      serveStaticOptions: { fallthrough: false, maxAge: '7d' },
-    }),
-    // Frontend generated static
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'build', 'public', 'frontend'),
-      serveRoot: '/',
-      exclude: ['/api', '/swagger'],
-      serveStaticOptions: {
-        fallthrough: true, // let the global exception filter handle 404 errors
-        setHeaders: (res, path) => {
-          if (path.endsWith('index.html')) {
-            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-          } else {
-            res.setHeader('Cache-Control', 'public, max-age=86400');
-          }
-        },
-      },
+      serveStaticOptions: { fallthrough: false, maxAge: '365d' },
     }),
   ],
   controllers: [AppController],

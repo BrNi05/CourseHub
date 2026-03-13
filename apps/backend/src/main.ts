@@ -6,6 +6,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Request, Response, NextFunction } from 'express';
 
 import { AppModule } from './app.module.js';
+import { setupUi } from './ui/ui.js';
 
 // Security
 import helmet from 'helmet';
@@ -126,6 +127,9 @@ try {
 
   // Generate API docs
   if (process.env.NODE_ENV != 'production') setupSwagger(app);
+
+  // Serve SPA frontend
+  setupUi(app);
 
   await app.listen(3000); // Docker will forward traffic to the designated port
 } catch (err: unknown) {
