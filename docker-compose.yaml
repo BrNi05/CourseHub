@@ -20,3 +20,4 @@ services:
     volumes:
           - ./CourseHub-Backend.log:/app/CourseHub-Backend.log
           - ./error-reports:/app/error-reports
+          - ./db-backups:/app/db-backups

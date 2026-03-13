@@ -9,6 +9,7 @@ import { SuggestionModule } from './suggestion/suggestion.module.js';
 import { ClientModule } from './client/client.module.js';
 import { LogsModule } from './logs/logs.module.js';
 import { NewsModule } from './news/news.module.js';
+import { DatabaseBackupModule } from './database-backup/database-backup.module.js';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NewsModule } from './news/news.module.js';
     StatisticsModule,
     LogsModule,
     NewsModule,
+    DatabaseBackupModule,
   ],
   controllers: [],
 })
