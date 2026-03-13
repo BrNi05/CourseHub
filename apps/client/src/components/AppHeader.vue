@@ -7,81 +7,71 @@ import { useAppStore } from '@/lib/app-store';
 
 const app = useAppStore();
 const route = useRoute();
+const session = app.state.session as { email: string | null };
 
 const navigation = computed(() => {
-  const items = [
-    { name: 'manage', label: 'Manage', to: '/' },
-    { name: 'search', label: 'Search', to: '/search' },
-    { name: 'suggest', label: 'Suggest', to: '/suggest' },
-    { name: 'error-report', label: 'Error Report', to: '/error-report' },
+  return [
+    { name: 'courses', label: 'Tárgyaim', to: '/' },
+    { name: 'search', label: 'Tárgyak keresése', to: '/search' },
+    { name: 'suggest', label: 'Tárgy hozzáadása', to: '/suggest' },
   ];
-
-  if (app.state.session.isAdmin) {
-    items.push({ name: 'admin', label: 'Admin', to: '/admin' });
-  }
-
-  return items;
 });
 
-const sessionLabel = computed(() => app.state.session.email ?? 'Login with Google');
+const sessionLabel = computed<string>(() => session.email ?? 'Bejelentkezés');
 </script>
 
 <template>
   <header class="header">
-    <RouterLink class="brand" to="/">
-      <img alt="CourseHub logo" class="brand__logo" height="48" src="/logo.png" width="48" />
-      <strong class="brand__title">CourseHub</strong>
-    </RouterLink>
-
-    <nav class="header__nav" aria-label="Primary">
-      <RouterLink
-        v-for="item in navigation"
-        :key="item.name"
-        :class="['header__link', { 'header__link--active': route.name === item.name }]"
-        :to="item.to"
-      >
-        {{ item.label }}
+    <div class="header__main">
+      <RouterLink class="brand" to="/">
+        <img alt="CourseHub logo" class="brand__logo" height="48" src="/logo.png" width="48" />
+        <strong class="brand__title">CourseHub</strong>
       </RouterLink>
-    </nav>
 
-    <div class="header__actions">
-      <a
-        class="header__github"
-        href="https://github.com/BrNi05/CourseHub"
-        rel="noreferrer"
-        target="_blank"
-      >
-        GitHub
-      </a>
+      <nav class="header__nav" aria-label="Primary">
+        <RouterLink
+          v-for="item in navigation"
+          :key="item.name"
+          :class="['header__link', { 'header__link--active': route.name === item.name }]"
+          :to="item.to"
+        >
+          {{ item.label }}
+        </RouterLink>
+      </nav>
 
-      <BaseButton
-        v-if="!app.isAuthenticated()"
-        :disabled="app.state.loginInFlight"
-        kind="primary"
-        @click="app.loginWithGoogle"
-      >
-        {{ app.state.loginInFlight ? 'Redirecting...' : 'Login' }}
-      </BaseButton>
+      <div class="header__actions">
+        <BaseButton
+          v-if="!app.isAuthenticated()"
+          :disabled="app.state.loginInFlight"
+          kind="primary"
+          @click="app.loginWithGoogle"
+        >
+          {{ app.state.loginInFlight ? 'Átirányítás...' : 'Bejelentkezés' }}
+        </BaseButton>
 
-      <BaseButton v-else kind="secondary" @click="app.logout">
-        {{ sessionLabel }}
-      </BaseButton>
+        <BaseButton v-else kind="secondary" @click="app.logout">
+          {{ sessionLabel }}
+        </BaseButton>
+      </div>
     </div>
   </header>
 </template>
 
 <style scoped>
 .header {
-  align-items: center;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr);
   margin: 0 auto;
   max-width: 84rem;
   padding: 1.4rem 1.5rem 0;
   position: relative;
   width: 100%;
   z-index: 2;
+}
+
+.header__main {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .brand {
@@ -114,8 +104,7 @@ const sessionLabel = computed(() => app.state.session.email ?? 'Login with Googl
   gap: 0.55rem;
 }
 
-.header__link,
-.header__github {
+.header__link {
   border-radius: 999px;
   color: var(--text-muted);
   padding: 0.75rem 1rem;
@@ -126,8 +115,7 @@ const sessionLabel = computed(() => app.state.session.email ?? 'Login with Googl
     transform 140ms ease;
 }
 
-.header__link:hover,
-.header__github:hover {
+.header__link:hover {
   background: rgba(59, 130, 246, 0.1);
   color: var(--text-primary);
   transform: translateY(-1px);
@@ -148,8 +136,11 @@ const sessionLabel = computed(() => app.state.session.email ?? 'Login with Googl
 
 @media (min-width: 900px) {
   .header {
-    grid-template-columns: auto 1fr auto;
     padding: 1.6rem 2rem 0;
+  }
+
+  .header__main {
+    grid-template-columns: auto 1fr auto;
   }
 
   .header__actions {

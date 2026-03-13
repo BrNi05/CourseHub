@@ -7,39 +7,28 @@ import { useAppStore } from '@/lib/app-store';
 
 const app = useAppStore();
 
-const selectedIds = computed(() => new Set(app.state.selectedCourses.map((course) => course.id)));
-const selectedUniversity = computed(() => app.selectedUniversity());
+const selectedIds = computed<Set<string>>(
+  () => new Set(app.state.selectedCourses.map((course) => String(course.id)))
+);
 </script>
 
 <template>
   <section class="search-page">
     <div class="search-page__hero">
-      <div>
-        <h1>Find courses on a dedicated search screen, then pin them to your landing page.</h1>
+      <div class="search-page__hero-copy">
+        <h1>Tárgyak keresése</h1>
         <p class="search-page__lede">
-          Search by university, name, or code. Command-click or control-click on any course link
-          still opens it in a new tab.
+          Szűrj a tárgyak között egyetem, név vagy kód alapján, és jelöld meg azokat, amelyeket
+          felvetted.
         </p>
-      </div>
-
-      <div class="search-page__status">
-        <p class="search-page__eyebrow">Pinned</p>
-        <strong>{{ app.state.selectedCourses.length }} courses currently on your landing page</strong>
-        <span>
-          {{
-            selectedUniversity
-              ? `${selectedUniversity.name} is the active search context.`
-              : 'Choose a university to begin.'
-          }}
-        </span>
       </div>
     </div>
 
     <div class="search-panel">
       <div class="search-panel__header">
         <div>
-          <p class="search-page__eyebrow">Filters</p>
-          <h2>Search public course records</h2>
+          <p class="search-page__eyebrow">Szűrők</p>
+          <h2>Keresés az összes ismert tárgy között</h2>
         </div>
 
         <BaseButton
@@ -51,8 +40,8 @@ const selectedUniversity = computed(() => app.selectedUniversity());
       </div>
 
       <form class="search-grid" @submit.prevent="app.searchCourses">
-        <label class="field">
-          <span>University</span>
+        <label class="field field--university">
+          <span>Egyetem</span>
           <select
             v-model="app.state.searchFilters.universityId"
             :disabled="app.state.loadingUniversities"
@@ -68,13 +57,17 @@ const selectedUniversity = computed(() => app.selectedUniversity());
         </label>
 
         <label class="field">
-          <span>Course name</span>
-          <input v-model="app.state.searchFilters.courseName" placeholder="Databases" type="text" />
+          <span>Tárgy neve</span>
+          <input v-model="app.state.searchFilters.courseName" placeholder="Adatb.." type="text" />
         </label>
 
         <label class="field">
-          <span>Course code</span>
-          <input v-model="app.state.searchFilters.courseCode" placeholder="BMEVI..." type="text" />
+          <span>Tárgykód</span>
+          <input
+            v-model="app.state.searchFilters.courseCode"
+            placeholder="BMEVITMA.."
+            type="text"
+          />
         </label>
       </form>
     </div>
@@ -92,8 +85,11 @@ const selectedUniversity = computed(() => app.selectedUniversity());
     </div>
 
     <div v-else class="empty-state">
-      <h3>No courses in the current result set</h3>
-      <p>Run a search with the current filters to populate this page with candidate courses.</p>
+      <h3>Nincs a keresésnek megfelelő tárgy.</h3>
+      <p>
+        Módosítsd a keresési feltételeket, vagy add hozzá a CourseHub adatbázisához a még nem ismert
+        tárgyat.
+      </p>
     </div>
   </section>
 </template>
@@ -101,37 +97,33 @@ const selectedUniversity = computed(() => app.selectedUniversity());
 <style scoped>
 .search-page {
   display: grid;
-  gap: 1.35rem;
+  gap: 1.55rem;
 }
 
 .search-page__hero {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.search-page__eyebrow {
-  color: var(--text-subtle);
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  margin: 0 0 0.45rem;
-  text-transform: uppercase;
+.search-page__hero-copy {
+  display: grid;
+  gap: 0.85rem;
+  min-width: 0;
 }
 
 .search-page h1 {
   font-size: clamp(2rem, 4vw, 3.5rem);
   line-height: 1.05;
   margin: 0;
-  max-width: 14ch;
 }
 
 .search-page__lede,
-.search-page__status span,
 .empty-state p {
   color: var(--text-muted);
   line-height: 1.6;
+  margin: 0;
 }
 
-.search-page__status,
 .search-panel,
 .empty-state {
   backdrop-filter: blur(18px);
@@ -139,12 +131,6 @@ const selectedUniversity = computed(() => app.selectedUniversity());
   border: 1px solid var(--border-soft);
   border-radius: 1.6rem;
   box-shadow: var(--shadow-large);
-}
-
-.search-page__status {
-  display: grid;
-  gap: 0.45rem;
-  padding: 1.25rem;
 }
 
 .search-panel {
@@ -175,6 +161,7 @@ const selectedUniversity = computed(() => app.selectedUniversity());
 .field {
   display: grid;
   gap: 0.45rem;
+  min-width: 0;
 }
 
 .field span {
@@ -191,6 +178,7 @@ const selectedUniversity = computed(() => app.selectedUniversity());
   font: inherit;
   min-height: 3rem;
   padding: 0 0.95rem;
+  width: 100%;
 }
 
 .course-grid {
@@ -209,6 +197,15 @@ const selectedUniversity = computed(() => app.selectedUniversity());
 @media (min-width: 960px) {
   .search-page__hero {
     grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.8fr);
+  }
+
+  .search-page h1,
+  .search-page__lede {
+    white-space: nowrap;
+  }
+
+  .search-grid {
+    grid-template-columns: minmax(22rem, 1.45fr) minmax(12rem, 1fr) minmax(12rem, 1fr);
   }
 }
 </style>

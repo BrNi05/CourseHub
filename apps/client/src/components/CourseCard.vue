@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const links = computed(() =>
   [
-    { label: 'Page', value: props.course.coursePageUrl },
+    { label: 'Tárgyoldal', value: props.course.coursePageUrl },
     { label: 'TAD', value: props.course.courseTadUrl },
     { label: 'Moodle', value: props.course.courseMoodleUrl },
     { label: 'Teams', value: props.course.courseTeamsUrl },
@@ -33,7 +33,7 @@ const links = computed(() =>
     <div class="course-card__top">
       <div>
         <p class="course-card__eyebrow">
-          {{ props.mode === 'saved' ? 'Current setup' : 'Course search' }}
+          {{ props.mode === 'saved' ? 'Tárgyaim' : 'Tárgyak keresése' }}
         </p>
         <h3>{{ props.course.name }}</h3>
       </div>
@@ -48,42 +48,43 @@ const links = computed(() =>
         :href="entry.value"
         class="course-card__link"
         rel="noreferrer"
-        target="_blank"
       >
         <span class="course-card__dot"></span>
         <span>{{ entry.label }}</span>
       </a>
 
       <p v-if="links.length === 0" class="course-card__muted">
-        No external links stored for this course yet.
+        Erről a tárgyról nem sokat tudunk. Segítenél kiegészíteni?
       </p>
     </div>
 
     <div class="course-card__actions">
-      <BaseButton
-        v-if="props.mode === 'saved'"
-        :disabled="props.busy"
-        kind="danger"
-        @click="emit('remove', props.course.id)"
-      >
-        Remove
-      </BaseButton>
+      <div class="course-card__action-group">
+        <BaseButton
+          v-if="props.mode === 'saved'"
+          :disabled="props.busy"
+          kind="danger"
+          @click="emit('remove', props.course.id)"
+        >
+          Törlés
+        </BaseButton>
 
-      <BaseButton
-        v-else
-        :disabled="props.busy || props.selected"
-        :kind="props.selected ? 'ghost' : 'primary'"
-        @click="emit('add', props.course)"
-      >
-        {{ props.selected ? 'Already added' : 'Add course' }}
-      </BaseButton>
+        <BaseButton
+          v-else
+          :disabled="props.busy || props.selected"
+          :kind="props.selected ? 'ghost' : 'primary'"
+          @click="emit('add', props.course)"
+        >
+          {{ props.selected ? 'Felvéve' : 'Tárgy felvétele' }}
+        </BaseButton>
 
-      <RouterLink
-        :to="{ name: 'suggest', query: { editCourseId: props.course.id } }"
-        class="course-card__edit"
-      >
-        Edit as suggestion
-      </RouterLink>
+        <RouterLink
+          :to="{ name: 'suggest', query: { editCourseId: props.course.id } }"
+          class="course-card__action-link"
+        >
+          Módosítás
+        </RouterLink>
+      </div>
     </div>
   </article>
 </template>
@@ -95,7 +96,7 @@ const links = computed(() =>
   border-radius: 1.5rem;
   box-shadow: 0 22px 50px rgba(2, 6, 23, 0.34);
   display: grid;
-  gap: 1rem;
+  gap: 1.15rem;
   min-height: 100%;
   padding: 1.2rem;
 }
@@ -133,6 +134,8 @@ const links = computed(() =>
 .course-card__links {
   display: grid;
   gap: 0.55rem;
+  min-height: 3.5rem;
+  padding-top: 0.2rem;
 }
 
 .course-card__link {
@@ -161,12 +164,39 @@ const links = computed(() =>
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem;
-  justify-content: space-between;
   margin-top: auto;
+  min-height: 2.75rem;
+  padding-top: 0.35rem;
 }
 
-.course-card__edit {
-  color: #c4b5fd;
+.course-card__action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.course-card__action-link {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  color: var(--text-muted);
+  display: inline-flex;
+  font-size: 0.92rem;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  min-height: 2.85rem;
+  padding: 0 1.15rem;
   text-decoration: none;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease;
+}
+
+.course-card__action-link:hover {
+  transform: translateY(-1px);
 }
 </style>

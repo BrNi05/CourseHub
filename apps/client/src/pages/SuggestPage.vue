@@ -2,7 +2,7 @@
 import { computed, reactive, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import type { CreateSuggestionDto } from '@coursehub/sdk';
+import type { Course, CreateSuggestionDto } from '@coursehub/sdk';
 
 import BaseButton from '@/components/BaseButton.vue';
 import { useAppStore } from '@/lib/app-store';
@@ -24,6 +24,7 @@ type SuggestionForm = {
 const app = useAppStore();
 const route = useRoute();
 const router = useRouter();
+const selectedCourses = app.state.selectedCourses as Course[];
 
 const form = reactive<SuggestionForm>({
   uniName: '',
@@ -39,14 +40,19 @@ const form = reactive<SuggestionForm>({
   courseExtraUrl: '',
 });
 
-const editCourse = computed(() =>
-  app.state.selectedCourses.find((course) => course.id === route.query.editCourseId)
-);
+const editCourseId = computed(() => {
+  const value = route.query.editCourseId;
+  return typeof value === 'string' ? value : undefined;
+});
+
+const editCourse = computed<Course | undefined>(() => {
+  const courseId = editCourseId.value;
+  if (!courseId) return undefined;
+  return selectedCourses.find((course) => course.id === courseId);
+});
 
 function prefillFromRouteCourse() {
-  if (!editCourse.value) {
-    return;
-  }
+  if (!editCourse.value) return;
 
   const selectedUniversity = app.selectedUniversity();
 
@@ -89,51 +95,52 @@ async function submitForm() {
 <template>
   <section class="form-page">
     <div class="form-page__intro">
-      <h1>Send a course change proposal without leaving the main workflow.</h1>
+      <h1>Új tárgy felvétele</h1>
       <p>
-        Use this page for new courses, broken links, or better metadata. If you arrived from a course panel, the current values are already filled where the public API exposes them.
+        Nem találod a keresett tárgyat? Küldj egy javaslatot a lenti űrlap kitöltésével, és az
+        hamarosan mindenki számára elérhető lesz.
       </p>
     </div>
 
     <form class="form-card" @submit.prevent="submitForm">
       <div v-if="editCourse" class="helper-banner">
-        Editing from:
+        Szerkesztés:
         <strong>{{ editCourse.name }} ({{ editCourse.code }})</strong>
       </div>
 
       <div class="form-grid">
         <label class="field">
-          <span>University name</span>
+          <span>Egyetem neve</span>
           <input v-model="form.uniName" required type="text" />
         </label>
 
         <label class="field">
-          <span>University abbreviation</span>
+          <span>Egyetem rövidített neve</span>
           <input v-model="form.uniAbbrevName" required type="text" />
         </label>
 
         <label class="field">
-          <span>Faculty name</span>
+          <span>Kar neve</span>
           <input v-model="form.facultyName" required type="text" />
         </label>
 
         <label class="field">
-          <span>Faculty abbreviation</span>
+          <span>Kar rövidített neve</span>
           <input v-model="form.facultyAbbrevName" required type="text" />
         </label>
 
         <label class="field">
-          <span>Course name</span>
+          <span>Tárgy neve</span>
           <input v-model="form.courseName" required type="text" />
         </label>
 
         <label class="field">
-          <span>Course code</span>
+          <span>Tárgykód</span>
           <input v-model="form.courseCode" required type="text" />
         </label>
 
         <label class="field">
-          <span>Course page URL</span>
+          <span>Tágyoldal URL</span>
           <input v-model="form.coursePageUrl" type="url" />
         </label>
 
@@ -159,9 +166,11 @@ async function submitForm() {
       </div>
 
       <div class="form-actions">
-        <BaseButton kind="ghost" type="button" @click="router.push('/')">Back to manage</BaseButton>
+        <BaseButton kind="ghost" type="button" @click="router.push('/')">
+          Vissza a főoldalra
+        </BaseButton>
         <BaseButton :disabled="app.state.submittingSuggestion" type="submit">
-          {{ app.state.submittingSuggestion ? 'Sending...' : 'Submit suggestion' }}
+          {{ app.state.submittingSuggestion ? 'Küldés...' : 'Javaslat küldése' }}
         </BaseButton>
       </div>
     </form>
@@ -171,11 +180,13 @@ async function submitForm() {
 <style scoped>
 .form-page {
   display: grid;
-  gap: 1.2rem;
+  gap: 1.55rem;
 }
 
 .form-page__intro {
-  max-width: 48rem;
+  display: grid;
+  gap: 0.85rem;
+  max-width: 60rem;
 }
 
 .form-page__eyebrow {
@@ -195,6 +206,7 @@ async function submitForm() {
 .form-page p {
   color: var(--text-muted);
   line-height: 1.6;
+  margin: 0;
 }
 
 .form-card {

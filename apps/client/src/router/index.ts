@@ -1,60 +1,74 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import AdminPage from '@/pages/AdminPage.vue';
 import ErrorReportPage from '@/pages/ErrorReportPage.vue';
 import ManagePage from '@/pages/ManagePage.vue';
 import SearchPage from '@/pages/SearchPage.vue';
 import SuggestPage from '@/pages/SuggestPage.vue';
-import { useAppStore } from '@/lib/app-store';
+import { applySeo, defaultSeo } from '@/lib/seo';
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      name: 'manage',
+      name: 'courses',
       component: ManagePage,
-      meta: { title: 'Manage' },
+      meta: {
+        title: 'Tárgyaim',
+        description: 'Hallgatott tárgyak áttekintése egy helyen.',
+      },
     },
     {
       path: '/search',
       name: 'search',
       component: SearchPage,
-      meta: { title: 'Search Courses' },
+      meta: {
+        title: 'Tárgyak keresése',
+        description:
+          'Keress nyilvános egyetemi kurzusokat egyetem, név vagy kód szerint, és jelöld azokat, amiket felvettél.',
+        canonicalPath: '/search',
+      },
     },
     {
       path: '/suggest',
       name: 'suggest',
       component: SuggestPage,
-      meta: { title: 'Suggest' },
+      meta: {
+        title: 'Tárgy hozzáadása',
+        description:
+          'Javasolj új tárgyat, hibás link javítását vagy adatkorrekciót, hogy a CourseHub naprakész és pontos maradjon.',
+        canonicalPath: '/suggest',
+      },
     },
     {
       path: '/error-report',
       name: 'error-report',
       component: ErrorReportPage,
-      meta: { title: 'Error Report' },
+      meta: {
+        title: 'Hibajelentés',
+        description: 'Jelentsd a CourseHub hibás működését vagy felhasználói felületi problémáit.',
+        canonicalPath: '/error-report',
+      },
     },
     {
-      path: '/admin',
-      name: 'admin',
-      component: AdminPage,
-      meta: { title: 'Admin', requiresAdmin: true },
+      path: '/:pathMatch(.*)*',
+      redirect: '/',
     },
   ],
 });
 
-router.beforeEach((to) => {
-  const app = useAppStore();
-
-  if (to.meta.requiresAdmin && !app.state.session.isAdmin) {
-    return { name: 'manage' }; // redirect non-admins
-  }
-
-  return true;
-});
-
+// Apply SEO changes after each route change
 router.afterEach((to) => {
-  document.title = `${to.meta.title} | CourseHub`;
+  applySeo(
+    {
+      title: typeof to.meta.title === 'string' ? to.meta.title : defaultSeo.title,
+      description:
+        typeof to.meta.description === 'string' ? to.meta.description : defaultSeo.description,
+      robots: typeof to.meta.robots === 'string' ? to.meta.robots : undefined,
+      canonicalPath: typeof to.meta.canonicalPath === 'string' ? to.meta.canonicalPath : undefined,
+    },
+    to.path
+  );
 });
 
 export default router;

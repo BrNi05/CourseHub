@@ -3,16 +3,31 @@ import vue from '@vitejs/plugin-vue';
 import UnoCSS from 'unocss/vite';
 import path from 'node:path';
 
-export default defineConfig({
-  plugins: [vue(), UnoCSS()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+//! The URL of the site where CourseHub is hosted
+//! Also change in seo.ts if changed here
+const SITE_URL = 'https://coursehub.hu';
+
+export default defineConfig(() => {
+  return {
+    plugins: [
+      vue(),
+      UnoCSS(),
+      {
+        name: 'inject-site-url',
+        transformIndexHtml(html) {
+          return html.replaceAll('%SITE_URL%', SITE_URL);
+        },
+      },
+    ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
     },
-  },
-  server: {
-    proxy: {
-      '/api': 'http://localhost:3000',
+    server: {
+      proxy: {
+        '/api': 'http://localhost:3000',
+      },
     },
-  },
+  };
 });

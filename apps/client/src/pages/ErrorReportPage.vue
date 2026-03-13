@@ -7,14 +7,13 @@ import { useAppStore } from '@/lib/app-store';
 const app = useAppStore();
 
 const form = reactive({
-  version: 'web-spa',
   platform: detectPlatform(),
   route: globalThis.location.pathname,
   userAction: '',
-  trace: '',
   message: '',
 });
 
+// Heuristic to detect user platform
 function detectPlatform(): 'windows' | 'linux' | 'macos' | 'android' | 'ios' {
   const userAgent = navigator.userAgent.toLowerCase();
 
@@ -27,17 +26,16 @@ function detectPlatform(): 'windows' | 'linux' | 'macos' | 'android' | 'ios' {
 
 async function submitReport() {
   const ok = await app.submitErrorReport({
-    version: form.version.trim(),
+    version: '10.0.0',
     platform: form.platform,
     route: form.route.trim(),
     userAction: form.userAction.trim(),
-    trace: form.trace.trim(),
+    trace: 'unknown-spa-by-hand',
     message: form.message.trim(),
   });
 
   if (ok) {
     form.userAction = '';
-    form.trace = '';
     form.message = '';
   }
 }
@@ -46,20 +44,12 @@ async function submitReport() {
 <template>
   <section class="report-page">
     <div class="report-page__intro">
-      <h1>Capture backend or client issues in one place.</h1>
-      <p>
-        Send a structured report for unexpected API responses, broken interactions, or
-        hard-to-reproduce UI issues.
-      </p>
+      <h1>Hiba jelentése</h1>
+      <p>Valami nem úgy működik, ahogy kellene? Küldj egy hibajegyet a lenti űrlap kitöltésével.</p>
     </div>
 
     <form class="report-card" @submit.prevent="submitReport">
       <div class="form-grid">
-        <label class="field">
-          <span>Version</span>
-          <input v-model="form.version" required type="text" />
-        </label>
-
         <label class="field">
           <span>Platform</span>
           <select v-model="form.platform">
@@ -72,29 +62,24 @@ async function submitReport() {
         </label>
 
         <label class="field field--wide">
-          <span>Route</span>
+          <span>Elérési út</span>
           <input v-model="form.route" required type="text" />
         </label>
 
         <label class="field field--wide">
-          <span>User action</span>
+          <span>Felhasználói művelet</span>
           <textarea v-model="form.userAction" required rows="3"></textarea>
         </label>
 
         <label class="field field--wide">
-          <span>Message</span>
+          <span>Hibabüzenet</span>
           <textarea v-model="form.message" required rows="3"></textarea>
-        </label>
-
-        <label class="field field--wide">
-          <span>Trace</span>
-          <textarea v-model="form.trace" rows="6"></textarea>
         </label>
       </div>
 
       <div class="form-actions">
         <BaseButton :disabled="app.state.submittingErrorReport" type="submit">
-          {{ app.state.submittingErrorReport ? 'Sending...' : 'Send report' }}
+          {{ app.state.submittingErrorReport ? 'Küldés...' : 'Küldés' }}
         </BaseButton>
       </div>
     </form>

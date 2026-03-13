@@ -3,22 +3,20 @@ import { isAxiosError } from 'axios';
 import {
   errorReport,
   findAll,
-  listErrorReports,
   readOne,
   search,
   suggest,
   updatePinnedCourses,
-  deleteErrorReport,
   type Course,
   type CreateSuggestionDto,
   type ErrorReportDto,
-  type ErrorReportResponseDto,
   type UniversityWithoutFacultiesDto,
   type User,
 } from '@coursehub/sdk';
 
 type NoticeTone = 'info' | 'success' | 'danger';
 
+// Notification structure
 type Notice = {
   id: number;
   tone: NoticeTone;
@@ -27,11 +25,11 @@ type Notice = {
   durationMs: number;
 };
 
+// Session state structure
 type SessionState = {
   token: string | null;
   userId: string | null;
   email: string | null;
-  isAdmin: boolean;
 };
 
 type SearchFilters = {
@@ -48,23 +46,20 @@ type LoginPayload = {
 const API_BASE_URL = '/api';
 const SESSION_STORAGE_KEY = 'coursehub.web.session';
 const DRAFT_STORAGE_KEY = 'coursehub.web.draft-courses';
-const TOAST_DURATION_MS = 3600;
+const TOAST_DURATION_MS = 2600;
 
 const state = reactive({
   initialized: false,
-  bootstrapping: false,
   loadingUniversities: false,
   searchingCourses: false,
   syncingCourses: false,
   submittingSuggestion: false,
   submittingErrorReport: false,
-  loadingAdminReports: false,
   loginInFlight: false,
   session: {
     token: null,
     userId: null,
     email: null,
-    isAdmin: false,
   } as SessionState,
   universities: [] as UniversityWithoutFacultiesDto[],
   searchFilters: {
@@ -74,7 +69,6 @@ const state = reactive({
   } as SearchFilters,
   selectedCourses: [] as Course[],
   searchResults: [] as Course[],
-  adminErrorReports: [] as ErrorReportResponseDto[],
   notices: [] as Notice[],
 });
 
@@ -87,9 +81,7 @@ hydrateFromStorage();
 setupPersistence();
 
 function hydrateFromStorage() {
-  if (globalThis.window === undefined) {
-    return;
-  }
+  if (globalThis.window === undefined) return;
 
   const savedSession = globalThis.localStorage.getItem(SESSION_STORAGE_KEY);
   const savedDraft = globalThis.localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -101,7 +93,6 @@ function hydrateFromStorage() {
       state.session.token = parsed.token ?? null;
       state.session.userId = parsed.userId ?? null;
       state.session.email = parsed.email ?? null;
-      state.session.isAdmin = Boolean(parsed.isAdmin);
     } catch {
       globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
     }
@@ -171,9 +162,7 @@ function dedupeCourses(courses: Course[]) {
 function decodeJwtPayload(token: string): LoginPayload | null {
   try {
     const base64Url = token.split('.')[1];
-    if (!base64Url) {
-      return null;
-    }
+    if (!base64Url) return null;
 
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
@@ -201,31 +190,28 @@ function apiOptions(tokenOverride?: string | null) {
 }
 
 function readCallbackToken() {
-  if (globalThis.window === undefined) {
-    return null;
-  }
+  if (globalThis.window === undefined) return null;
 
   const hash = globalThis.location.hash.startsWith('#')
     ? globalThis.location.hash.slice(1)
     : globalThis.location.hash;
 
-  if (!hash) {
-    return null;
-  }
+  if (!hash) return null;
 
   return new URLSearchParams(hash).get('token');
 }
 
 function clearCallbackTokenFromUrl() {
-  if (globalThis.window === undefined) {
-    return;
-  }
+  if (globalThis.window === undefined) return;
 
   const sanitizedUrl = `${globalThis.location.pathname}${globalThis.location.search}`;
   globalThis.history.replaceState(null, '', sanitizedUrl);
 }
 
-function getErrorMessage(error: unknown, fallback: string) {
+function getErrorMessage(
+  error: unknown,
+  fallback: string = 'A művelet sikertelen. Próbáld meg kicsit később.'
+) {
   if (isAxiosError(error)) {
     const backendMessage = error.response?.data;
 
@@ -235,15 +221,13 @@ function getErrorMessage(error: unknown, fallback: string) {
       'message' in backendMessage &&
       typeof backendMessage.message === 'string'
     ) {
-      return backendMessage.message;
+      return String(backendMessage.message);
     }
 
     return error.message || fallback;
   }
 
-  if (error instanceof Error) {
-    return error.message;
-  }
+  if (error instanceof Error) return error.message;
 
   return fallback;
 }
@@ -291,13 +275,11 @@ function clearSession() {
   state.session.token = null;
   state.session.userId = null;
   state.session.email = null;
-  state.session.isAdmin = false;
-  state.adminErrorReports = [];
 }
 
-function handleUnauthorized(detail: string) {
+function handleUnauthorized() {
   clearSession();
-  pushNotice('danger', 'Login required again', detail);
+  pushNotice('danger', 'Jelentkezz be', 'A munkamenet lejárt. Jelentkezz be újra a folytatáshoz.');
 }
 
 async function loadUniversities() {
@@ -313,16 +295,14 @@ async function loadUniversities() {
       state.searchFilters.universityId = firstUniversity.id;
     }
   } catch (error) {
-    pushNotice('danger', 'Could not load universities', getErrorMessage(error, 'Request failed.'));
+    pushNotice('danger', 'Nem sikerült betölteni az egyetemeket', getErrorMessage(error));
   } finally {
     state.loadingUniversities = false;
   }
 }
 
 async function loadCurrentUser() {
-  if (!state.session.userId || !state.session.token) {
-    return;
-  }
+  if (!state.session.userId || !state.session.token) return;
 
   try {
     const response = await readOne({
@@ -332,23 +312,26 @@ async function loadCurrentUser() {
     applyUserResponse(response.data);
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('Your saved JWT is no longer valid. Please sign in again.');
+      handleUnauthorized();
       return;
     }
 
-    pushNotice('danger', 'Could not load your courses', getErrorMessage(error, 'Request failed.'));
+    pushNotice('danger', 'Nem sikerült betölteni a tárgyaidat', getErrorMessage(error));
   }
 }
 
 function applyUserResponse(user: User) {
   state.session.email = user.googleEmail;
-  state.session.isAdmin = user.isAdmin;
   state.selectedCourses = dedupeCourses(user.pinnedCourses ?? []);
 }
 
 async function syncPinnedCourses(ids: string[], successTitle: string, successDetail: string) {
   if (!state.session.userId || !state.session.token) {
-    pushNotice('info', successTitle, 'Saved locally. Log in to sync it to your account.');
+    pushNotice(
+      'info',
+      successTitle,
+      'A választásaid a mentésre kerültek a böngésződben. Jelentkezz be, hogy minden eszközödön elérhesd őket.'
+    );
     return;
   }
 
@@ -364,15 +347,11 @@ async function syncPinnedCourses(ids: string[], successTitle: string, successDet
     pushNotice('success', successTitle, successDetail);
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('The backend rejected your session while saving course changes.');
+      handleUnauthorized();
       return;
     }
 
-    pushNotice(
-      'danger',
-      'Could not save course changes',
-      getErrorMessage(error, 'Request failed.')
-    );
+    pushNotice('danger', 'Nem sikerült menteni a tárgyváltoztatásokat', getErrorMessage(error));
   } finally {
     state.syncingCourses = false;
   }
@@ -380,7 +359,11 @@ async function syncPinnedCourses(ids: string[], successTitle: string, successDet
 
 async function searchCourses() {
   if (!state.searchFilters.universityId) {
-    pushNotice('info', 'University required', 'Choose a university before searching for courses.');
+    pushNotice(
+      'info',
+      'Válassz egy egyetemet',
+      'A keresési művelet adott egyetem tárgyain fog futni.'
+    );
     return;
   }
 
@@ -397,7 +380,7 @@ async function searchCourses() {
     });
     state.searchResults = response.data;
   } catch (error) {
-    pushNotice('danger', 'Could not search courses', getErrorMessage(error, 'Request failed.'));
+    pushNotice('danger', 'Nem sikerült keresni a tárgyak között', getErrorMessage(error));
   } finally {
     state.searchingCourses = false;
   }
@@ -414,17 +397,15 @@ async function initialize() {
   }
 
   initializePromise = (async () => {
-    state.bootstrapping = true;
-
     try {
       await loadUniversities();
 
       if (isAuthenticated()) {
         if (state.selectedCourses.length > 0) {
-          const syncTitle = restoredPendingLogin ? 'Logged in' : 'Draft restored';
+          const syncTitle = restoredPendingLogin ? 'Bejelentkezve' : 'Mentés visszaállítva';
           const syncDetail = restoredPendingLogin
-            ? 'Your current course setup was synced to the backend.'
-            : 'Your locally saved course draft was synced to the backend.';
+            ? 'A tárgyaid szinkronizálva lettek.'
+            : 'A helyi mentésedet szinkronizáltuk a fiókoddal. Innentől minden eszközödön elérheted őket.';
 
           await syncPinnedCourses(
             state.selectedCourses.map((course) => course.id),
@@ -435,20 +416,19 @@ async function initialize() {
         } else {
           await loadCurrentUser();
           if (restoredPendingLogin) {
-            pushNotice('success', 'Logged in', 'Your Google session is active and ready.');
+            pushNotice('success', 'Bejelentkezve', 'A tárgyaid szinkronizálva lettek.');
             restoredPendingLogin = false;
           }
         }
       } else if (state.selectedCourses.length > 0) {
         pushNotice(
           'info',
-          'Draft restored',
-          'Local course selections were restored. Log in to sync them to your account.'
+          'Helyi mentés betöltve',
+          'A helyi mentésed betöltöttük. Jelentkezz be, hogy szinkronizáld a tárgyaidat.'
         );
       }
       state.initialized = true;
     } finally {
-      state.bootstrapping = false;
       initializePromise = null;
     }
   })();
@@ -460,8 +440,8 @@ async function addCourse(course: Course) {
   state.selectedCourses = dedupeCourses([...state.selectedCourses, course]);
   await syncPinnedCourses(
     state.selectedCourses.map((entry) => entry.id),
-    'Course added',
-    `${course.name} is now part of your current course setup.`
+    'Tárgy felvéve',
+    `A(z) ${course.name} tárgyat inenntől láthatod a főoldalon.`
   );
 }
 
@@ -471,10 +451,10 @@ async function removeCourse(courseId: string) {
 
   await syncPinnedCourses(
     state.selectedCourses.map((entry) => entry.id),
-    'Course removed',
+    'Tárgy eltávolítva',
     removedCourse
-      ? `${removedCourse.name} was removed from your current course setup.`
-      : 'The course was removed from your current course setup.'
+      ? `A(z) ${removedCourse.name} tárgy törölve lett a felvettek közül.`
+      : 'A tárgy törölve lett a felvettek közül.'
   );
 }
 
@@ -489,12 +469,16 @@ function loginWithGoogle() {
 
 function logout() {
   clearSession();
-  pushNotice('info', 'Logged out', 'Local draft courses remain available on this device.');
+  pushNotice(
+    'info',
+    'Kijelentkezve',
+    'A módosításaid innentől csak a böngésződben lesznek elmentve.'
+  );
 }
 
 async function submitSuggestion(payload: CreateSuggestionDto) {
   if (!state.session.token) {
-    pushNotice('info', 'Login required', 'Sign in with Google before sending a suggestion.');
+    pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a javaslat elküldése előtt.');
     return false;
   }
 
@@ -505,15 +489,19 @@ async function submitSuggestion(payload: CreateSuggestionDto) {
       ...apiOptions(),
       body: payload,
     });
-    pushNotice('success', 'Suggestion sent', 'The backend received your course update proposal.');
+    pushNotice(
+      'success',
+      'Javaslat elküldve',
+      'A javaslat sikeresen elküldve, és hamarosan feldolgozásra kerül.'
+    );
     return true;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('The backend rejected your session while sending the suggestion.');
+      handleUnauthorized();
       return false;
     }
 
-    pushNotice('danger', 'Could not send suggestion', getErrorMessage(error, 'Request failed.'));
+    pushNotice('danger', 'Nem sikerült elküldeni a javaslatot', getErrorMessage(error));
     return false;
   } finally {
     state.submittingSuggestion = false;
@@ -522,7 +510,7 @@ async function submitSuggestion(payload: CreateSuggestionDto) {
 
 async function submitErrorReport(payload: ErrorReportDto) {
   if (!state.session.token) {
-    pushNotice('info', 'Login required', 'Sign in with Google before sending an error report.');
+    pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a hibajelentés elküldése előtt.');
     return false;
   }
 
@@ -533,64 +521,26 @@ async function submitErrorReport(payload: ErrorReportDto) {
       ...apiOptions(),
       body: payload,
     });
-    pushNotice('success', 'Error report sent', 'The backend team can review the report now.');
+    pushNotice(
+      'success',
+      'Hibajelentés elküldve',
+      'A hibajelentés sikeresen elküldve, és hamarosan feldolgozásra kerül.'
+    );
     return true;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('The backend rejected your session while sending the error report.');
+      handleUnauthorized();
       return false;
-    }
-
-    pushNotice('danger', 'Could not send error report', getErrorMessage(error, 'Request failed.'));
-    return false;
-  } finally {
-    state.submittingErrorReport = false;
-  }
-}
-
-async function loadAdminErrorReports() {
-  if (!state.session.isAdmin || !state.session.token) {
-    return;
-  }
-
-  state.loadingAdminReports = true;
-
-  try {
-    const response = await listErrorReports(apiOptions());
-    state.adminErrorReports = response.data;
-  } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('The backend rejected your session while loading admin error reports.');
-      return;
-    }
-
-    pushNotice('danger', 'Could not load admin reports', getErrorMessage(error, 'Request failed.'));
-  } finally {
-    state.loadingAdminReports = false;
-  }
-}
-
-async function removeAdminErrorReport(fileName: string) {
-  try {
-    await deleteErrorReport({
-      ...apiOptions(),
-      path: { fileName },
-    });
-    state.adminErrorReports = state.adminErrorReports.filter(
-      (report) => `${report.userId}-${report.receivedAt}` !== fileName
-    );
-    pushNotice('success', 'Admin report removed', 'The stored backend report was deleted.');
-  } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized('The backend rejected your session while deleting an admin report.');
-      return;
     }
 
     pushNotice(
       'danger',
-      'Could not delete admin report',
-      getErrorMessage(error, 'Request failed.')
+      'Nem sikerült elküldeni a hibajelentést. Ironikus, nemde?',
+      getErrorMessage(error)
     );
+    return false;
+  } finally {
+    state.submittingErrorReport = false;
   }
 }
 
@@ -606,8 +556,6 @@ export function useAppStore() {
     dismissNotice,
     submitSuggestion,
     submitErrorReport,
-    loadAdminErrorReports,
-    removeAdminErrorReport,
     selectedUniversity,
     isAuthenticated,
   };

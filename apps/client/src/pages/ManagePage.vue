@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router';
-
 import BaseButton from '@/components/BaseButton.vue';
 import CourseCard from '@/components/CourseCard.vue';
 import { useAppStore } from '@/lib/app-store';
@@ -10,30 +8,13 @@ const app = useAppStore();
 
 <template>
   <section class="page">
-    <div class="quick-grid">
-      <RouterLink class="quick-card" to="/search">
-        <span>Search</span>
-        <strong>Browse public courses and pin the ones you want on this landing page</strong>
-      </RouterLink>
-
-      <RouterLink class="quick-card" to="/suggest">
-        <span>Suggest</span>
-        <strong>Send a new course or correction proposal</strong>
-      </RouterLink>
-
-      <RouterLink class="quick-card" to="/error-report">
-        <span>Error Report</span>
-        <strong>Report backend or UX issues with one focused form</strong>
-      </RouterLink>
-    </div>
-
     <div class="panel">
       <div class="panel__header">
         <div>
-          <h2>Your current course setup</h2>
+          <h2>Felvett tárgyak áttekintése</h2>
         </div>
 
-        <span class="panel__badge">{{ app.state.selectedCourses.length }} selected</span>
+        <span class="panel__badge">{{ app.state.selectedCourses.length }} felvett tárgy</span>
       </div>
 
       <div v-if="app.state.selectedCourses.length > 0" class="course-grid">
@@ -48,22 +29,23 @@ const app = useAppStore();
       </div>
 
       <div v-else class="empty-state">
-        <h3>No course panels yet</h3>
+        <h3>Nincs felvett tárgy</h3>
         <p>
-          Open the dedicated search page, then pin the subjects you want to keep in your synced
-          layout.
+          Használd a keresőoldalt, és jelöld meg azokat a tárgyakat, amelyeket szeretnéd itt látni.
         </p>
 
-        <BaseButton kind="primary" @click="$router.push('/search')">Open course search</BaseButton>
+        <div class="empty-state__actions">
+          <BaseButton kind="primary" @click="$router.push('/search')">Tárgyak keresése</BaseButton>
 
-        <BaseButton
-          v-if="!app.isAuthenticated()"
-          :disabled="app.state.loginInFlight"
-          kind="secondary"
-          @click="app.loginWithGoogle"
-        >
-          {{ app.state.loginInFlight ? 'Redirecting...' : 'Login with Google' }}
-        </BaseButton>
+          <BaseButton
+            v-if="!app.isAuthenticated()"
+            :disabled="app.state.loginInFlight"
+            kind="secondary"
+            @click="app.loginWithGoogle"
+          >
+            {{ app.state.loginInFlight ? 'Átirányítás...' : 'Bejelentkezés' }}
+          </BaseButton>
+        </div>
       </div>
     </div>
   </section>
@@ -73,26 +55,6 @@ const app = useAppStore();
 .page {
   display: grid;
   gap: 1.35rem;
-}
-
-.quick-grid,
-.panel {
-  position: relative;
-  z-index: 1;
-}
-.panel,
-.quick-card {
-  backdrop-filter: blur(18px);
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-soft);
-  border-radius: 1.6rem;
-  box-shadow: var(--shadow-large);
-}
-
-.quick-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
 }
 
 .quick-card {
@@ -156,7 +118,7 @@ const app = useAppStore();
 
 .empty-state {
   display: grid;
-  gap: 0.8rem;
+  gap: 0.9rem;
   justify-items: start;
   padding: 0.8rem 0;
 }
@@ -166,5 +128,13 @@ const app = useAppStore();
   line-height: 1.5;
   margin: 0;
   max-width: 40rem;
+  width: 100%;
+}
+
+.empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.35rem;
 }
 </style>

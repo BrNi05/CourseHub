@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 import { RouterView } from 'vue-router';
 
+import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
 import ToastStack from './components/ToastStack.vue';
 import { useAppStore } from './lib/app-store';
@@ -23,6 +24,8 @@ onMounted(() => {
     <main class="app-shell__main">
       <RouterView />
     </main>
+
+    <AppFooter />
 
     <ToastStack :notices="app.state.notices" @dismiss="app.dismissNotice" />
   </div>

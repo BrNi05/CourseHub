@@ -12,16 +12,20 @@
   --accent-blue: #60a5fa;
   --accent-purple: #8b5cf6;
   --accent-green: #34d399;
+
   color: var(--text-primary);
+
   background:
     radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 32%),
     radial-gradient(circle at top right, rgba(139, 92, 246, 0.18), transparent 28%),
     radial-gradient(circle at bottom right, rgba(52, 211, 153, 0.16), transparent 30%),
     linear-gradient(180deg, #060816 0%, #0a1021 48%, #08111f 100%);
+
   font-family: 'Fira Code', monospace;
   font-synthesis: none;
   line-height: 1.5;
   text-rendering: optimizeLegibility;
+
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
 }
@@ -32,6 +36,7 @@ body,
   min-height: 100%;
   width: 100%;
   margin: 0;
+  overscroll-behavior: none;
 }
 
 body {
@@ -48,6 +53,7 @@ textarea {
 
 * {
   box-sizing: border-box;
+  font-variant-ligatures: contextual;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
 }
@@ -77,20 +83,22 @@ a:focus-visible {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  overflow: hidden;
   position: relative;
 }
 
 .app-shell__main {
+  flex: 1 0 auto;
   margin: 0 auto;
   max-width: 84rem;
   padding: 1.2rem 1.5rem 4rem;
   position: relative;
   width: 100%;
   z-index: 1;
+  overscroll-behavior-y: none;
 }
-
 .app-shell__glow {
   filter: blur(18px);
   opacity: 0.75;
@@ -119,9 +127,17 @@ a:focus-visible {
   width: 10px;
 }
 
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 @media (min-width: 900px) {
