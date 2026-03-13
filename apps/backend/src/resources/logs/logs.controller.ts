@@ -2,7 +2,7 @@
 import { Controller, Get, Delete, Res } from '@nestjs/common';
 import { type Response } from 'express';
 
-import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiProduces } from '@nestjs/swagger';
 
 import { LogsService } from './logs.service.js';
 
@@ -21,14 +21,23 @@ export class LogsController {
     summary: 'ADMIN',
     description: 'Downloads the logs for the application',
   })
+  @ApiProduces('text/plain')
+  @ApiOkResponse({ description: 'Downloaded' })
   @FileSystemOperation()
   @Throttable(60, 3)
-  @ApiOkResponse({ description: 'Downloaded' })
   async downloadLogs(@Res() res: Response) {
     const stream = await this.logsService.getLogStream();
 
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Content-Disposition', 'attachment; filename="CourseHub-Backend.log"');
+
+    stream.on('error', (error) => {
+      if (!res.headersSent) {
+        res.status(500).end();
+        return;
+      }
+      res.destroy(error);
+    });
 
     stream.pipe(res);
   }
