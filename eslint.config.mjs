@@ -1,5 +1,6 @@
 import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
+import prettierConfig from 'eslint-config-prettier/flat';
 import prettierPlugin from 'eslint-plugin-prettier';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
@@ -65,10 +66,7 @@ export default defineConfig([
       'prettier/prettier': 'warn',
       'internal/no-serializer': 'error',
       'internal/no-apiproperty': 'error',
-      'internal/no-prismaimport': [
-        'error',
-        { packages: ['@prisma_client', '@prisma/client'] },
-      ],
+      'internal/no-prismaimport': ['error', { packages: ['@prisma_client', '@prisma/client'] }],
       'internal/throttable-decorator': 'error',
       'internal/require-tests': 'error',
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -85,8 +83,8 @@ export default defineConfig([
       '@typescript-eslint/no-misused-promises': ['warn', { checksVoidReturn: false }],
       '@typescript-eslint/no-redundant-type-constituents': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": ["warn"],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn'],
       '@typescript-eslint/unbound-method': 'warn',
       'no-console': 'warn',
       'no-debugger': 'warn',
@@ -112,6 +110,9 @@ export default defineConfig([
       'vue/script-indent': 'off',
     },
   },
+
+  // Disable stylistic ESLint rules that conflict with Prettier formatting.
+  prettierConfig,
 
   // Ignore generated files and development tools
   {
