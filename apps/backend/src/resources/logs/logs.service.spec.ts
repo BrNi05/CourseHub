@@ -74,6 +74,11 @@ describe('LogsService', () => {
   });
 
   describe('deleteOldLogs', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-03-01T12:00:00'));
+    });
+
     it('deletes lines older than 3 weeks', async () => {
       const oldLine = '2026. 01. 01. de. 05:00:00 [INFO] Old';
       const newLine = '2026. 02. 15. de. 05:00:00 [INFO] New';

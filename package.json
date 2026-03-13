@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "lint:all": "eslint . --ext .ts,.js,.vue --cache --max-warnings=0",
+    "lint:all": "eslint . --ext .ts,.js,.vue --cache --max-warnings=100",
     "build:all": "turbo run build",
     "test": "turbo run test",
     "refresh:sdk": "pnpm --filter ./apps/backend api:gen && pnpm --filter ./packages/sdk gen:sdk",

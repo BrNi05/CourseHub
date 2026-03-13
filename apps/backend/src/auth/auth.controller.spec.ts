@@ -1,20 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthController } from './auth.controller.js';
 import type { Request, Response } from 'express';
+import type { ConfigService } from '@nestjs/config';
 import type { GoogleCallbackDto } from './dto/google-callback.dto.js';
 
 describe('AuthController', () => {
   let controller: AuthController;
 
   beforeEach(() => {
-    controller = new AuthController();
+    const configService = {
+      get: vi.fn().mockReturnValue('http://localhost:3000'),
+      getOrThrow: vi.fn().mockReturnValue('http://localhost:3000'),
+    } as unknown as ConfigService;
+
+    controller = new AuthController(configService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return req.user in googleCallback and set content type', () => {
+  it('should redirect to the frontend root route with the token in the hash', () => {
     const mockUser: GoogleCallbackDto = { accessToken: '...' };
 
     const req = {
@@ -22,13 +28,15 @@ describe('AuthController', () => {
     } as unknown as Request;
 
     const res = {
-      contentType: vi.fn(),
+      redirect: vi.fn(),
     } as unknown as Response;
 
-    const result = controller.googleCallback(req, res);
+    controller.googleCallback(req, res);
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(res.contentType).toHaveBeenCalledWith('application/json');
-    expect(result).toEqual(mockUser);
+    expect(res.redirect).toHaveBeenCalledWith(
+      302,
+      `http://localhost:3000/#token=${encodeURIComponent(mockUser.accessToken)}`
+    );
   });
 });

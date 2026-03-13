@@ -1,33 +1,131 @@
-html, body, #app {
-  height: 100%;
+:root {
+  --text-primary: #eef2ff;
+  --text-muted: rgba(224, 231, 255, 0.78);
+  --text-subtle: rgba(167, 180, 219, 0.72);
+  --surface-elevated:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
+    rgba(9, 14, 32, 0.84);
+  --surface-panel: rgba(15, 23, 42, 0.84);
+  --field-surface: rgba(15, 23, 42, 0.72);
+  --border-soft: rgba(129, 140, 248, 0.18);
+  --shadow-large: 0 24px 70px rgba(2, 6, 23, 0.4);
+  --accent-blue: #60a5fa;
+  --accent-purple: #8b5cf6;
+  --accent-green: #34d399;
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.24), transparent 32%),
+    radial-gradient(circle at top right, rgba(139, 92, 246, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(52, 211, 153, 0.16), transparent 30%),
+    linear-gradient(180deg, #060816 0%, #0a1021 48%, #08111f 100%);
+  font-family: 'Fira Code', monospace;
+  font-synthesis: none;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body,
+#app {
+  min-height: 100%;
   width: 100%;
   margin: 0;
-  padding: 0;
-  overflow: hidden;
-  overscroll-behavior: none;
-  background-color: #111827;
-  font-family: 'Fira Code', monospace;
+}
+
+body {
+  min-height: 100vh;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 * {
-  font-variant-ligatures: contextual;
+  box-sizing: border-box;
   scrollbar-width: thin;
-  scrollbar-color: #374151 #0f172a;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+*::selection {
+  background: rgba(96, 165, 250, 0.28);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  outline: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+  outline: none;
+}
+
+.app-shell {
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-shell__main {
+  margin: 0 auto;
+  max-width: 84rem;
+  padding: 1.2rem 1.5rem 4rem;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.app-shell__glow {
+  filter: blur(18px);
+  opacity: 0.75;
+  position: fixed;
+  z-index: 0;
+}
+
+.app-shell__glow--left {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.34), transparent 60%);
+  height: 26rem;
+  left: -8rem;
+  top: -5rem;
+  width: 26rem;
+}
+
+.app-shell__glow--right {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.22), transparent 60%);
+  height: 24rem;
+  right: -8rem;
+  top: 10rem;
+  width: 24rem;
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0f172a;
+  height: 10px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #374151;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: #4b5563;
+@media (min-width: 900px) {
+  .app-shell__main {
+    padding: 1.4rem 2rem 4.5rem;
+  }
 }
