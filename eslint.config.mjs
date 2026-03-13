@@ -98,7 +98,7 @@ export default defineConfig([
     files: ['**/*.vue'],
     rules: {
       'vue/html-indent': ['warn', 2],
-      'vue/max-attributes-per-line': ['warn', { singleline: 3 }],
+      'vue/max-attributes-per-line': ['warn', { singleline: 5 }],
       'vue/singleline-html-element-content-newline': 'off',
       'vue/multiline-html-element-content-newline': 'off',
       'vue/html-self-closing': [
