@@ -17,7 +17,7 @@ export class ErrorReportDto {
     'Loading course details, Submitting assignment, etc.',
     'Action the user was performing when the error occurred',
     4,
-    128
+    256
   )
   userAction!: string;
 
@@ -29,7 +29,7 @@ export class ErrorReportDto {
   )
   trace!: string;
 
-  @IsValidString('Something went wrong', 'Error message', 0, 128)
+  @IsValidString('Something went wrong', 'Error message', 0, 256)
   message!: string;
 }
 
