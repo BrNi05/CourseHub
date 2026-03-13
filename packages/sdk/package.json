@@ -10,6 +10,7 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
+    "prebuild": "rimraf tsconfig.tsbuildinfo",
     "build": "tsc -p tsconfig.json",
     "gen:sdk": "openapi-ts"
   },
@@ -21,5 +22,8 @@
   },
   "dependencies": {
     "axios": "^1.13.6"
+  },
+  "devDependencies": {
+    "rimraf": "^6.1.3"
   }
 }
