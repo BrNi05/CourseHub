@@ -40,11 +40,10 @@ CF_DIR="/root/.cloudflared"
 mkdir -p "$CF_DIR"
 
 # Create a tunnel
-DOMAIN="sigsegv.hu"
-SUBDOMAIN="coursehub"
+DOMAIN="coursehub.hu"
 API_PORT=30000
 
-TUNNEL_NAME=$SUBDOMAIN
+TUNNEL_NAME="coursehub"
 
 echo ""
 cloudflared tunnel create "$TUNNEL_NAME"
@@ -59,18 +58,18 @@ tunnel: $TUNNEL_ID
 credentials-file: $CF_DIR/$TUNNEL_ID.json
 
 ingress:
-  - hostname: $SUBDOMAIN.$DOMAIN
+  - hostname: $DOMAIN
     service: http://localhost:$API_PORT
   - service: http_status:404
 EOF
 
-cloudflared tunnel route dns "$TUNNEL_NAME" "$SUBDOMAIN.$DOMAIN"
-echo -e "CNAME record created for $SUBDOMAIN.$DOMAIN pointing to tunnel: $TUNNEL_NAME.\n"
+cloudflared tunnel route dns "$TUNNEL_NAME" "$DOMAIN"
+echo -e "CNAME record created for $DOMAIN pointing to tunnel: $TUNNEL_NAME.\n"
 
 # Systemd service for this tunnel
 cat <<EOF > /etc/systemd/system/cftunnel-"$TUNNEL_NAME".service
 [Unit]
-Description=Cloudflare Tunnel for Quoteosch API
+Description=Cloudflare Tunnel for CourseHub API
 Wants=network-online.target
 After=network-online.target
 
