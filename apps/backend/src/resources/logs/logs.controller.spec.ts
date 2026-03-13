@@ -18,13 +18,18 @@ describe('LogsController', () => {
 
   describe('downloadLogs', () => {
     it('should set headers and pipe stream to response', async () => {
-      const pipe = vi.fn();
-      const mockStream = { pipe };
+      const mockStream = {
+        on: vi.fn().mockReturnThis(),
+        pipe: vi.fn(),
+      };
 
       logsService.getLogStream.mockResolvedValueOnce(mockStream);
 
       const res: any = {
         setHeader: vi.fn(),
+        status: vi.fn().mockReturnThis(),
+        end: vi.fn(),
+        headersSent: false,
       };
 
       await controller.downloadLogs(res);
@@ -32,13 +37,13 @@ describe('LogsController', () => {
       expect(logsService.getLogStream).toHaveBeenCalledTimes(1);
 
       expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/plain');
-
       expect(res.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
         'attachment; filename="CourseHub-Backend.log"'
       );
 
-      expect(pipe).toHaveBeenCalledWith(res);
+      expect(mockStream.on).toHaveBeenCalledWith('error', expect.any(Function));
+      expect(mockStream.pipe).toHaveBeenCalledWith(res);
     });
 
     it('should propagate error if getLogStream fails', async () => {
