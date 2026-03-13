@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
 
@@ -7,7 +7,7 @@ import { LoggerService } from '../../logger/logger.service.js';
 import { CreateNewsDto } from './dto/create.dto.js';
 
 @Injectable()
-export class NewsService {
+export class NewsService implements OnModuleInit {
   private readonly newsStoreKey = 'news_store';
 
   // In-memory news array

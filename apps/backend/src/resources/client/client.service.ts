@@ -3,6 +3,7 @@ import {
   HttpException,
   HttpStatus,
   InternalServerErrorException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -19,7 +20,7 @@ import * as path from 'node:path';
 import * as semver from 'semver';
 
 @Injectable()
-export class ClientService {
+export class ClientService implements OnModuleInit {
   private readonly logger: LoggerService;
   private readonly reportsDir: string;
 
