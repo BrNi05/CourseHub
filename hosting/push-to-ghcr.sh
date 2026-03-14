@@ -13,7 +13,7 @@ else
   exit 1
 fi
 
-OWNER="BrNi05"
+OWNER="brni05"
 IMAGE_NAME="coursehub-backend"
 TAG=$(jq -r '.version' ../apps/backend/package.json)
 
@@ -24,11 +24,13 @@ echo "Version tag: $TAG"
 echo "GHCR versioned image: $VERSION_IMAGE"
 echo "GHCR latest image: $LATEST_IMAGE"
 
+echo
 read -p "Continue?"
 
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$OWNER" --password-stdin
+echo
 
-docker build -t backend:latest .
+docker build -t backend:latest ..
 
 docker tag backend:latest "$VERSION_IMAGE"
 docker tag backend:latest "$LATEST_IMAGE"

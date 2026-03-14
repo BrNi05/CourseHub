@@ -33,4 +33,10 @@ COPY --from=base /temp-prod/package.json ./package.json
 
 ENV NODE_ENV=production
 
+# GitHub link to repo
+LABEL org.opencontainers.image.source="https://github.com/BrNi05/CourseHub" \
+      org.opencontainers.image.title="CourseHub Backend" \
+      org.opencontainers.image.description="CourseHub backend server image" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
 CMD ["node", "build/main.js"]
