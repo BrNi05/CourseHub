@@ -109,13 +109,30 @@ const emit = defineEmits<{
 }
 
 .toast__dismiss {
+  align-self: start;
   appearance: none;
-  background: transparent;
-  border: 0;
-  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--text-primary);
   cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
   font: inherit;
-  padding: 0.15rem 0;
+  justify-self: end;
+  min-height: 2rem;
+  min-width: 2.8rem;
+  padding: 0.35rem 0.8rem;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.toast__dismiss:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
 }
 
 .toast__timer {
