@@ -2,6 +2,7 @@
 
 // Generate the Prisma Client: pnpm prisma generate
 // To create the tables: pnpm prisma migrate dev --name ...
+//! Pord migrations are done by hand!!!
 
 generator client {
   provider = "prisma-client"
