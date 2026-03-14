@@ -63,7 +63,7 @@ ingress:
   - service: http_status:404
 EOF
 
-cloudflared tunnel route dns "$TUNNEL_NAME" "$DOMAIN"
+cloudflared tunnel route dns --overwrite-dns "$TUNNEL_NAME" "$DOMAIN"
 echo -e "CNAME record created for $DOMAIN pointing to tunnel: $TUNNEL_NAME.\n"
 
 # Systemd service for this tunnel

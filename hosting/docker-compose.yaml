@@ -22,7 +22,7 @@ services:
         max-size: "50m"
         max-file: "5"
     networks:
-      - coursehub-network
+      - coursehub-prod-network
     labels:
       - "dozzle.sigsegv.include=true"
 
@@ -31,8 +31,6 @@ services:
       container_name: coursehub_redis_prod
       restart: unless-stopped
       command: redis-server --appendonly yes --appendfsync everysec --requirepass ${REDIS_PASSWORD} --maxmemory 1gb --maxmemory-policy allkeys-lru
-      ports:
-        - "10.200.0.1:6379:6379"
       volumes:
         - redis_data:/data
       healthcheck:
@@ -46,7 +44,7 @@ services:
           max-size: "50m"
           max-file: "5"
       networks:
-        - coursehub-network
+        - coursehub-prod-network
       labels:
         - "dozzle.sigsegv.include=true"
 
@@ -62,28 +60,33 @@ services:
     env_file:
       - .env
     ports:
-      - "10.200.0.1:${PORT}:3000"
+      - "127.0.0.1:${PORT}:3000"
     networks:
-      - coursehub_test_coursehub-network
+      - coursehub-prod-network
     labels:
       - "dozzle.sigsegv.include=true"
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 2
       start_period: 5s
     volumes:
-          - ./logs/CourseHub-Backend.log:/app/CourseHub-Backend.log
+          - ./CourseHub-Backend.log:/app/CourseHub-Backend.log
           - ./error-reports:/app/error-reports
           - ./db-backups:/app/db-backups
 
 networks:
-  coursehub_test_coursehub-network:
-    external: true
+  coursehub-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.40.0.0/24
 
 volumes:
   postgres_data:

@@ -25,7 +25,7 @@ FROM node:lts-alpine AS prod
 
 WORKDIR /app
 
-RUN apk add --no-cache postgresql-client
+RUN apk add --no-cache postgresql-client curl
 
 COPY --from=base /temp-prod/build ./build
 COPY --from=base /temp-prod/node_modules ./node_modules

@@ -11,12 +11,18 @@ if [[ "$EUID" -ne 0 ]]; then
    exit 1
 fi
 
+# Load .env
+set -a
+source .env
+set +a
+
 # Authenticate to GHCR
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u BrNi05 --password-stdin
+echo -e "\nAuthenticated to GHCR successfully.\n"
 
 # Create the working dir (manually)
 TARGET_DIR="/home/barni/Documents/coursehub_prod"
-# mkdir -p "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
 
 # Manually create the docker compose file
 
@@ -59,4 +65,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable compose-up-coursehub_prod.service
 sudo systemctl start compose-up-coursehub_prod.service
 
+echo
 echo "Done."

@@ -1,6 +1,6 @@
 services:
   backend:
-    image: coursehub-backend:latest
+    image: coursehub:latest
     container_name: coursehub_backend_latest
     restart: unless-stopped
     cap_drop:
@@ -12,7 +12,7 @@ services:
     ports:
       - "3000:3000"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 2

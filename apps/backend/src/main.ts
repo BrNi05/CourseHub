@@ -15,6 +15,8 @@ import { json, urlencoded } from 'express';
 
 import { setupSwagger } from './swagger/swagger.js';
 
+const logger = new Logger('BOOTSTRAP');
+
 try {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -132,8 +134,8 @@ try {
   setupUi(app);
 
   await app.listen(3000); // Docker will forward traffic to the designated port
+  logger.log('Backend is started and listening on port 3000.');
 } catch (err: unknown) {
-  const logger = new Logger('BOOTSTRAP');
   logger.error(String(err));
   process.exit(1);
 }
