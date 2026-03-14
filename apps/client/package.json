@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/node": "^25.0.10",
     "@unocss/preset-wind3": "^66.6.4",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.8.1",
     "globals": "^17.3.0",
     "prettier": "^3.8.1",
