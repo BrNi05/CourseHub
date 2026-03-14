@@ -41,6 +41,7 @@ type SearchFilters = {
 type LoginPayload = {
   sub?: string;
   email?: string;
+  exp?: number;
 };
 
 const API_BASE_URL = '/api';
@@ -90,10 +91,9 @@ function hydrateFromStorage() {
   if (savedSession) {
     try {
       const parsed = JSON.parse(savedSession) as SessionState;
-      state.session.token = parsed.token ?? null;
-      state.session.userId = parsed.userId ?? null;
-      state.session.email = parsed.email ?? null;
+      restoreSession(parsed);
     } catch {
+      clearSession();
       globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
     }
   }
@@ -131,7 +131,7 @@ function setupPersistence() {
 
       globalThis.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     },
-    { deep: true }
+    { deep: true, immediate: true }
   );
 
   watch(
@@ -143,7 +143,7 @@ function setupPersistence() {
 
       globalThis.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(courses));
     },
-    { deep: true }
+    { deep: true, immediate: true }
   );
 }
 
@@ -263,12 +263,37 @@ function isAuthenticated() {
   return Boolean(state.session.token && state.session.userId);
 }
 
+function isExpiredJwtPayload(payload: LoginPayload | null) {
+  return typeof payload?.exp === 'number' && payload.exp * 1000 <= Date.now();
+}
+
 function applyToken(token: string) {
   const payload = decodeJwtPayload(token);
 
+  if (!payload?.sub || isExpiredJwtPayload(payload)) {
+    clearSession();
+    return false;
+  }
+
   state.session.token = token;
-  state.session.userId = payload?.sub ?? null;
-  state.session.email = payload?.email ?? null;
+  state.session.userId = payload.sub;
+  state.session.email = payload.email ?? null;
+  return true;
+}
+
+function restoreSession(session: SessionState) {
+  if (!session.token) {
+    clearSession();
+    return;
+  }
+
+  const restored = applyToken(session.token);
+
+  if (!restored) return;
+
+  if (!state.session.email && session.email) {
+    state.session.email = session.email;
+  }
 }
 
 function clearSession() {
@@ -401,16 +426,11 @@ async function initialize() {
       await loadUniversities();
 
       if (isAuthenticated()) {
-        if (state.selectedCourses.length > 0) {
-          const syncTitle = restoredPendingLogin ? 'Bejelentkezve' : 'Mentés visszaállítva';
-          const syncDetail = restoredPendingLogin
-            ? 'A tárgyaid szinkronizálva lettek.'
-            : 'A helyi mentésedet szinkronizáltuk a fiókoddal. Innentől minden eszközödön elérheted őket.';
-
+        if (restoredPendingLogin && state.selectedCourses.length > 0) {
           await syncPinnedCourses(
             state.selectedCourses.map((course) => course.id),
-            syncTitle,
-            syncDetail
+            'Bejelentkezve',
+            'A tárgyaid szinkronizálva lettek.'
           );
           restoredPendingLogin = false;
         } else {
