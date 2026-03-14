@@ -22,9 +22,7 @@ const emit = defineEmits<{
         <p>{{ notice.detail }}</p>
       </div>
 
-      <button class="toast__dismiss" type="button" @click="emit('dismiss', notice.id)">
-        Close
-      </button>
+      <button class="toast__dismiss" type="button" @click="emit('dismiss', notice.id)">OK</button>
 
       <div class="toast__timer" aria-hidden="true">
         <span
