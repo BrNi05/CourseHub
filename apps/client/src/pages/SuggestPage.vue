@@ -111,57 +111,84 @@ async function submitForm() {
       <div class="form-grid">
         <label class="field">
           <span>Egyetem neve</span>
-          <input v-model="form.uniName" required type="text" />
+          <input
+            v-model="form.uniName"
+            required
+            type="text"
+            placeholder="Budapesti Műszaki és Gazdaságtudományi Egyetem"
+          />
         </label>
 
         <label class="field">
           <span>Egyetem rövidített neve</span>
-          <input v-model="form.uniAbbrevName" required type="text" />
+          <input v-model="form.uniAbbrevName" required type="text" placeholder="BME" />
         </label>
 
         <label class="field">
           <span>Kar neve</span>
-          <input v-model="form.facultyName" required type="text" />
+          <input
+            v-model="form.facultyName"
+            required
+            type="text"
+            placeholder="Villamosmérnöki és Informatikai Kar"
+          />
         </label>
 
         <label class="field">
           <span>Kar rövidített neve</span>
-          <input v-model="form.facultyAbbrevName" required type="text" />
+          <input v-model="form.facultyAbbrevName" required type="text" placeholder="VIK" />
         </label>
 
         <label class="field">
           <span>Tárgy neve</span>
-          <input v-model="form.courseName" required type="text" />
+          <input
+            v-model="form.courseName"
+            required
+            type="text"
+            placeholder="Programozás alapjai I."
+          />
         </label>
 
         <label class="field">
           <span>Tárgykód</span>
-          <input v-model="form.courseCode" required type="text" />
+          <input v-model="form.courseCode" required type="text" placeholder="BMEVIEEAA00" />
         </label>
 
         <label class="field">
           <span>Tágyoldal URL</span>
-          <input v-model="form.coursePageUrl" type="url" />
+          <input v-model="form.coursePageUrl" type="url" placeholder="https://infoc.eet.bme.hu/" />
         </label>
 
         <label class="field">
           <span>TAD URL</span>
-          <input v-model="form.courseTadUrl" type="url" />
+          <input
+            v-model="form.courseTadUrl"
+            type="url"
+            placeholder="https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00/"
+          />
         </label>
 
         <label class="field">
           <span>Moodle URL</span>
-          <input v-model="form.courseMoodleUrl" type="url" />
+          <input
+            v-model="form.courseMoodleUrl"
+            type="url"
+            placeholder="https://edu.vik.bme.hu/course/view.php?id=..."
+          />
         </label>
 
         <label class="field">
           <span>Teams URL</span>
-          <input v-model="form.courseTeamsUrl" type="url" />
+          <input
+            v-model="form.courseTeamsUrl"
+            type="url"
+            placeholder="https://teams.microsoft.com/l/channel/..."
+          />
         </label>
 
         <label class="field field--wide">
           <span>Extra URL</span>
-          <input v-model="form.courseExtraUrl" type="url" />
+          <input v-model="form.courseExtraUrl" type="url" placeholder="https://example.com/extra" />
         </label>
       </div>
 
@@ -229,14 +256,16 @@ async function submitForm() {
 }
 
 .form-grid {
+  align-items: start;
   display: grid;
-  gap: 0.85rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1.4em;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .field {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.65rem;
+  min-width: 0;
 }
 
 .field--wide {
@@ -246,6 +275,7 @@ async function submitForm() {
 .field span {
   color: var(--text-muted);
   font-size: 0.88rem;
+  line-height: 1.35;
 }
 
 .field input {
@@ -254,8 +284,10 @@ async function submitForm() {
   border-radius: 1rem;
   color: var(--text-primary);
   font: inherit;
+  max-width: 100%;
   min-height: 3rem;
   padding: 0 0.95rem;
+  width: 100%;
 }
 
 .form-actions {
@@ -263,5 +295,6 @@ async function submitForm() {
   flex-wrap: wrap;
   gap: 0.8rem;
   justify-content: space-between;
+  margin-top: 0.5rem;
 }
 </style>
