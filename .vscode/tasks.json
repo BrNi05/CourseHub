@@ -99,7 +99,7 @@
     {
       "label": "Docker Compose Up",
       "type": "shell",
-      "command": "docker-compose up -d",
+      "command": "docker compose up -d",
       "detail": "Start the application using Docker Compose",
       "problemMatcher": []
     },
