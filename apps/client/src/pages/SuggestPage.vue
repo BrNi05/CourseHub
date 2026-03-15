@@ -214,6 +214,7 @@ async function submitForm() {
   display: grid;
   gap: 0.85rem;
   max-width: 60rem;
+  padding-top: 1.2rem;
 }
 
 .form-page__eyebrow {
@@ -225,8 +226,6 @@ async function submitForm() {
 }
 
 .form-page h1 {
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  line-height: 1.06;
   margin: 0;
 }
 

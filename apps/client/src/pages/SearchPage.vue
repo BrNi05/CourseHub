@@ -35,7 +35,7 @@ const selectedIds = computed<Set<string>>(
           :disabled="app.state.searchingCourses || app.state.loadingUniversities"
           @click="app.searchCourses"
         >
-          {{ app.state.searchingCourses ? 'Searching...' : 'Search courses' }}
+          {{ app.state.searchingCourses ? 'Keresés...' : 'Keresés' }}
         </BaseButton>
       </div>
 
@@ -103,6 +103,7 @@ const selectedIds = computed<Set<string>>(
 .search-page__hero {
   display: grid;
   gap: 1.25rem;
+  padding-top: 1.2rem;
 }
 
 .search-page__hero-copy {
@@ -112,8 +113,6 @@ const selectedIds = computed<Set<string>>(
 }
 
 .search-page h1 {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  line-height: 1.05;
   margin: 0;
 }
 

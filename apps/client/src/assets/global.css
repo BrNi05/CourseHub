@@ -66,6 +66,19 @@ a {
   color: inherit;
 }
 
+a,
+button,
+input,
+select,
+textarea,
+[role='button'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1 {
+  font-size: 2em;
+}
+
 button,
 input,
 select,

@@ -93,7 +93,10 @@ async function submitReport() {
 }
 
 .report-page__intro {
+  display: grid;
+  gap: 0.85rem;
   max-width: 48rem;
+  padding-top: 1.2rem;
 }
 
 .report-page h1 {
@@ -103,6 +106,7 @@ async function submitReport() {
 .report-page p {
   color: var(--text-muted);
   line-height: 1.6;
+  margin: 0;
 }
 
 .report-card {
