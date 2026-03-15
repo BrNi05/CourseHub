@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Request, Response, NextFunction } from 'express';
+import { randomBytes } from 'node:crypto';
 
 import { AppModule } from './app.module.js';
 import { setupUi } from './ui/ui.js';
@@ -55,22 +56,41 @@ try {
   // HTTPS(S) headers configuration
   app.use(hpp());
 
+  // Generate a unique nonce for Cloudflare script injection
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.locals.cspNonce = randomBytes(16).toString('base64');
+    next();
+  });
+
+  // Helper function to build CSP header string
+  const stringifyCspDirectives = (directives: Record<string, string[]>): string =>
+    Object.entries(directives)
+      .map(([directive, sources]) =>
+        sources.length > 0 ? `${directive} ${sources.join(' ')}` : directive
+      )
+      .join('; ');
+
+  // Build CSP header based on route
+  const buildCspHeader = (nonce: string, isSwaggerRoute: boolean): string => {
+    return stringifyCspDirectives({
+      'default-src': ["'self'"],
+      'base-uri': ["'self'"],
+      'font-src': ["'self'"],
+      'form-action': ["'self'"],
+      'frame-ancestors': ["'none'"],
+      'img-src': isSwaggerRoute ? ["'self'", 'data:'] : ["'self'"],
+      'object-src': ["'none'"],
+      'script-src': ["'self'", `'nonce-${nonce}'`],
+      'script-src-attr': ["'none'"],
+      'style-src': isSwaggerRoute ? ["'self'", "'unsafe-inline'"] : ["'self'"],
+      'connect-src': ["'self'"],
+      'upgrade-insecure-requests': [],
+    });
+  };
+
   // Security policies
   const swaggerHelmet = helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:'],
-        fontSrc: ["'self'"],
-        connectSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        frameAncestors: ["'none'"],
-        baseUri: ["'self'"],
-        upgradeInsecureRequests: [],
-      },
-    },
+    contentSecurityPolicy: false, // use custom CSP builder
   });
 
   const mainHelmet = helmet({
@@ -88,26 +108,17 @@ try {
     crossOriginOpenerPolicy: { policy: 'same-origin' },
     crossOriginResourcePolicy: { policy: 'same-origin' },
     crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'"], // 'https:'
-        imgSrc: ["'self'"], // 'https:', 'data:'
-        fontSrc: ["'self'"], // 'https:', 'data:'
-        connectSrc: ["'self'"],
-        objectSrc: ["'none'"],
-        frameAncestors: ["'none'"],
-        baseUri: ["'self'"],
-        formAction: ["'self'"],
-        upgradeInsecureRequests: [],
-      },
-    },
+    contentSecurityPolicy: false, // use custom CSP builder
   });
 
   // Choose helmet config based on route
   app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.path.startsWith('/api/docs')) return swaggerHelmet(req, res, next);
+    const isSwaggerRoute = req.path.startsWith('/api/docs');
+    const nonce = String(res.locals.cspNonce); // always defined
+
+    res.setHeader('Content-Security-Policy', buildCspHeader(nonce, isSwaggerRoute));
+
+    if (isSwaggerRoute) return swaggerHelmet(req, res, next);
     return mainHelmet(req, res, next);
   });
 
