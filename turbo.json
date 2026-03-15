@@ -43,14 +43,9 @@
       "outputs": ["public/**"],
       "cache": false
     },
-    // Build backend Docker image
-    "docker:build": {
-      "dependsOn": ["@coursehub/client#build"],
-      "outputs": []
-    },
     // General build task
     "build": {
-      "dependsOn": ["^build", "lint:all", "@coursehub/coursehub#bundle:static", "docker:build"],
+      "dependsOn": ["^build", "lint:all", "@coursehub/coursehub#bundle:static"],
       "outputs": ["build/**", "dist/**", "prisma/generated/**", "public/**"]
     },
     // Global test task

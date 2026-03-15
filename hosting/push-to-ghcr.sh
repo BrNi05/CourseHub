@@ -29,7 +29,13 @@ echo "GHCR latest image: $LATEST_IMAGE"
 echo
 read -p "Continue?"
 
+echo -e "\nLogging in to GHCR..."
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$OWNER" --password-stdin
+echo
+
+# Build the whole repo
+echo "Building the project..."
+pnpm run build:all
 echo
 
 docker build -t backend:latest ..
@@ -40,6 +46,4 @@ docker tag backend:latest "$LATEST_IMAGE"
 docker push "$VERSION_IMAGE"
 docker push "$LATEST_IMAGE"
 
-echo "Images pushed to GHCR."
-
-## Usage: as a VSC task
+echo -e "\nImages pushed to GHCR."
