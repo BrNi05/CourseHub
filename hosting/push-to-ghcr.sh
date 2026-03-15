@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#? cd /home/barni/Documents/coursehub_prod && docker compose pull backend && docker compose up -d --force-recreate --no-deps backend
+
 # Error mgmt
 set -e
 on_error() { echo "Script failed. Error on line: $1. Terminating..."; }
