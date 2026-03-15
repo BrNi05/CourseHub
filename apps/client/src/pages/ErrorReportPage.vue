@@ -3,30 +3,20 @@ import { reactive } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
 import { useAppStore } from '@/lib/app-store';
+import { CLIENT_VERSION, getClientPlatform } from '@/lib/client-runtime';
 
 const app = useAppStore();
 
 const form = reactive({
-  platform: detectPlatform(),
+  platform: getClientPlatform(),
   route: globalThis.location.pathname,
   userAction: '',
   message: '',
 });
 
-// Heuristic to detect user platform
-function detectPlatform(): 'windows' | 'linux' | 'macos' | 'android' | 'ios' {
-  const userAgent = navigator.userAgent.toLowerCase();
-
-  if (userAgent.includes('android')) return 'android';
-  if (userAgent.includes('iphone') || userAgent.includes('ipad')) return 'ios';
-  if (userAgent.includes('mac')) return 'macos';
-  if (userAgent.includes('win')) return 'windows';
-  return 'linux';
-}
-
 async function submitReport() {
   const ok = await app.submitErrorReport({
-    version: '10.0.0',
+    version: CLIENT_VERSION,
     platform: form.platform,
     route: form.route.trim(),
     userAction: form.userAction.trim(),

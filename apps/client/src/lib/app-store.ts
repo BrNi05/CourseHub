@@ -3,6 +3,7 @@ import { isAxiosError } from 'axios';
 import {
   errorReport,
   findAll,
+  ping,
   readOne,
   search,
   suggest,
@@ -13,6 +14,7 @@ import {
   type UniversityWithoutFacultiesDto,
   type User,
 } from '@coursehub/sdk';
+import { CLIENT_VERSION, getClientPlatform, type ClientPlatform } from './client-runtime';
 
 type NoticeTone = 'info' | 'success' | 'danger';
 
@@ -44,9 +46,12 @@ type LoginPayload = {
   exp?: number;
 };
 
+type PingRegistry = Record<string, true>;
+
 const API_BASE_URL = '/api';
 const SESSION_STORAGE_KEY = 'coursehub.web.session';
 const DRAFT_STORAGE_KEY = 'coursehub.web.draft-courses';
+const PING_STORAGE_KEY = 'coursehub.web.client-pings';
 const TOAST_DURATION_MS = 2600;
 
 const state = reactive({
@@ -208,6 +213,61 @@ function clearCallbackTokenFromUrl() {
   globalThis.history.replaceState(null, '', sanitizedUrl);
 }
 
+function pingDayKey(now: Date = new Date()) {
+  return now.toISOString().slice(0, 10);
+}
+
+function pingStorageKey(userId: string, platform: ClientPlatform, day: string = pingDayKey()) {
+  return `${userId}:${platform}:${day}`;
+}
+
+function readPingRegistry(): PingRegistry {
+  if (globalThis.window === undefined) return {};
+
+  const savedRegistry = globalThis.localStorage.getItem(PING_STORAGE_KEY);
+
+  if (!savedRegistry) return {};
+
+  try {
+    const parsed = JSON.parse(savedRegistry) as PingRegistry;
+
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // Fall through and reset invalid storage.
+  }
+
+  globalThis.localStorage.removeItem(PING_STORAGE_KEY);
+  return {};
+}
+
+function writePingRegistry(registry: PingRegistry) {
+  if (globalThis.window === undefined) return;
+
+  const today = pingDayKey();
+  const entries = Object.keys(registry)
+    .filter((key) => key.endsWith(`:${today}`))
+    .slice(-20)
+    .reduce<PingRegistry>((nextRegistry, key) => {
+      nextRegistry[key] = true;
+      return nextRegistry;
+    }, {});
+
+  globalThis.localStorage.setItem(PING_STORAGE_KEY, JSON.stringify(entries));
+}
+
+function hasPingedToday(userId: string, platform: ClientPlatform) {
+  const registry = readPingRegistry();
+  return registry[pingStorageKey(userId, platform)] === true;
+}
+
+function markPingedToday(userId: string, platform: ClientPlatform) {
+  const registry = readPingRegistry();
+  registry[pingStorageKey(userId, platform)] = true;
+  writePingRegistry(registry);
+}
+
 function getErrorMessage(
   error: unknown,
   fallback: string = 'A művelet sikertelen. Próbáld meg kicsit később.'
@@ -305,6 +365,33 @@ function clearSession() {
 function handleUnauthorized() {
   clearSession();
   pushNotice('danger', 'Jelentkezz be', 'A munkamenet lejárt. Jelentkezz be újra a folytatáshoz.');
+}
+
+async function pingClient() {
+  if (!state.session.userId || !state.session.token) return;
+
+  const platform = getClientPlatform();
+
+  if (hasPingedToday(state.session.userId, platform)) return;
+
+  try {
+    await ping({
+      ...apiOptions(),
+      body: {
+        platform,
+        version: CLIENT_VERSION,
+      },
+    });
+    markPingedToday(state.session.userId, platform);
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.error('Failed to send client ping.', error);
+  }
 }
 
 async function loadUniversities() {
@@ -440,6 +527,8 @@ async function initialize() {
             restoredPendingLogin = false;
           }
         }
+
+        await pingClient();
       } else if (state.selectedCourses.length > 0) {
         pushNotice(
           'info',

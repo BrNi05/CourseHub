@@ -64,12 +64,22 @@ export class ClientService implements OnModuleInit {
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
     );
 
-    await this.prisma.clientPing.create({
-      data: {
+    await this.prisma.clientPing.upsert({
+      where: {
+        userId_date_platform: {
+          userId,
+          date: normalizedDate,
+          platform,
+        },
+      },
+      create: {
         userId,
         platform,
         version,
         date: normalizedDate,
+      },
+      update: {
+        version,
       },
     });
   }

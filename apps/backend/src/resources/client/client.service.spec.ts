@@ -27,7 +27,7 @@ describe('ClientService', () => {
   beforeEach(() => {
     prisma = {
       clientPing: {
-        create: vi.fn(),
+        upsert: vi.fn(),
         deleteMany: vi.fn(),
       },
       user: {
@@ -70,18 +70,21 @@ describe('ClientService', () => {
     );
   });
 
-  it('should create a client ping with normalized UTC date', async () => {
+  it('should upsert a client ping with normalized UTC date', async () => {
     await service.ping('user-1', ClientPlatform.linux, '1.0.0');
 
-    expect(prisma.clientPing.create).toHaveBeenCalledTimes(1);
+    expect(prisma.clientPing.upsert).toHaveBeenCalledTimes(1);
 
-    const call = prisma.clientPing.create.mock.calls[0][0];
+    const call = prisma.clientPing.upsert.mock.calls[0][0];
 
-    expect(call.data.userId).toBe('user-1');
-    expect(call.data.platform).toBe(ClientPlatform.linux);
-    expect(call.data.version).toBe('1.0.0');
+    expect(call.where.userId_date_platform.userId).toBe('user-1');
+    expect(call.where.userId_date_platform.platform).toBe(ClientPlatform.linux);
+    expect(call.create.userId).toBe('user-1');
+    expect(call.create.platform).toBe(ClientPlatform.linux);
+    expect(call.create.version).toBe('1.0.0');
+    expect(call.update.version).toBe('1.0.0');
 
-    const date = call.data.date as Date;
+    const date = call.create.date as Date;
     expect(date.getUTCHours()).toBe(0);
     expect(date.getUTCMinutes()).toBe(0);
     expect(date.getUTCSeconds()).toBe(0);
