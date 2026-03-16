@@ -31,15 +31,23 @@ export class FacultyService {
   }
 
   async create(dto: CreateFacultyDto): Promise<FacultyWithoutCoursesDto> {
-    return await this.prisma.faculty.create({ data: dto });
+    const faculty = await this.prisma.faculty.create({ data: dto });
+
+    await this.eventEmitter.emitAsync('faculty.created');
+
+    return faculty;
   }
 
   async update(id: string, dto: UpdateFacultyDto): Promise<Faculty> {
-    return await this.prisma.faculty.update({
+    const faculty = await this.prisma.faculty.update({
       where: { id },
       data: dto,
       include: { courses: true },
     });
+
+    await this.eventEmitter.emitAsync('faculty.updated');
+
+    return faculty;
   }
 
   async remove(id: string): Promise<void> {
