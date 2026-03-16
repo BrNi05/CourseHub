@@ -40,7 +40,7 @@ describe('NewsController', () => {
     expect(newsService.getAllNews).toHaveBeenCalledTimes(1);
   });
 
-  it('news() sets a 1 hour minute Cache-Control header', () => {
+  it('news() sets a 1 hour Cache-Control header', () => {
     const headers = Reflect.getMetadata(HEADERS_METADATA, NewsController.prototype.news) as Array<{
       name: string;
       value: string;

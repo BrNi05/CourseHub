@@ -16,7 +16,7 @@ export class NewsController {
   @Get()
   @ApiOperation({
     summary: 'PUBLIC',
-    description: 'Returns all news items (cached for 1 hours)',
+    description: 'Returns all news items (cached for 1 hour)',
   })
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
   @Header('Cache-Control', 'public, max-age=3600')
