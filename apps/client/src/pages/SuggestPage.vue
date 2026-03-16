@@ -182,7 +182,7 @@ async function submitForm() {
           <input
             v-model="form.courseTeamsUrl"
             type="url"
-            placeholder="https://teams.microsoft.com/l/channel/..."
+            placeholder="https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=..."
           />
         </label>
 

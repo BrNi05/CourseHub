@@ -1,5 +1,5 @@
 import { IsValidString } from '../../../decorators/validators/string.dto.js';
-import { CourseLink } from '../../../decorators/validators/course-link.dto.js';
+import { CourseLink, isMicrosoftTeamsUrl } from '../../../decorators/validators/course-link.dto.js';
 
 export class CreateSuggestionDto {
   @IsValidString(
@@ -48,8 +48,13 @@ export class CreateSuggestionDto {
 
   @CourseLink(
     'courseTeamsUrl must be a valid URL',
-    'https://teams.microsoft.com/l/team/...',
-    "URL to the course's Microsoft Teams group, if available"
+    'https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=...',
+    "URL to the course's Microsoft Teams group, if available",
+    {
+      validate: isMicrosoftTeamsUrl,
+      validateMessage:
+        'courseTeamsUrl must match https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=...',
+    }
   )
   courseTeamsUrl?: string;
 
