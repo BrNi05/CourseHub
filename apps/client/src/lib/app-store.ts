@@ -284,13 +284,20 @@ function getErrorMessage(
   if (isAxiosError(error)) {
     const backendMessage = error.response?.data;
 
-    if (
-      backendMessage &&
-      typeof backendMessage === 'object' &&
-      'message' in backendMessage &&
-      typeof backendMessage.message === 'string'
-    ) {
-      return String(backendMessage.message);
+    if (backendMessage && typeof backendMessage === 'object' && 'message' in backendMessage) {
+      const message = backendMessage.message;
+
+      if (typeof message === 'string') return message;
+
+      if (Array.isArray(message)) {
+        const normalized = message.filter((item): item is string => typeof item === 'string');
+
+        if (normalized.length > 0) return normalized.join('\n');
+      }
+    }
+
+    if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+      return backendMessage;
     }
 
     return error.message || fallback;
