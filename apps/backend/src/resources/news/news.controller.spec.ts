@@ -1,5 +1,10 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import 'reflect-metadata';
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { HEADERS_METADATA } from '@nestjs/common/constants.js';
+
 import { NewsController } from './news.controller.js';
 import type { NewsService } from './news.service.js';
 
@@ -33,6 +38,18 @@ describe('NewsController', () => {
 
     expect(result).toEqual(['a', 'b']);
     expect(newsService.getAllNews).toHaveBeenCalledTimes(1);
+  });
+
+  it('news() sets a 1 hour minute Cache-Control header', () => {
+    const headers = Reflect.getMetadata(HEADERS_METADATA, NewsController.prototype.news) as Array<{
+      name: string;
+      value: string;
+    }>;
+
+    expect(headers).toContainEqual({
+      name: 'Cache-Control',
+      value: 'public, max-age=3600',
+    });
   });
 
   it('createNews() forwards DTO to service and returns updated list', async () => {

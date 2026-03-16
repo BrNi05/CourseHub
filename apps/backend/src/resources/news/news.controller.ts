@@ -1,5 +1,5 @@
 /* eslint-disable internal/no-serializer */
-import { Controller, Get, Post, Delete, Body } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Header } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { NewsService } from './news.service.js';
@@ -16,9 +16,10 @@ export class NewsController {
   @Get()
   @ApiOperation({
     summary: 'PUBLIC',
-    description: 'Returns all news items',
+    description: 'Returns all news items (cached for 1 hours)',
   })
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
+  @Header('Cache-Control', 'public, max-age=3600')
   @Admin()
   @Throttable(60, 60000)
   news(): string[] {

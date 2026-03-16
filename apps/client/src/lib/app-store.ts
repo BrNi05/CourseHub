@@ -3,6 +3,7 @@ import { isAxiosError } from 'axios';
 import {
   errorReport,
   findAll,
+  news,
   ping,
   readOne,
   search,
@@ -48,7 +49,6 @@ type LoginPayload = {
 
 type PingRegistry = Record<string, true>;
 
-const API_BASE_URL = '/api';
 const SESSION_STORAGE_KEY = 'coursehub.web.session';
 const DRAFT_STORAGE_KEY = 'coursehub.web.draft-courses';
 const PING_STORAGE_KEY = 'coursehub.web.client-pings';
@@ -73,6 +73,7 @@ const state = reactive({
     courseName: '',
     courseCode: '',
   } as SearchFilters,
+  news: [] as string[],
   selectedCourses: [] as Course[],
   searchResults: [] as Course[],
   notices: [] as Notice[],
@@ -164,6 +165,13 @@ function dedupeCourses(courses: Course[]) {
   });
 }
 
+function normalizeNewsItems(items: string[]) {
+  return [...items]
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
+    .reverse();
+}
+
 function decodeJwtPayload(token: string): LoginPayload | null {
   try {
     const base64Url = token.split('.')[1];
@@ -189,7 +197,7 @@ function apiOptions(tokenOverride?: string | null) {
 
   return {
     auth: token ?? undefined,
-    baseURL: API_BASE_URL,
+    baseURL: '/api',
     throwOnError: true as const,
   };
 }
@@ -413,6 +421,15 @@ async function loadUniversities() {
   }
 }
 
+async function loadNews() {
+  try {
+    const response = await news(apiOptions(null));
+    state.news = normalizeNewsItems(response.data);
+  } catch (error) {
+    pushNotice('danger', 'Nem sikerült betölteni a híreket', getErrorMessage(error));
+  }
+}
+
 async function loadCurrentUser() {
   if (!state.session.userId || !state.session.token) return;
 
@@ -510,7 +527,7 @@ async function initialize() {
 
   initializePromise = (async () => {
     try {
-      await loadUniversities();
+      await Promise.all([loadUniversities(), loadNews()]);
 
       if (isAuthenticated()) {
         if (restoredPendingLogin && state.selectedCourses.length > 0) {
@@ -568,12 +585,10 @@ async function removeCourse(courseId: string) {
 }
 
 function loginWithGoogle() {
-  if (state.loginInFlight) {
-    return;
-  }
+  if (state.loginInFlight) return;
 
   state.loginInFlight = true;
-  globalThis.location.assign(`${API_BASE_URL}/auth/google`);
+  globalThis.location.assign(`api/auth/google`);
 }
 
 function logout() {
