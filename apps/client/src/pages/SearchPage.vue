@@ -37,13 +37,14 @@ onMounted(() => {
 
         <BaseButton
           :disabled="app.state.searchingCourses || app.state.loadingUniversities"
-          @click="app.searchCourses"
+          form="course-search-form"
+          type="submit"
         >
           {{ app.state.searchingCourses ? 'Keresés...' : 'Keresés' }}
         </BaseButton>
       </div>
 
-      <form class="search-grid" @submit.prevent="app.searchCourses">
+      <form id="course-search-form" class="search-grid" @submit.prevent="app.searchCourses">
         <label class="field field--university">
           <span>Egyetem</span>
           <select
