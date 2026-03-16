@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Header } from '@nestjs/common';
 import { ApiOkResponse, ApiCreatedResponse, ApiOperation } from '@nestjs/swagger';
 
 import { UniversityService } from './university.service.js';
@@ -21,13 +21,14 @@ export class UniversityController {
   @Get()
   @ApiOperation({
     summary: 'PUBLIC',
-    description: 'Returns a list of all universities without their faculties',
+    description: 'Returns a list of all universities without their faculties (cached for 1 day)',
   })
   @ApiOkResponse({
     type: UniversityWithoutFacultiesDto,
     isArray: true,
     description: 'Success',
   })
+  @Header('Cache-Control', 'public, max-age=86400')
   @DatabaseOperation()
   @Throttable(60, 10000)
   findAll() {

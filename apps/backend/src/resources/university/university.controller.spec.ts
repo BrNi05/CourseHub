@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UniversityController } from './university.controller.js';
 import type { UniversityService } from './university.service.js';
 import type { CreateUniversityDto } from './dto/create-university.dto.js';
 import type { UpdateUniversityDto } from './dto/update-university.dto.js';
+import { HEADERS_METADATA } from '@nestjs/common/constants.js';
 
 describe('UniversityController', () => {
   let controller: UniversityController;
@@ -39,6 +41,21 @@ describe('UniversityController', () => {
 
       expect(mockFindAll).toHaveBeenCalled();
       expect(result).toEqual(mockData);
+    });
+  });
+
+  it('findAll() sets a 1 day Cache-Control header', () => {
+    const headers = Reflect.getMetadata(
+      HEADERS_METADATA,
+      UniversityController.prototype.findAll
+    ) as Array<{
+      name: string;
+      value: string;
+    }>;
+
+    expect(headers).toContainEqual({
+      name: 'Cache-Control',
+      value: 'public, max-age=86400',
     });
   });
 
