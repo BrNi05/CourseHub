@@ -69,12 +69,12 @@ export class CourseService {
   }
 
   async create(dto: CreateCourseDto): Promise<Course> {
-    await this.courseCodeStartsWithUniversityAbbrevNameHandler(dto.code, dto.facultyId);
+    const normalizedCode = await this.normalizeCourseCode(dto.code, dto.facultyId);
 
     const course = await this.prisma.course.create({
       data: {
         name: dto.name,
-        code: dto.code,
+        code: normalizedCode,
         facultyId: dto.facultyId,
         coursePageUrl: this.normalizeUrl(dto.coursePageUrl),
         courseTadUrl: this.normalizeUrl(dto.courseTadUrl),
@@ -90,12 +90,13 @@ export class CourseService {
   }
 
   async upsert(dto: CreateCourseDto): Promise<Course> {
-    await this.courseCodeStartsWithUniversityAbbrevNameHandler(dto.code, dto.facultyId);
+    const normalizedCode = await this.normalizeCourseCode(dto.code, dto.facultyId);
+    const normalizedDto = { ...dto, code: normalizedCode };
 
     const course = await this.prisma.course.upsert({
-      where: { code: dto.code },
-      create: dto,
-      update: dto,
+      where: { code: normalizedCode },
+      create: normalizedDto,
+      update: normalizedDto,
     });
 
     await this.cacheManager.set(`course_${course.id}`, course, 0);
@@ -114,13 +115,13 @@ export class CourseService {
     const facultyId = existingCourse.facultyId;
     const newCode = dto.code || existingCourse.code;
 
-    await this.courseCodeStartsWithUniversityAbbrevNameHandler(newCode, facultyId);
+    const normalizedCode = await this.normalizeCourseCode(newCode, facultyId);
 
     const updatedCourse = await this.prisma.course.update({
       where: { id },
       data: {
         name: dto.name,
-        code: dto.code,
+        code: dto.code ? normalizedCode : undefined,
         facultyId,
         coursePageUrl: this.normalizeUrl(dto.coursePageUrl) || existingCourse.coursePageUrl,
         courseTadUrl: this.normalizeUrl(dto.courseTadUrl) || existingCourse.courseTadUrl,
@@ -150,21 +151,19 @@ export class CourseService {
     return url;
   }
 
-  // Checks if course code starts with faculties parent university abbrev name (case-sensitive)
-  private async courseCodeStartsWithUniversityAbbrevNameHandler(
-    courseCode: string,
-    facultyId: string
-  ): Promise<void> {
+  // Ensures course code starts with the parent university abbreviation
+  private async normalizeCourseCode(courseCode: string, facultyId: string): Promise<string> {
+    const normalizedCourseCode = courseCode.trim();
     const faculty = await this.prisma.faculty.findUnique({
       where: { id: facultyId },
       include: { university: true },
     });
 
-    if (!faculty || !courseCode.startsWith(faculty.university.abbrevName)) {
-      throw new BadRequestException(
-        `Course code (${courseCode}) must start with the university abbreviation: ${faculty!.university.abbrevName}`
-      );
-    }
+    if (!faculty) throw new BadRequestException(`Faculty (${facultyId}) does not exist`);
+
+    if (normalizedCourseCode.startsWith(faculty.university.abbrevName)) return normalizedCourseCode;
+
+    return `${faculty.university.abbrevName}${normalizedCourseCode}`;
   }
 
   // Clears the in-memory cache

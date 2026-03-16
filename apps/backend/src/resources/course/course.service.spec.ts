@@ -112,17 +112,51 @@ describe('CourseService', () => {
       expect(result).toEqual(createdCourse);
     });
 
-    it('should throw if course code does not start with university abbrev', async () => {
+    it('should prepend university abbrev if course code does not start with it', async () => {
       const dto = {
         name: 'Databases',
         code: 'CS101',
         facultyId: 'f1',
       };
 
+      const createdCourse = {
+        id: 'c1',
+        ...dto,
+        code: 'BMECS101',
+      };
+
       prisma.faculty.findUnique.mockResolvedValue({
         id: 'f1',
         university: { abbrevName: 'BME' },
       });
+      prisma.course.create.mockResolvedValue(createdCourse);
+
+      const result = await service.create(dto);
+
+      expect(prisma.course.create).toHaveBeenCalledWith({
+        data: {
+          name: dto.name,
+          code: 'BMECS101',
+          facultyId: dto.facultyId,
+          coursePageUrl: '',
+          courseTadUrl: '',
+          courseMoodleUrl: '',
+          courseTeamsUrl: '',
+          courseExtraUrl: '',
+        },
+      });
+
+      expect(result).toEqual(createdCourse);
+    });
+
+    it('should throw if faculty does not exist', async () => {
+      const dto = {
+        name: 'Databases',
+        code: 'CS101',
+        facultyId: 'missing-faculty',
+      };
+
+      prisma.faculty.findUnique.mockResolvedValue(null);
 
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
     });
@@ -202,6 +236,46 @@ describe('CourseService', () => {
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
       expect(result).toEqual(updatedCourse);
     });
+
+    it('should prepend university abbrev during upsert if missing', async () => {
+      const dto = {
+        name: 'Databases',
+        code: 'CS101',
+        facultyId: 'f1',
+      };
+
+      const normalizedDto = {
+        ...dto,
+        code: 'BMECS101',
+      };
+
+      const createdCourse = {
+        ...normalizedDto,
+        id: 'c1',
+        coursePageUrl: '',
+        courseTadUrl: '',
+        courseMoodleUrl: '',
+        courseTeamsUrl: '',
+        courseExtraUrl: '',
+      };
+
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
+
+      prisma.course.upsert.mockResolvedValue(createdCourse);
+
+      const result = await service.upsert(dto);
+
+      expect(prisma.course.upsert).toHaveBeenCalledWith({
+        where: { code: 'BMECS101' },
+        create: normalizedDto,
+        update: normalizedDto,
+      });
+
+      expect(result).toEqual(createdCourse);
+    });
   });
 
   describe('update', () => {
@@ -257,8 +331,13 @@ describe('CourseService', () => {
       expect(result).toEqual({ ...existingCourse, ...dto });
     });
 
-    it('should throw if updated code does not start with university abbrev', async () => {
+    it('should prepend university abbrev if updated code does not start with it', async () => {
       const dto = { code: 'CS102' };
+      const updatedCourse = {
+        id: 'c1',
+        facultyId: 'f1',
+        code: 'BMECS102',
+      };
 
       prisma.course.findUniqueOrThrow.mockResolvedValue({
         id: 'c1',
@@ -270,8 +349,25 @@ describe('CourseService', () => {
         id: 'f1',
         university: { abbrevName: 'BME' },
       });
+      prisma.course.update.mockResolvedValue(updatedCourse);
 
-      await expect(service.update('c1', dto)).rejects.toThrow(BadRequestException);
+      const result = await service.update('c1', dto);
+
+      expect(prisma.course.update).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        data: {
+          name: undefined,
+          code: 'BMECS102',
+          facultyId: 'f1',
+          coursePageUrl: undefined,
+          courseTadUrl: undefined,
+          courseMoodleUrl: undefined,
+          courseTeamsUrl: undefined,
+          courseExtraUrl: undefined,
+        },
+      });
+
+      expect(result).toEqual(updatedCourse);
     });
   });
 
