@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
 import CourseCard from '@/components/CourseCard.vue';
@@ -10,6 +10,10 @@ const app = useAppStore();
 const selectedIds = computed<Set<string>>(
   () => new Set(app.state.selectedCourses.map((course) => String(course.id)))
 );
+
+onMounted(() => {
+  void app.loadUniversities();
+});
 </script>
 
 <template>

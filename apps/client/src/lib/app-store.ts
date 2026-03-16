@@ -81,6 +81,7 @@ const state = reactive({
 
 let hydrated = false;
 let initializePromise: Promise<void> | null = null;
+let universitiesPromise: Promise<void> | null = null;
 let noticeSequence = 1;
 let restoredPendingLogin = false;
 
@@ -403,22 +404,34 @@ async function pingClient() {
 }
 
 async function loadUniversities() {
-  state.loadingUniversities = true;
+  if (state.universities.length > 0) return;
 
-  try {
-    const response = await findAll(apiOptions(null));
-    state.universities = response.data;
-
-    const [firstUniversity] = state.universities;
-
-    if (!state.searchFilters.universityId && firstUniversity) {
-      state.searchFilters.universityId = firstUniversity.id;
-    }
-  } catch (error) {
-    pushNotice('danger', 'Nem sikerült betölteni az egyetemeket', getErrorMessage(error));
-  } finally {
-    state.loadingUniversities = false;
+  if (universitiesPromise) {
+    await universitiesPromise;
+    return;
   }
+
+  universitiesPromise = (async () => {
+    state.loadingUniversities = true;
+
+    try {
+      const response = await findAll(apiOptions(null));
+      state.universities = response.data;
+
+      const [firstUniversity] = state.universities;
+
+      if (!state.searchFilters.universityId && firstUniversity) {
+        state.searchFilters.universityId = firstUniversity.id;
+      }
+    } catch (error) {
+      pushNotice('danger', 'Nem sikerült betölteni az egyetemeket', getErrorMessage(error));
+    } finally {
+      state.loadingUniversities = false;
+      universitiesPromise = null;
+    }
+  })();
+
+  await universitiesPromise;
 }
 
 async function loadNews() {
@@ -527,7 +540,7 @@ async function initialize() {
 
   initializePromise = (async () => {
     try {
-      await Promise.all([loadUniversities(), loadNews()]);
+      await loadNews();
 
       if (isAuthenticated()) {
         if (restoredPendingLogin && state.selectedCourses.length > 0) {
@@ -674,6 +687,7 @@ export function useAppStore() {
     initialize,
     addCourse,
     removeCourse,
+    loadUniversities,
     searchCourses,
     loginWithGoogle,
     logout,
