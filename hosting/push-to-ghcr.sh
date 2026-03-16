@@ -33,6 +33,11 @@ echo -e "\nLogging in to GHCR..."
 echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$OWNER" --password-stdin
 echo
 
+# Install deps
+echo "Installing dependencies..."
+pnpm install --frozen-lockfile
+echo
+
 # Build the whole repo
 echo "Building the project..."
 pnpm run build:all
