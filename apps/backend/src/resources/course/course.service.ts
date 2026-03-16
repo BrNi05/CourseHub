@@ -85,6 +85,7 @@ export class CourseService {
     });
 
     await this.cacheManager.set(`course_${course.id}`, course, 0);
+    this.clearSearchQueryCache();
 
     return course;
   }
