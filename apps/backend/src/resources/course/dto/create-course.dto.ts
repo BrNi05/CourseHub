@@ -3,7 +3,7 @@ import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorat
 import { CourseLink, isMicrosoftTeamsUrl } from '../../../decorators/validators/course-link.dto.js';
 
 export class CreateCourseDto {
-  @IsValidString('Databases', 'Name of the course', 6, 32)
+  @IsValidString('Databases', 'Name of the course', 6, 64)
   name!: string;
 
   @IsValidString('BMEVITMAB04', 'Course code', 6, 16)

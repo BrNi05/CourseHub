@@ -19,7 +19,7 @@ export class CreateSuggestionDto {
   @IsValidString('FEEI', 'Abbreviated name of the faculty', 2, 8)
   facultyAbbrevName!: string;
 
-  @IsValidString('Databases', 'Name of the course', 6, 32)
+  @IsValidString('Databases', 'Name of the course', 6, 64)
   courseName!: string;
 
   @IsValidString('BMEVITMAB04', 'Course code', 6, 16)
