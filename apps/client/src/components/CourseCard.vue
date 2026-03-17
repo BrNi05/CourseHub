@@ -31,14 +31,10 @@ const links = computed(() =>
 <template>
   <article class="course-card">
     <div class="course-card__top">
-      <div>
-        <p class="course-card__eyebrow">
-          {{ props.mode === 'saved' ? 'Tárgyaim' : 'Tárgyak keresése' }}
-        </p>
+      <div class="course-card__heading">
+        <span class="course-card__code">{{ props.course.code }}</span>
         <h3>{{ props.course.name }}</h3>
       </div>
-
-      <span class="course-card__code">{{ props.course.code }}</span>
     </div>
 
     <div class="course-card__links">
@@ -75,7 +71,7 @@ const links = computed(() =>
           :kind="props.selected ? 'ghost' : 'primary'"
           @click="emit('add', props.course)"
         >
-          {{ props.selected ? 'Felvéve' : 'Tárgy felvétele' }}
+          {{ props.selected ? 'Felvéve' : 'Felvétel' }}
         </BaseButton>
 
         <RouterLink
@@ -102,33 +98,31 @@ const links = computed(() =>
 }
 
 .course-card__top {
-  align-items: flex-start;
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
+  min-width: 0;
 }
 
-.course-card__eyebrow {
-  color: var(--text-subtle);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.45rem;
-  text-transform: uppercase;
+.course-card__heading {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
 }
 
 .course-card h3 {
   font-size: 1.08rem;
   line-height: 1.35;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .course-card__code {
-  background: rgba(99, 102, 241, 0.18);
-  border-radius: 999px;
-  color: #dbeafe;
-  font-size: 0.84rem;
-  font-weight: 700;
-  padding: 0.55rem 0.8rem;
+  color: var(--text-subtle);
+  font-size: 0.74rem;
+  font-weight: 500;
+  justify-self: start;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  max-width: 100%;
+  text-transform: uppercase;
 }
 
 .course-card__links {
