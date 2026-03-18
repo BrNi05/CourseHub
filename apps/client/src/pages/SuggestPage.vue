@@ -217,14 +217,6 @@ async function submitForm() {
   padding-top: 1.2rem;
 }
 
-.form-page__eyebrow {
-  color: var(--text-subtle);
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  margin: 0 0 0.45rem;
-  text-transform: uppercase;
-}
-
 .form-page h1 {
   margin: 0;
 }

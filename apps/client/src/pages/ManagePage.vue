@@ -145,14 +145,6 @@ const app = useAppStore();
   margin: 0;
 }
 
-.news-panel__badge {
-  background: rgba(52, 211, 153, 0.14);
-  border-radius: 999px;
-  color: #d1fae5;
-  display: inline-flex;
-  padding: 0.65rem 0.9rem;
-}
-
 .news-list {
   display: grid;
   gap: 1.05rem;
