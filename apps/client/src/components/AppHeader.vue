@@ -2,12 +2,9 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import BaseButton from './BaseButton.vue';
-import { useAppStore } from '@/lib/app-store';
+import AccountActions from './AccountActions.vue';
 
-const app = useAppStore();
 const route = useRoute();
-const session = app.state.session as { email: string | null };
 
 const navigation = computed(() => {
   return [
@@ -16,8 +13,6 @@ const navigation = computed(() => {
     { name: 'suggest', label: 'Tárgy hozzáadása', to: '/suggest' },
   ];
 });
-
-const sessionLabel = computed<string>(() => session.email ?? 'Bejelentkezés');
 </script>
 
 <template>
@@ -40,18 +35,7 @@ const sessionLabel = computed<string>(() => session.email ?? 'Bejelentkezés');
       </nav>
 
       <div class="header__actions">
-        <BaseButton
-          v-if="!app.isAuthenticated()"
-          :disabled="app.state.loginInFlight"
-          kind="primary"
-          @click="app.loginWithGoogle"
-        >
-          {{ app.state.loginInFlight ? 'Átirányítás...' : 'Bejelentkezés' }}
-        </BaseButton>
-
-        <BaseButton v-else kind="secondary" @click="app.logout">
-          {{ sessionLabel }}
-        </BaseButton>
+        <AccountActions />
       </div>
     </div>
   </header>

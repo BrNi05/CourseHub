@@ -1,6 +1,7 @@
 import { reactive, watch } from 'vue';
 import { isAxiosError } from 'axios';
 import {
+  delete2 as deleteUser,
   errorReport,
   findAll,
   news,
@@ -61,6 +62,7 @@ const state = reactive({
   syncingCourses: false,
   submittingSuggestion: false,
   submittingErrorReport: false,
+  deletingProfile: false,
   loginInFlight: false,
   session: {
     token: null,
@@ -620,6 +622,48 @@ function logout() {
   );
 }
 
+async function deleteProfile() {
+  if (!state.session.userId || !state.session.token) {
+    pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a profil törléséhez.');
+    return false;
+  }
+
+  state.deletingProfile = true;
+
+  try {
+    await deleteUser({
+      ...apiOptions(),
+      path: { id: state.session.userId },
+    });
+
+    clearSession();
+    state.selectedCourses = [];
+
+    if (globalThis.window !== undefined) {
+      globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
+      globalThis.localStorage.removeItem(DRAFT_STORAGE_KEY);
+      globalThis.localStorage.removeItem(PING_STORAGE_KEY);
+    }
+
+    pushNotice(
+      'success',
+      'Profil törölve',
+      'A fiókod és a szerveren tárolt felvett tárgyaid törölve lettek.'
+    );
+    return true;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return false;
+    }
+
+    pushNotice('danger', 'Nem sikerült törölni a profilt', getErrorMessage(error));
+    return false;
+  } finally {
+    state.deletingProfile = false;
+  }
+}
+
 async function submitSuggestion(payload: CreateSuggestionDto) {
   if (!state.session.token) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a javaslat elküldése előtt.');
@@ -698,6 +742,7 @@ export function useAppStore() {
     searchCourses,
     loginWithGoogle,
     logout,
+    deleteProfile,
     dismissNotice,
     submitSuggestion,
     submitErrorReport,
