@@ -51,7 +51,7 @@ export function CourseLink(
   return applyDecorators(
     IsOptional(),
     Length(15, 256),
-    IsUrl({}, { message }),
+    IsUrl({ protocols: ['http', 'https'], require_protocol: true }, { message }), // Against invalid URLs and internal XSS attempts
     ...(options?.validate
       ? [HasCustomCourseLinkStructure(options.validate, options.validateMessage ?? message)]
       : []),
