@@ -39,6 +39,8 @@ export function getClientPlatform(): ClientPlatform {
   }
 
   // Pick a random platform, so analytics stay useful
+  // Backend cannot accept null
+  // This fallback is basically impossible to happen
   cachedPlatform = CLIENT_PLATFORMS[Math.floor(Math.random() * CLIENT_PLATFORMS.length)]!;
 
   return cachedPlatform;
