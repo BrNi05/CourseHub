@@ -1,2 +1,3 @@
 # CourseHub
-Your personal university course aggregator
+
+Egyetemi tárgyak, egyszerűen.
