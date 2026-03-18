@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.02.20. (első verzió)
+**Hatályba lép:** 2026.03.19. (első változat)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -74,19 +74,33 @@ A rendszer a visszaéléseket, támadásokat (pl. DDoS) és hibás kéréseket k
 
 - **Időtartam:** legfeljebb 1 év.
 
+### Peremvédelem
+
+A CourseHub a Cloudflare szolgáltatásait használja az alkalmazás kiszolgálásához és védelméhez. Ekkor a Cloudflare az Adatkezelő adatfeldolgozójaként jár el.
+
+- **Kezelt adatok:** IP cím, a kérésekhez kapcsolódó technikai metaadatok (pl. hosztnév, URL, HTTP fejlécek, UserAgent, időbélyeg, válaszkód), biztonsági eseményekhez kapcsolódó forgalmi adatok és mintázatok.
+
+- **Cél:** A szolgáltatás internetes elérhetővé tétele, a forgalom biztonságos továbbítása, a rosszindulatú vagy automatizált forgalom kiszűrése, a DDoS és egyéb visszaélések megelőzése, valamint az infrastruktúra rendelkezésre állásának fenntartása.
+
+- **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
+
+- **Időtartam:** A Cloudflare által kezelt hálózati és biztonsági naplóadatok megőrzési idejét a mindenkori szolgáltatási és naplózási beállítások határozzák meg. Az Adatkezelő törekszik arra, hogy ezen adatok megőrzése a cél eléréséhez szükséges minimumra korlátozódjon.
+
+- **Megjegyzés:** Bizonyos biztonsági funkciók működése során a Cloudflare feltétlenül szükséges technikai sütiket vagy hasonló azonosítókat is alkalmazhat a kérések hitelességének és a forgalom biztonságának ellenőrzésére.
+
 ### Hibabejelentés
 
 A felhasználó a kliensen keresztül önkéntes alapon hibajelentést küldhet. Az Adatkezelő a bejelentést a kapott adatok alapján megvizsgálja, és amennyiben a hiba jellege megköveteli, az email címen keresztül kapcsolatba léphet az Érintettel a hiba további kivizsgálása vagy egyedi megoldási javaslat közlése céljából.
 
 - **Kezelt adatok:** email cím, kliens verzió, operációs rendszer típusa, meghívott API végpont, felhasználói cselekmény, stack trace, egyéb üzenet, időbélyeg.
 
-- **Cél:** Az informatikai rendszer javítása, működési hibák vizsgálata. Kapcsolatfelvétel az Érintettel az email címén keresztül.
+- **Cél:** Az informatikai rendszer javítása, működési hibák vizsgálata. Kapcsolatfelvétel az Érintettel az email címén keresztül, ha ez a hibajelentés kivizsgálásához szükséges.
 
-- **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
+- **Jogalap:** Az Érintett önkéntes hozzájárulása (GDPR 6. cikk (1) a)).
 
 - **Időtartam:** legfeljebb 1 év.
 
-- **Különös törlési szabály:** A felhasználói fiók (profil) törlése **nem vonja magával** a korábban beküldött hibajelentések automatikus törlését, azok a hibajavítási folyamatok folytonossága érdekében a megőrzési idő végéig tárolódnak. Az Érintett az elfeledtetéshez való jogát (törlési kérelmét) a hibajelentésekre vonatkozóan a maximális 1 éves időtartamon belül bármikor, egyedileg is gyakorolhatja a megadott elérhetőségen.
+- **Különös törlési szabály:** A felhasználói fiók (profil) törlése **nem vonja magával** a korábban beküldött hibajelentések automatikus törlését, azok a hibajavítási folyamatok folytonossága érdekében a megőrzési idő végéig tárolhatók. Az Érintett az elfeledtetéshez való jogát (törlési kérelmét) a hibajelentésekre vonatkozóan a maximális 1 éves időtartamon belül bármikor, egyedileg is gyakorolhatja a megadott elérhetőségen.
 
 ### GitHub alapú kurzusjavaslat
 
@@ -122,9 +136,11 @@ Az Adatkezelő kötelezi magát arra, hogy gondoskodik az általa kezelt személ
 
 Alkalmazott védelmi intézkedések:
 
-- **Hozzáférés-kezelés:** A személyes adatokhoz kizárólag az Adatkezelő és az Érintett férhet hozzá, jogosulatlan harmadik fél nem.
+- **Hozzáférés-kezelés:** A személyes adatokhoz kizárólag az Adatkezelő, az Érintett, valamint megbízott Adatfeldolgozó harmadik felek férhetnek hozzá.
 
 - **Hálózati védelem:** Az adatátvitel titkosított csatornán (HTTPS/TLS) történik. A szervereket tűzfal védi a külső támadások ellen.
+
+- **Peremvédelem:** A nyilvános forgalom a Cloudflare infrastruktúráján keresztül érkezik, amely DNS, DDoS- és botvédelmi funkciókkal segíti a szolgáltatás biztonságát, válaszidejét és rendelkezésre állását.
 
 - **Integritás és rendelkezésre állás:** Rendszeres biztonsági mentések készülnek az adatvesztés megelőzése érdekében.
 
@@ -136,12 +152,15 @@ Alkalmazott védelmi intézkedések:
 
 Az Adatkezelő az adatok kezeléséhez az alábbi adatfeldolgozókat/szolgáltatókat veszi igénybe:
 
-| Szolgáltató | Tevékenység                 | Székhely |
-|-------------|-----------------------------|----------|
-| Google LLC  | Hitelesítés (OAuth2)        | USA / EU |
-| GitHub Inc. | Nyílt forráskódú javaslatok | USA      |
+| Szolgáltató     | Tevékenység                 | Székhely |
+|-----------------|-----------------------------|----------|
+| Cloudflare Inc. | Peremvédelem                | USA / EU |
+| Google LLC      | Hitelesítés (OAuth2)        | USA / EU |
+| GitHub Inc.     | Nyílt forráskódú javaslatok | USA      |
 
-A CourseHub nem értékesít adatokat, és harmadik félnek csak jogszabályi kötelezettség esetén továbbít információt.
+A CourseHub nem értékesít adatokat. Személyes adatokat harmadik felek részére kizárólag adatfeldolgozók igénybevétele, jogszabályi kötelezettség teljesítése, illetve jogérvényesítés esetén továbbít.
+
+Az egyes szolgáltatók az EGT-n kívül, így az Egyesült Államokban is végezhetnek adatkezelési műveleteket. Az ilyen adattovábbítások az érintett szolgáltató által biztosított megfelelő adatvédelmi garanciák mellett történnek.
 
 ## Más weboldalak
 
@@ -187,4 +206,4 @@ Amennyiben az Érintett úgy véli, hogy adatkezelése nem felel meg a jogszabá
 
 ## Szabályzat módosítása
 
-Fenntartjuk a jogot a jelen tájékoztató módosítására. A változásokról a CourseHub felületén értesítjük a felhasználókat. A módosítások a közzététellel lépnek hatályba.
+Fenntartjuk a jogot a jelen tájékoztató módosítására. A változásokról a CourseHub felületén előre értesítjük a felhasználókat. A módosítások a (későbbi) közzététellel lépnek hatályba.
