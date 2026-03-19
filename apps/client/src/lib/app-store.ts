@@ -109,9 +109,21 @@ function hydrateFromStorage() {
   }
 
   if (callbackToken) {
-    applyToken(callbackToken);
+    const hasActiveSession = isAuthenticated();
+    const isUnexpectedToken = hasActiveSession && state.session.token !== callbackToken;
+
+    if (isUnexpectedToken) {
+      pushNotice(
+        'danger',
+        'Gyanús bejelentkezési kísérlet',
+        'Ha te kezdeményezted a bejelentkezést, jelentkezz ki, és próbáld újra.'
+      );
+    } else {
+      applyToken(callbackToken);
+      restoredPendingLogin = true;
+    }
+
     clearCallbackTokenFromUrl();
-    restoredPendingLogin = true;
   }
 
   if (savedDraft) {
@@ -243,11 +255,9 @@ function readPingRegistry(): PingRegistry {
   try {
     const parsed = JSON.parse(savedRegistry) as PingRegistry;
 
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed;
-    }
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
   } catch {
-    // Fall through and reset invalid storage.
+    // Fall through and reset invalid storage
   }
 
   globalThis.localStorage.removeItem(PING_STORAGE_KEY);
@@ -380,6 +390,11 @@ function clearSession() {
   state.session.token = null;
   state.session.userId = null;
   state.session.email = null;
+
+  if (globalThis.window !== undefined) {
+    globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
+    globalThis.localStorage.removeItem(PING_STORAGE_KEY);
+  }
 }
 
 function handleUnauthorized() {
@@ -455,7 +470,7 @@ async function loadNews() {
 }
 
 async function loadCurrentUser() {
-  if (!state.session.userId || !state.session.token) return;
+  if (!state.session.userId || !state.session.token) return false;
 
   try {
     const response = await readOne({
@@ -463,13 +478,15 @@ async function loadCurrentUser() {
       path: { id: state.session.userId },
     });
     applyUserResponse(response.data);
+    return true;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       handleUnauthorized();
-      return;
+      return false;
     }
 
     pushNotice('danger', 'Nem sikerült betölteni a tárgyaidat', getErrorMessage(error));
+    return false;
   }
 }
 
@@ -562,11 +579,11 @@ async function initialize() {
           );
           restoredPendingLogin = false;
         } else {
-          await loadCurrentUser();
-          if (restoredPendingLogin) {
+          const userLoaded = await loadCurrentUser();
+          if (restoredPendingLogin && userLoaded) {
             pushNotice('success', 'Bejelentkezve', 'A tárgyaid szinkronizálva lettek.');
-            restoredPendingLogin = false;
           }
+          restoredPendingLogin = false;
         }
 
         await pingClient();
@@ -643,7 +660,6 @@ async function deleteProfile() {
 
     if (globalThis.window !== undefined) {
       globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
-      globalThis.localStorage.removeItem(DRAFT_STORAGE_KEY);
       globalThis.localStorage.removeItem(PING_STORAGE_KEY);
     }
 
