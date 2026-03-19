@@ -105,6 +105,13 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'build', 'public', 'swagger'),
       serveRoot: '/swagger',
+      exclude: ['/api', '/.well-known'],
+      serveStaticOptions: { fallthrough: false, maxAge: '365d' },
+    }),
+    // /.well-known/ folder
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'build', 'public', 'frontend', '.well-known'),
+      serveRoot: '/.well-known',
       exclude: ['/api'],
       serveStaticOptions: { fallthrough: false, maxAge: '365d' },
     }),
