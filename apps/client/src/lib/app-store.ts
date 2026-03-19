@@ -104,7 +104,6 @@ function hydrateFromStorage() {
       restoreSession(parsed);
     } catch {
       clearSession();
-      globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
     }
   }
 
@@ -119,8 +118,7 @@ function hydrateFromStorage() {
         'Ha te kezdeményezted a bejelentkezést, jelentkezz ki, és próbáld újra.'
       );
     } else {
-      applyToken(callbackToken);
-      restoredPendingLogin = true;
+      restoredPendingLogin = applyToken(callbackToken);
     }
 
     clearCallbackTokenFromUrl();
@@ -629,6 +627,9 @@ function loginWithGoogle() {
   if (state.loginInFlight) return;
 
   state.loginInFlight = true;
+  globalThis.setTimeout(() => {
+    state.loginInFlight = false;
+  }, 3000);
   globalThis.location.assign(`api/auth/google`);
 }
 
@@ -657,11 +658,6 @@ async function deleteProfile() {
 
     clearSession();
     state.selectedCourses = [];
-
-    if (globalThis.window !== undefined) {
-      globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
-      globalThis.localStorage.removeItem(PING_STORAGE_KEY);
-    }
 
     pushNotice(
       'success',
