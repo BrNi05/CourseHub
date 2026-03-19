@@ -41,7 +41,6 @@ export class UserOwnershipGuard implements CanActivate {
 
       // Owner access
       if (payload.sub === resourceUserId) {
-        this.logger.debug(`Owner access granted for user ${payload.sub}`);
         request.user = payload;
         return true;
       }
@@ -56,7 +55,7 @@ export class UserOwnershipGuard implements CanActivate {
       const doNotAllowAdminOverride =
         context.getHandler().name === 'ping' || context.getHandler().name === 'errorReport';
 
-      // User does not exist anymore
+      // User does not exist anymore (but JWT is still valid)
       if (!user) throw new ForbiddenException('A felhasználó nem található!');
 
       if (user.isAdmin && !doNotAllowAdminOverride) {
