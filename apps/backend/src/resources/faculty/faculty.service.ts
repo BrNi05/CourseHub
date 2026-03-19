@@ -23,7 +23,14 @@ export class FacultyService {
     });
   }
 
-  async getOne(id: string): Promise<Faculty> {
+  async getOne(id: string): Promise<FacultyWithoutCoursesDto> {
+    return await this.prisma.faculty.findUniqueOrThrow({
+      where: { id },
+      include: { courses: false },
+    });
+  }
+
+  async getOneWithCourses(id: string): Promise<Faculty> {
     return await this.prisma.faculty.findUniqueOrThrow({
       where: { id },
       include: { courses: true },

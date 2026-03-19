@@ -37,9 +37,8 @@ export class FacultyController {
     return this.facultyService.getAllByUniversity(query.universityId);
   }
 
-  @Get(':id')
+  @Get(':id/courses')
   @Admin()
-  @DatabaseOperation()
   @ApiOperation({
     summary: 'ADMIN',
     description: 'Get faculty by ID with courses',
@@ -48,7 +47,23 @@ export class FacultyController {
     type: Faculty,
     description: 'Success',
   })
+  @DatabaseOperation()
   @Throttable(60, 3)
+  async getOneWithCourses(@Param('id') id: string) {
+    return this.facultyService.getOneWithCourses(id);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'PUBLIC',
+    description: 'Get faculty by ID without courses',
+  })
+  @ApiOkResponse({
+    type: FacultyWithoutCoursesDto,
+    description: 'Success',
+  })
+  @DatabaseOperation()
+  @Throttable(60, 60000)
   async getOne(@Param('id') id: string) {
     return this.facultyService.getOne(id);
   }

@@ -12,6 +12,7 @@ describe('FacultyController', () => {
 
   const mockGetAllByUniversity = vi.fn();
   const mockGetOne = vi.fn();
+  const mockGetOneWithCourses = vi.fn();
   const mockCreate = vi.fn();
   const mockUpdate = vi.fn();
   const mockRemove = vi.fn();
@@ -22,6 +23,7 @@ describe('FacultyController', () => {
     service = {
       getAllByUniversity: mockGetAllByUniversity,
       getOne: mockGetOne,
+      getOneWithCourses: mockGetOneWithCourses,
       create: mockCreate,
       update: mockUpdate,
       remove: mockRemove,
@@ -44,13 +46,25 @@ describe('FacultyController', () => {
   });
 
   describe('getOne', () => {
-    it('should return a faculty with courses', async () => {
-      const mockData = { id: 'f1', name: 'Faculty A', courses: [{ id: 'c1' }] };
+    it('should return a faculty without courses', async () => {
+      const mockData = { id: 'f1', name: 'Faculty A', universityId: 'u1' };
       mockGetOne.mockResolvedValue(mockData);
 
       const result = await controller.getOne('f1');
 
       expect(mockGetOne).toHaveBeenCalledWith('f1');
+      expect(result).toEqual(mockData);
+    });
+  });
+
+  describe('getOneWithCourses', () => {
+    it('should return a faculty with courses', async () => {
+      const mockData = { id: 'f1', name: 'Faculty A', courses: [{ id: 'c1' }] };
+      mockGetOneWithCourses.mockResolvedValue(mockData);
+
+      const result = await controller.getOneWithCourses('f1');
+
+      expect(mockGetOneWithCourses).toHaveBeenCalledWith('f1');
       expect(result).toEqual(mockData);
     });
   });

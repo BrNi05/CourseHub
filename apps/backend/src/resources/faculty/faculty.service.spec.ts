@@ -58,11 +58,26 @@ describe('FacultyService', () => {
   });
 
   describe('getOne', () => {
+    it('should return a faculty without courses', async () => {
+      const mockData = { id: 'f1', name: 'Faculty A', universityId: 'u1' };
+      mockFindUniqueOrThrow.mockResolvedValue(mockData);
+
+      const result = await service.getOne('f1');
+
+      expect(mockFindUniqueOrThrow).toHaveBeenCalledWith({
+        where: { id: 'f1' },
+        include: { courses: false },
+      });
+      expect(result).toEqual(mockData);
+    });
+  });
+
+  describe('getOneWithCourses', () => {
     it('should return a faculty with courses', async () => {
       const mockData = { id: 'f1', name: 'Faculty A', courses: [{ id: 'c1' }] };
       mockFindUniqueOrThrow.mockResolvedValue(mockData);
 
-      const result = await service.getOne('f1');
+      const result = await service.getOneWithCourses('f1');
 
       expect(mockFindUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: 'f1' },
