@@ -53,7 +53,8 @@ type PingRegistry = Record<string, true>;
 const SESSION_STORAGE_KEY = 'coursehub.web.session';
 const DRAFT_STORAGE_KEY = 'coursehub.web.draft-courses';
 const PING_STORAGE_KEY = 'coursehub.web.client-pings';
-const TOAST_DURATION_MS = 2600;
+const TOAST_DURATION_MS = 2400;
+const MAX_VISIBLE_NOTIFICATIONS = 3;
 
 const state = reactive({
   initialized: false,
@@ -319,7 +320,8 @@ function pushNotice(tone: NoticeTone, title: string, detail: string) {
     durationMs: TOAST_DURATION_MS,
   };
 
-  state.notices = [...state.notices, notice];
+  const visibleNotifications = state.notices.slice(-(MAX_VISIBLE_NOTIFICATIONS - 1));
+  state.notices = [...visibleNotifications, notice];
 
   globalThis.setTimeout(() => {
     dismissNotice(notice.id);

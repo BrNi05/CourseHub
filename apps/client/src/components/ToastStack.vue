@@ -15,7 +15,13 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="toast-stack" aria-live="polite" aria-atomic="false">
+  <TransitionGroup
+    class="toast-stack"
+    name="toast-stack"
+    tag="div"
+    aria-live="polite"
+    aria-atomic="false"
+  >
     <article v-for="notice in notices" :key="notice.id" :class="['toast', `toast--${notice.tone}`]">
       <div class="toast__content">
         <h4>{{ notice.title }}</h4>
@@ -31,7 +37,7 @@ const emit = defineEmits<{
         ></span>
       </div>
     </article>
-  </div>
+  </TransitionGroup>
 </template>
 
 <style scoped>
@@ -161,5 +167,27 @@ const emit = defineEmits<{
   to {
     transform: scaleX(0);
   }
+}
+
+.toast-stack-enter-active,
+.toast-stack-leave-active,
+.toast-stack-move {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.toast-stack-enter-from {
+  opacity: 0;
+  transform: translateY(0.75rem) scale(0.98);
+}
+
+.toast-stack-leave-to {
+  opacity: 0;
+  transform: translateY(0.75rem) scale(0.98);
+}
+
+.toast-stack-leave-active {
+  pointer-events: none;
 }
 </style>
