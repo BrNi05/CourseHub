@@ -50,7 +50,7 @@ export function CourseLink(
 ) {
   return applyDecorators(
     IsOptional(),
-    Length(15, 256),
+    Length(15, 256, { message: `A link hossza min. $constraint1 és max. $constraint2 karakter.` }),
     IsUrl({ protocols: ['http', 'https'], require_protocol: true }, { message }), // Against invalid URLs and internal XSS attempts
     ...(options?.validate
       ? [HasCustomCourseLinkStructure(options.validate, options.validateMessage ?? message)]

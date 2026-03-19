@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { IsValidString } from './string.dto.js';
 
 class TestStringDto {
-  @IsValidString('Databases', 'Name of the course', 2, 8)
+  @IsValidString('value', 'Databases', 'Name of the course', 2, 8)
   value!: string;
 }
 
@@ -25,7 +25,9 @@ describe('IsValidString', () => {
     const errors = await validate(dto);
 
     expect(errors).toHaveLength(1);
-    expect(errors[0]?.constraints?.isString).toBe('value must be a string');
+    expect(errors[0]?.constraints?.isString).toBe(
+      'A(z) value mezőnek szöveges értéknek kell lennie.'
+    );
   });
 
   it('rejects values that are shorter than the configured minimum length', async () => {
@@ -36,7 +38,7 @@ describe('IsValidString', () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0]?.constraints?.isLength).toContain(
-      'value must be longer than or equal to 2 characters'
+      'A(z) value hossza min. 2 és max. 8 karakter.'
     );
   });
 });

@@ -62,7 +62,7 @@ describe('GlobalExceptionsFilter', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: HttpStatus.TOO_MANY_REQUESTS,
-        message: 'Too many requests. Please try again later.',
+        message: 'Túl sok kérés. Kérlek, próbáld újra később.',
       })
     );
   });
@@ -86,7 +86,7 @@ describe('GlobalExceptionsFilter', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: HttpStatus.NOT_FOUND,
-        message: 'Resource not found',
+        message: 'A kért erőforrás nem található!',
       })
     );
   });

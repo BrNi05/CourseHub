@@ -26,8 +26,6 @@ describe('IsClientPlatform', () => {
     const errors = await validate(dto);
 
     expect(errors).toHaveLength(1);
-    expect(errors[0]?.constraints?.isEnum).toContain(
-      'platform must be one of the following values'
-    );
+    expect(errors[0]?.constraints?.isEnum).toContain('A platform érvénytelen!');
   });
 });

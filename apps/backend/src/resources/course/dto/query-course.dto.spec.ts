@@ -43,7 +43,7 @@ describe('CourseQueryDto', () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0]?.constraints?.isLength).toContain(
-      'courseCode must be shorter than or equal to 16 characters'
+      'A(z) kurzus kód hossza min. 0 és max. 16 karakter.'
     );
   });
 });

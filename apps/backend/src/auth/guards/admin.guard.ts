@@ -24,7 +24,7 @@ export class AdminGuard implements CanActivate {
       this.logger.warn(
         `Unauthorized admin access attempt. User: ${user?.googleEmail}, IP: ${clientIp}`
       );
-      throw new UnauthorizedException('Admin privileges required');
+      throw new UnauthorizedException('Hozzáférés megtagadva! Admin jogosultság szükséges!');
     }
 
     return true;

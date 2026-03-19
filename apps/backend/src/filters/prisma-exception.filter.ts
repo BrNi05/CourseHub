@@ -42,46 +42,46 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       case 'P2036':
       case 'P2037':
         status = HttpStatus.INTERNAL_SERVER_ERROR;
-        message = `Database connection or connection pool error.`;
+        message = `Adatbázis kapcsolati hiba történt.`;
         break;
       case 'P1008':
         status = HttpStatus.GATEWAY_TIMEOUT;
-        message = `Database timeout.`;
+        message = `Adatbázis időtúllépés.`;
         break;
       case 'P1009':
         status = HttpStatus.BAD_REQUEST;
-        message = `Table already exists.`;
+        message = `A tábla már létezik.`;
         break;
       case 'P1010':
         status = HttpStatus.INTERNAL_SERVER_ERROR;
-        message = `Database user was denied access.`;
+        message = `Adatbázis felhasználó hozzáférés megtagadva.`;
         break;
       case 'P2000':
       case 'P2033':
         status = HttpStatus.BAD_REQUEST;
-        message = `Value too big.`;
+        message = `A megadott érték túl nagy.`;
         break;
       case 'P2001':
         status = HttpStatus.NOT_FOUND;
-        message = `Record not found for query.`;
+        message = `A keresett rekord nem található.`;
         break;
       case 'P2002':
         status = HttpStatus.CONFLICT;
-        message = `Unique constraint violated.`;
+        message = `A megadott érték már létezik.`;
         break;
       case 'P2003':
         status = HttpStatus.BAD_REQUEST;
-        message = `Foreign key constraint violated.`;
+        message = `Az idegen kulcs nem található.`;
         break;
       case 'P2004':
         status = HttpStatus.BAD_REQUEST;
-        message = `A constraint failed.`;
+        message = `Legalább egy adatbáziskényszer megszegve.`;
         break;
       case 'P2005':
       case 'P2006':
       case 'P2007':
         status = HttpStatus.BAD_REQUEST;
-        message = `Invalid input.`;
+        message = `Érvénytelen adatbázis bemenet.`;
         break;
       case 'P2008':
       case 'P2009':
@@ -91,71 +91,71 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       case 'P2027':
       case 'P2029':
         status = HttpStatus.BAD_REQUEST;
-        message = `Invalid or failed query.`;
+        message = `Érvénytelen vagy sikertelen lekérdezés.`;
         break;
       case 'P2011':
         status = HttpStatus.BAD_REQUEST;
-        message = `Null constraint violated.`;
+        message = `Null adatbáziskényszer megszegve.`;
         break;
       case 'P2012':
         status = HttpStatus.BAD_REQUEST;
-        message = `Missing a required value.`;
+        message = `Hiányzó kötelező érték.`;
         break;
       case 'P2013':
         status = HttpStatus.BAD_REQUEST;
-        message = `Missing a required argument.`;
+        message = `Hiányzó kötelező argumentum.`;
         break;
       case 'P2014':
         status = HttpStatus.BAD_REQUEST;
-        message = `Relational constraint violated.`;
+        message = `Relációs kényszer megszegve.`;
         break;
       case 'P2015':
       case 'P2017':
       case 'P2018':
         status = HttpStatus.BAD_REQUEST;
-        message = `Record relation error.`;
+        message = `Adat integritási hiba.`;
         break;
       case 'P2019':
         status = HttpStatus.BAD_REQUEST;
-        message = `Input error.`;
+        message = `Bemeneti hiba.`;
         break;
       case 'P2020':
         status = HttpStatus.BAD_REQUEST;
-        message = `Value out of range for type.`;
+        message = `Érték a típus tartományán kívül van.`;
         break;
       case 'P2021':
         status = HttpStatus.NOT_FOUND;
-        message = `Table does not exist.`;
+        message = `A tábla nem létezik.`;
         break;
       case 'P2022':
       case 'P2023':
         status = HttpStatus.BAD_REQUEST;
-        message = `Column error.`;
+        message = `Oszlop hiba.`;
         break;
       case 'P2025':
         status = HttpStatus.NOT_FOUND;
-        message = `Record not found.`;
+        message = `A rekord nem található.`;
         break;
       case 'P2028':
       case 'P2034':
         status = HttpStatus.BAD_REQUEST;
-        message = `Transaction failed.`;
+        message = `Sikertelen tranzakció.`;
         break;
       case 'P2030':
         status = HttpStatus.BAD_REQUEST;
-        message = `Index error.`;
+        message = `Index hiba.`;
         break;
       case 'P2035':
         status = HttpStatus.BAD_REQUEST;
-        message = `Assertion violation.`;
+        message = `Assertion hiba.`;
         break;
       default:
         status = HttpStatus.INTERNAL_SERVER_ERROR;
-        message = 'Generic database error.';
+        message = 'Ismeretlen adatbázis hiba történt.';
     }
 
     // Identify Prisma error
-    message = `PRISMA: ${message}`;
+    message = `${message} (PRISMA)`;
 
     const errorResponse = new ErrorResponse(status, message, request.url, request.method);
     response.status(status).json(errorResponse);

@@ -76,7 +76,7 @@ describe('ClientService', () => {
 
   it('should throw if version is lower than minimum', () => {
     expect(() => service.isVersionSupported(ClientPlatform.windows, '0.9.0')).toThrowError(
-      new HttpException('Client version is not supported', HttpStatus.I_AM_A_TEAPOT)
+      new HttpException('A kliens verziója nem támogatott!', HttpStatus.I_AM_A_TEAPOT)
     );
   });
 

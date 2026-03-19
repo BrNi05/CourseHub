@@ -19,7 +19,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       const clientIp = getClientIp(context);
       this.logger.warn(`JWT validation failed. IP: ${clientIp}`);
-      throw new UnauthorizedException('Invalid or missing JWT');
+      throw new UnauthorizedException('Érvénytelen vagy hiányzó JWT!');
     }
 
     return user; // req.user is populated

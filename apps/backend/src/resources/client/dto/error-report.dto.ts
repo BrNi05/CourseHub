@@ -10,10 +10,11 @@ export class ErrorReportDto {
   @IsClientPlatform()
   platform!: ClientPlatform;
 
-  @IsValidString('/courses/:id', 'Route where the error occurred', 4, 128)
+  @IsValidString('route', '/courses/:id', 'Route where the error occurred', 4, 128)
   route!: string;
 
   @IsValidString(
+    'userAction',
     'Loading course details, Submitting assignment, etc.',
     'Action the user was performing when the error occurred',
     4,
@@ -22,6 +23,7 @@ export class ErrorReportDto {
   userAction!: string;
 
   @IsValidString(
+    'trace',
     'Error: Something went wrong at Object.<anonymous> (/app/src/main.ts:10:15)',
     'Stack trace of the error',
     0,
@@ -29,7 +31,7 @@ export class ErrorReportDto {
   )
   trace!: string;
 
-  @IsValidString('Something went wrong', 'Error message', 0, 256)
+  @IsValidString('message', 'Something went wrong', 'Error message', 0, 256)
   message!: string;
 }
 

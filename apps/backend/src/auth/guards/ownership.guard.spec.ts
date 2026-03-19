@@ -52,7 +52,7 @@ describe('UserOwnershipGuard', () => {
           headers: {},
         })
       )
-    ).rejects.toThrow(new ForbiddenException('Missing or invalid Authorization header'));
+    ).rejects.toThrow(new ForbiddenException('Érvénytelen vagy hiányzó Authorization header!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'Missing or invalid Authorization header for resource resource-user-id'
@@ -178,7 +178,7 @@ describe('UserOwnershipGuard', () => {
           'ping'
         )
       )
-    ).rejects.toThrow(new ForbiddenException('Access denied'));
+    ).rejects.toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'Access denied. JWT sub admin-user-id is not owner nor admin for resource resource-user-id'
@@ -215,7 +215,7 @@ describe('UserOwnershipGuard', () => {
           headers: { authorization: 'Bearer token' },
         })
       )
-    ).rejects.toThrow(new ForbiddenException('Invalid or expired token'));
+    ).rejects.toThrow(new ForbiddenException('Érvénytelen vagy hiányzó JWT!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'JWT validation failed for resource resource-user-id: jwt expired'

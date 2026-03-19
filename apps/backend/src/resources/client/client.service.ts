@@ -53,7 +53,7 @@ export class ClientService implements OnModuleInit {
     const minVersion = this.getMinVersions()[platform][0];
 
     if (!semver.valid(version) || semver.lt(version, minVersion)) {
-      throw new HttpException('Client version is not supported', HttpStatus.I_AM_A_TEAPOT);
+      throw new HttpException('A kliens verziója nem támogatott!', HttpStatus.I_AM_A_TEAPOT);
     }
   }
 

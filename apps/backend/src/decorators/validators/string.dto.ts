@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, Length } from 'class-validator';
 
 export function IsValidString(
+  target: string,
   example: string,
   description: string,
   minLength = 10,
@@ -10,8 +11,10 @@ export function IsValidString(
   required = true
 ) {
   return applyDecorators(
-    IsString(),
-    Length(minLength, maxLength),
+    IsString({ message: `A(z) ${target} mezőnek szöveges értéknek kell lennie.` }),
+    Length(minLength, maxLength, {
+      message: `A(z) ${target} hossza min. $constraint1 és max. $constraint2 karakter.`,
+    }),
     ApiProperty({
       example,
       description,

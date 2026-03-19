@@ -4,11 +4,25 @@ import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class CourseQueryDto {
   @IsOptional()
-  @IsValidString('Datab', 'Filter by course name (partial, case-insensitive)', 0, 64, false)
+  @IsValidString(
+    'kurzus név',
+    'Datab',
+    'Filter by course name (partial, case-insensitive)',
+    0,
+    64,
+    false
+  )
   courseName?: string;
 
   @IsOptional()
-  @IsValidString('BMEVI', 'Filter by course code (partial, case-insensitive)', 0, 16, false)
+  @IsValidString(
+    'kurzus kód',
+    'BMEVI',
+    'Filter by course code (partial, case-insensitive)',
+    0,
+    16,
+    false
+  )
   courseCode?: string;
 
   @IsUUIDCustom(

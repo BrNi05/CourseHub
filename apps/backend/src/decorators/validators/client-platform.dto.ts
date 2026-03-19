@@ -11,6 +11,6 @@ export function IsClientPlatform() {
       description: 'Client platform',
       example: ClientPlatform.windows,
     }),
-    IsEnum(ClientPlatform)
+    IsEnum(ClientPlatform, { message: `A platform érvénytelen!` })
   );
 }

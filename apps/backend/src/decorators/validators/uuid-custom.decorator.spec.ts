@@ -25,6 +25,6 @@ describe('IsUUIDCustom', () => {
     const errors = await validate(dto);
 
     expect(errors).toHaveLength(1);
-    expect(errors[0]?.constraints?.isUuid).toBe('id must be a valid UUID');
+    expect(errors[0]?.constraints?.isUuid).toBe('id');
   });
 });

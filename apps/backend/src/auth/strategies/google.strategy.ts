@@ -28,7 +28,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const email = emails?.[0]?.value;
 
     if (!email)
-      return done(new UnauthorizedException('Received no email address from Google'), false);
+      return done(new UnauthorizedException('Nem érkezett email cím a Google-tól!'), false);
 
     let user = await this.prisma.user.findUnique({ where: { googleId } });
     const adminEmails = this.configService.get<string>('ADMIN_EMAILS')?.split(',') ?? [];

@@ -10,7 +10,7 @@ export function SemverVersion() {
     }),
     IsString(),
     Matches(/^\d+\.\d+\.\d+$/, {
-      message: 'version must be in format major.minor.patch (e.g. 1.0.0)',
+      message: 'A verzió formátuma: major.minor.patch (pl. 1.0.0)',
     })
   );
 }

@@ -106,12 +106,14 @@ const emit = defineEmits<{
 
 .toast__content {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .toast p {
   color: var(--text-muted);
   line-height: 1.45;
   margin-top: 0.35rem;
+  white-space: pre-line;
 }
 
 .toast__dismiss {

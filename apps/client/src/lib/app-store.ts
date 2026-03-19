@@ -295,7 +295,7 @@ function getErrorMessage(
       if (Array.isArray(message)) {
         const normalized = message.filter((item): item is string => typeof item === 'string');
 
-        if (normalized.length > 0) return normalized.join('\n');
+        if (normalized.length > 0) return normalized.join('\n\n');
       }
     }
 

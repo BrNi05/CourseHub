@@ -26,7 +26,7 @@ describe('SemverVersion', () => {
 
     expect(errors).toHaveLength(1);
     expect(errors[0]?.constraints?.matches).toBe(
-      'version must be in format major.minor.patch (e.g. 1.0.0)'
+      'A verzió formátuma: major.minor.patch (pl. 1.0.0)'
     );
   });
 });

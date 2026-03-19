@@ -19,7 +19,7 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     let status: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message: string = 'Internal server error';
+    let message: string = 'Szerverhiba történt. Próbáld újra később.';
 
     // Handle HTTP exceptions
     if (exception instanceof HttpException) {
@@ -33,7 +33,7 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
 
     // Handle Throttler exceptions
     if (status === HttpStatus.TOO_MANY_REQUESTS) {
-      message = 'Too many requests. Please try again later.';
+      message = 'Túl sok kérés. Kérlek, próbáld újra később.';
     }
 
     // Log internal server errors
@@ -43,7 +43,7 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
 
     // Prevent leaking paths on server static errors
     if (message.includes('ENOENT') || request.url.includes('/assets')) {
-      message = 'Resource not found';
+      message = 'A kért erőforrás nem található!';
     }
 
     const errorResponse = new ErrorResponse(status, message, request.url, request.method);

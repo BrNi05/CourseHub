@@ -2,6 +2,7 @@ import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class CreateUniversityDto {
   @IsValidString(
+    'name',
     'Budapest University of Technology and Economics',
     'Name of the university',
     10,
@@ -9,6 +10,6 @@ export class CreateUniversityDto {
   )
   name!: string;
 
-  @IsValidString('BME', 'Abbreviated name of the university', 2, 8)
+  @IsValidString('abbrevName', 'BME', 'Abbreviated name of the university', 2, 8)
   abbrevName!: string;
 }

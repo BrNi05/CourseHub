@@ -13,7 +13,7 @@ import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { Serialize } from '../../decorators/serialize.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
-import { AuthUserId } from '../../decorators/auth/user-id.dto.js';
+import { AuthUserId } from '../../decorators/auth/user-id.decorator.js';
 
 @Controller('suggestions')
 @Serialize(SuggestedCourse)

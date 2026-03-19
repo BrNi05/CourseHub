@@ -28,7 +28,7 @@ export class UserOwnershipGuard implements CanActivate {
 
     if (!authHeader?.startsWith('Bearer ')) {
       this.logger.warn(`Missing or invalid Authorization header for resource ${resourceUserId}`);
-      throw new ForbiddenException('Missing or invalid Authorization header');
+      throw new ForbiddenException('Érvénytelen vagy hiányzó Authorization header!');
     }
 
     const token = authHeader.split(' ')[1];
@@ -57,7 +57,7 @@ export class UserOwnershipGuard implements CanActivate {
         context.getHandler().name === 'ping' || context.getHandler().name === 'errorReport';
 
       // User does not exist anymore
-      if (!user) throw new ForbiddenException('User not found');
+      if (!user) throw new ForbiddenException('A felhasználó nem található!');
 
       if (user.isAdmin && !doNotAllowAdminOverride) {
         this.logger.debug(
@@ -71,7 +71,7 @@ export class UserOwnershipGuard implements CanActivate {
         `Access denied. JWT sub ${payload.sub} is not owner nor admin for resource ${resourceUserId}`
       );
 
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException('Hozzáférés megtagadva!');
     } catch (err) {
       if (err instanceof ForbiddenException) throw err; // Avoid double logging ForbiddenException
 
@@ -79,7 +79,7 @@ export class UserOwnershipGuard implements CanActivate {
         `JWT validation failed for resource ${resourceUserId}: ${(err as Error).message}`
       );
 
-      throw new ForbiddenException('Invalid or expired token');
+      throw new ForbiddenException('Érvénytelen vagy hiányzó JWT!');
     }
   }
 }

@@ -38,7 +38,7 @@ describe('PrismaExceptionFilter', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: HttpStatus.CONFLICT,
-        message: 'PRISMA: Unique constraint violated.',
+        message: 'A megadott érték már létezik. (PRISMA)',
         path: '/api/courses',
         method: 'POST',
       })
@@ -62,7 +62,7 @@ describe('PrismaExceptionFilter', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'PRISMA: Generic database error.',
+        message: 'Ismeretlen adatbázis hiba történt. (PRISMA)',
       })
     );
   });
