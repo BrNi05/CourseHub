@@ -71,6 +71,21 @@ describe('UniversityController', () => {
       expect(mockFindOne).toHaveBeenCalledWith('1');
       expect(result).toEqual(mockData);
     });
+
+    it('sets a 1 hour Cache-Control header', () => {
+      const headers = Reflect.getMetadata(
+        HEADERS_METADATA,
+        UniversityController.prototype.findOne
+      ) as Array<{
+        name: string;
+        value: string;
+      }>;
+
+      expect(headers).toContainEqual({
+        name: 'Cache-Control',
+        value: 'public, max-age=3600',
+      });
+    });
   });
 
   describe('findAllWithFaculties', () => {

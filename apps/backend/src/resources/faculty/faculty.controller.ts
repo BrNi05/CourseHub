@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, Header } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiCreatedResponse } from '@nestjs/swagger';
 
 import { Faculty } from './entity/faculty.entity.js';
@@ -62,6 +62,7 @@ export class FacultyController {
     type: FacultyWithoutCoursesDto,
     description: 'Success',
   })
+  @Header('Cache-Control', 'public, max-age=3600')
   @DatabaseOperation()
   @Throttable(60, 60000)
   async getOne(@Param('id') id: string) {

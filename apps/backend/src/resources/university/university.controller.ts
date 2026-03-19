@@ -44,6 +44,7 @@ export class UniversityController {
     type: UniversityWithoutFacultiesDto,
     description: 'Success',
   })
+  @Header('Cache-Control', 'public, max-age=3600')
   @DatabaseOperation()
   @Throttable(60, 60000)
   findOne(@Param('id') id: string) {
