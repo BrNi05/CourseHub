@@ -13,8 +13,8 @@ importers:
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.0.3(jiti@2.6.1))
       '@hey-api/openapi-ts':
-        specifier: ^0.94.2
-        version: 0.94.2(typescript@5.9.3)
+        specifier: ^0.94.3
+        version: 0.94.3(typescript@5.9.3)
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
@@ -49,8 +49,8 @@ importers:
         specifier: ^6.1.3
         version: 6.1.3
       turbo:
-        specifier: ^2.8.19
-        version: 2.8.19
+        specifier: ^2.8.20
+        version: 2.8.20
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -648,23 +648,23 @@ packages:
   '@hapi/topo@6.0.2':
     resolution: {integrity: sha512-KR3rD5inZbGMrHmgPxsJ9dbi6zEK+C3ZwUwTa+eMwWLz7oijWUTWD2pMSNNYJAU6Qq+65NkxXjqHr/7LM2Xkqg==}
 
-  '@hey-api/codegen-core@0.7.3':
-    resolution: {integrity: sha512-tRxwr8hPbPgETbcfxbg0K4nZZxUM51I0hEHfLEWLmsTbnpY/E4CU25/PyHXD0KdKQS4TwkAL2csEXFQth6AzBQ==}
+  '@hey-api/codegen-core@0.7.4':
+    resolution: {integrity: sha512-DGd9yeSQzflOWO3Y5mt1GRXkXH9O/yIMgbxPjwLI3jwu/3nAjoXXD26lEeFb6tclYlg0JAqTIs5d930G/qxHeA==}
     engines: {node: '>=20.19.0'}
 
   '@hey-api/json-schema-ref-parser@1.3.1':
     resolution: {integrity: sha512-7atnpUkT8TyUPHYPLk91j/GyaqMuwTEHanLOe50Dlx0EEvNuQqFD52Yjg8x4KU0UFL1mWlyhE+sUE/wAtQ1N2A==}
     engines: {node: '>=20.19.0'}
 
-  '@hey-api/openapi-ts@0.94.2':
-    resolution: {integrity: sha512-k8BmVfRZ3Ntpt99+0wzbw18sssf9mMgCpUFi9hTdUTGCgXEFlCnM6HW6tWZjPtT4CbclNqLVvSrfIABrRE88YA==}
+  '@hey-api/openapi-ts@0.94.3':
+    resolution: {integrity: sha512-aq6dEbS3IkCEV+lBueFYrQyWc21lonb+AKJcmiAmStmxCkbwq4bu3Ro51Nmuqp5Ske5T4FdaOvwWTH0BdJj9ZQ==}
     engines: {node: '>=20.19.0'}
     hasBin: true
     peerDependencies:
       typescript: '>=5.5.3 || 6.0.1-rc'
 
-  '@hey-api/shared@0.2.4':
-    resolution: {integrity: sha512-a3YPByL+odEY9QnEh0uhPJZFgLxzB4YEss+8mexU4ZQ3sL3Y/BbEiDPhLT2HI9xXgagYK/KScy8J7Jm14Zma0g==}
+  '@hey-api/shared@0.2.5':
+    resolution: {integrity: sha512-NS57dHXxhwBtenPWAzljA0I493ZxzjcZZtr8KFr8SsLboofdjcAbVRFAfOQ0iv2JMhOe9oyiWEEc1QOJ/9WWaw==}
     engines: {node: '>=20.19.0'}
 
   '@hey-api/types@0.1.4':
@@ -1398,33 +1398,33 @@ packages:
   '@tsconfig/node16@1.0.4':
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
 
-  '@turbo/darwin-64@2.8.19':
-    resolution: {integrity: sha512-WNzpqJV7rO/oKmsxjtSFXuV87fZb/qxzeGWXJng4oHFz7iPOFSWrPb2gTazJgoTvXUfe1kOH2o0F+zFrerwzRw==}
+  '@turbo/darwin-64@2.8.20':
+    resolution: {integrity: sha512-FQ9EX1xMU5nbwjxXxM3yU88AQQ6Sqc6S44exPRroMcx9XZHqqppl5ymJF0Ig/z3nvQNwDmz1Gsnvxubo+nXWjQ==}
     cpu: [x64]
     os: [darwin]
 
-  '@turbo/darwin-arm64@2.8.19':
-    resolution: {integrity: sha512-KTq8/PH0/ml9bNFomZ2VjmOqW6RYPRqBqV5CfNeD5ekJMuNwJUdeQz0qXguxCzW4OkHCnTdPeKIehR0cdQObPg==}
+  '@turbo/darwin-arm64@2.8.20':
+    resolution: {integrity: sha512-Gpyh9ATFGThD6/s9L95YWY54cizg/VRWl2B67h0yofG8BpHf67DFAh9nuJVKG7bY0+SBJDAo5cMur+wOl9YOYw==}
     cpu: [arm64]
     os: [darwin]
 
-  '@turbo/linux-64@2.8.19':
-    resolution: {integrity: sha512-d0xcXiGUt1Q/HzMfgkqai5KyXrassLRuUZhxmUs4ZX99tQFbqRL2/CkSKCnMqyDv7c0K5eugLerVUY+DYr1DQg==}
+  '@turbo/linux-64@2.8.20':
+    resolution: {integrity: sha512-p2QxWUYyYUgUFG0b0kR+pPi8t7c9uaVlRtjTTI1AbCvVqkpjUfCcReBn6DgG/Hu8xrWdKLuyQFaLYFzQskZbcA==}
     cpu: [x64]
     os: [linux]
 
-  '@turbo/linux-arm64@2.8.19':
-    resolution: {integrity: sha512-UX3r1iwqsOK8dMgKFtZpDqZk7feqHXZJ/EQAknh0SVQrnc4vkm6mZqjX4j2j3DVoSo4Ho8xGITYlor9Xxsyomw==}
+  '@turbo/linux-arm64@2.8.20':
+    resolution: {integrity: sha512-Gn5yjlZGLRZWarLWqdQzv0wMqyBNIdq1QLi48F1oY5Lo9kiohuf7BPQWtWxeNVS2NgJ1+nb/DzK1JduYC4AWOA==}
     cpu: [arm64]
     os: [linux]
 
-  '@turbo/windows-64@2.8.19':
-    resolution: {integrity: sha512-3MrvD/gMYWfQKZVZOeilKm1629zPG0+KlErZbI0n9Nr3L32+5qrZOF/cgWErukLnOSR38whgf8t2WaPJQALqxg==}
+  '@turbo/windows-64@2.8.20':
+    resolution: {integrity: sha512-vyaDpYk/8T6Qz5V/X+ihKvKFEZFUoC0oxYpC1sZanK6gaESJlmV3cMRT3Qhcg4D2VxvtC2Jjs9IRkrZGL+exLw==}
     cpu: [x64]
     os: [win32]
 
-  '@turbo/windows-arm64@2.8.19':
-    resolution: {integrity: sha512-j+8mi7kyEgT7cUTPOtPJS8KbTWxu4+OQBiDIo+zklz/RKV4hoN+k4+J8iCM9Nj+o+SVnzc01xSI+s3eBG0MDSA==}
+  '@turbo/windows-arm64@2.8.20':
+    resolution: {integrity: sha512-voicVULvUV5yaGXo0Iue13BcHGYW3u0VgqSbfQwBaHbpj1zLjYV4KIe+7fYIo6DO8FVUJzxFps3ODCQG/Wy2Qw==}
     cpu: [arm64]
     os: [win32]
 
@@ -3820,8 +3820,8 @@ packages:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
 
-  ts-api-utils@2.4.0:
-    resolution: {integrity: sha512-3TaVTaAv2gTiMB35i3FiGJaRfwb3Pyn/j3m/bfAvGe8FB7CF6u+LMYqYlDh7reQf7UNvoTvdfAqHGmPGOSsPmA==}
+  ts-api-utils@2.5.0:
+    resolution: {integrity: sha512-OJ/ibxhPlqrMM0UiNHJ/0CKQkoKF243/AEmplt3qpRgkW8VG7IfOS41h7V8TjITqdByHzrjcS/2si+y4lIh8NA==}
     engines: {node: '>=18.12'}
     peerDependencies:
       typescript: '>=4.8.4'
@@ -3863,8 +3863,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  turbo@2.8.19:
-    resolution: {integrity: sha512-9NTKvQZ/02XnJCSU4mF5gvAPK+nuLbvCtft/NE8dJeOwaup0bJ14rYx7TxmSXp8JJuAN8nAjqfXWFsWwoQSFHg==}
+  turbo@2.8.20:
+    resolution: {integrity: sha512-Rb4qk5YT8RUwwdXtkLpkVhNEe/lor6+WV7S5tTlLpxSz6MjV5Qi8jGNn4gS6NAvrYGA/rNrE6YUQM85sCZUDbQ==}
     hasBin: true
 
   type-check@0.4.0:
@@ -4473,7 +4473,7 @@ snapshots:
     dependencies:
       '@hapi/hoek': 11.0.7
 
-  '@hey-api/codegen-core@0.7.3':
+  '@hey-api/codegen-core@0.7.4':
     dependencies:
       '@hey-api/types': 0.1.4
       ansi-colors: 4.1.3
@@ -4488,11 +4488,11 @@ snapshots:
       '@types/json-schema': 7.0.15
       js-yaml: 4.1.1
 
-  '@hey-api/openapi-ts@0.94.2(typescript@5.9.3)':
+  '@hey-api/openapi-ts@0.94.3(typescript@5.9.3)':
     dependencies:
-      '@hey-api/codegen-core': 0.7.3
+      '@hey-api/codegen-core': 0.7.4
       '@hey-api/json-schema-ref-parser': 1.3.1
-      '@hey-api/shared': 0.2.4
+      '@hey-api/shared': 0.2.5
       '@hey-api/types': 0.1.4
       ansi-colors: 4.1.3
       color-support: 1.1.3
@@ -4502,9 +4502,9 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@hey-api/shared@0.2.4':
+  '@hey-api/shared@0.2.5':
     dependencies:
-      '@hey-api/codegen-core': 0.7.3
+      '@hey-api/codegen-core': 0.7.4
       '@hey-api/json-schema-ref-parser': 1.3.1
       '@hey-api/types': 0.1.4
       ansi-colors: 4.1.3
@@ -5147,22 +5147,22 @@ snapshots:
 
   '@tsconfig/node16@1.0.4': {}
 
-  '@turbo/darwin-64@2.8.19':
+  '@turbo/darwin-64@2.8.20':
     optional: true
 
-  '@turbo/darwin-arm64@2.8.19':
+  '@turbo/darwin-arm64@2.8.20':
     optional: true
 
-  '@turbo/linux-64@2.8.19':
+  '@turbo/linux-64@2.8.20':
     optional: true
 
-  '@turbo/linux-arm64@2.8.19':
+  '@turbo/linux-arm64@2.8.20':
     optional: true
 
-  '@turbo/windows-64@2.8.19':
+  '@turbo/windows-64@2.8.20':
     optional: true
 
-  '@turbo/windows-arm64@2.8.19':
+  '@turbo/windows-arm64@2.8.20':
     optional: true
 
   '@tybys/wasm-util@0.10.1':
@@ -5328,7 +5328,7 @@ snapshots:
       eslint: 10.0.3(jiti@2.6.1)
       ignore: 7.0.5
       natural-compare: 1.4.0
-      ts-api-utils: 2.4.0(typescript@5.9.3)
+      ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -5370,7 +5370,7 @@ snapshots:
       '@typescript-eslint/utils': 8.57.1(eslint@10.0.3(jiti@2.6.1))(typescript@5.9.3)
       debug: 4.4.3
       eslint: 10.0.3(jiti@2.6.1)
-      ts-api-utils: 2.4.0(typescript@5.9.3)
+      ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -5387,7 +5387,7 @@ snapshots:
       minimatch: 10.2.4
       semver: 7.7.4
       tinyglobby: 0.2.15
-      ts-api-utils: 2.4.0(typescript@5.9.3)
+      ts-api-utils: 2.5.0(typescript@5.9.3)
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -7719,7 +7719,7 @@ snapshots:
 
   totalist@3.0.1: {}
 
-  ts-api-utils@2.4.0(typescript@5.9.3):
+  ts-api-utils@2.5.0(typescript@5.9.3):
     dependencies:
       typescript: 5.9.3
 
@@ -7773,14 +7773,14 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  turbo@2.8.19:
+  turbo@2.8.20:
     optionalDependencies:
-      '@turbo/darwin-64': 2.8.19
-      '@turbo/darwin-arm64': 2.8.19
-      '@turbo/linux-64': 2.8.19
-      '@turbo/linux-arm64': 2.8.19
-      '@turbo/windows-64': 2.8.19
-      '@turbo/windows-arm64': 2.8.19
+      '@turbo/darwin-64': 2.8.20
+      '@turbo/darwin-arm64': 2.8.20
+      '@turbo/linux-64': 2.8.20
+      '@turbo/linux-arm64': 2.8.20
+      '@turbo/windows-64': 2.8.20
+      '@turbo/windows-arm64': 2.8.20
 
   type-check@0.4.0:
     dependencies:
