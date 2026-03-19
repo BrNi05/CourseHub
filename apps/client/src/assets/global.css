@@ -21,7 +21,7 @@
     radial-gradient(circle at bottom right, rgba(52, 211, 153, 0.16), transparent 30%),
     linear-gradient(180deg, #060816 0%, #0a1021 48%, #08111f 100%);
 
-  font-family: 'Fira Code', monospace;
+  font-family: 'Open Sans Variable', sans-serif;
   font-synthesis: none;
   line-height: 1.5;
   text-rendering: optimizeLegibility;

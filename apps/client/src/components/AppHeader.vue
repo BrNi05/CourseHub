@@ -91,6 +91,7 @@ const navigation = computed(() => {
 .header__link {
   border-radius: 999px;
   color: var(--text-muted);
+  font-weight: 600;
   padding: 0.75rem 1rem;
   text-decoration: none;
   transition:

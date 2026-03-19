@@ -75,6 +75,7 @@ const route = useRoute();
 .footer__tagline {
   color: var(--text-muted);
   font-size: 0.92rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
   margin: 0;
 }
@@ -91,6 +92,7 @@ const route = useRoute();
   border-radius: 999px;
   color: var(--text-primary);
   display: inline-flex;
+  font-weight: 600;
   padding: 0.62rem 0.95rem;
   text-decoration: none;
   transition:

@@ -136,6 +136,7 @@ const links = computed(() =>
   align-items: center;
   color: var(--text-primary);
   display: inline-flex;
+  font-weight: 500;
   gap: 0.55rem;
   text-decoration: none;
 }

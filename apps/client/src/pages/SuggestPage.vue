@@ -266,6 +266,7 @@ async function submitForm() {
 .field span {
   color: var(--text-muted);
   font-size: 0.88rem;
+  font-weight: 600;
   line-height: 1.35;
 }
 

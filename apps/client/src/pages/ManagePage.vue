@@ -102,6 +102,7 @@ const app = useAppStore();
   color: #dbeafe;
   display: inline-flex;
   padding: 0.65rem 0.9rem;
+  font-weight: 600;
 }
 
 .course-grid {
