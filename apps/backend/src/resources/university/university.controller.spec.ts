@@ -12,6 +12,7 @@ describe('UniversityController', () => {
   let serviceMock: Partial<UniversityService>;
 
   const mockFindAll = vi.fn();
+  const mockFindOne = vi.fn();
   const mockFindAllWithFaculties = vi.fn();
   const mockCreate = vi.fn();
   const mockUpdate = vi.fn();
@@ -22,6 +23,7 @@ describe('UniversityController', () => {
 
     serviceMock = {
       findAll: mockFindAll,
+      findOne: mockFindOne,
       findAllWithFaculties: mockFindAllWithFaculties,
       create: mockCreate,
       update: mockUpdate,
@@ -56,6 +58,18 @@ describe('UniversityController', () => {
     expect(headers).toContainEqual({
       name: 'Cache-Control',
       value: 'public, max-age=86400',
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return one university without faculties', async () => {
+      const mockData = { id: '1', name: 'Test Uni', abbrevName: 'TU' };
+      mockFindOne.mockResolvedValue(mockData);
+
+      const result = await controller.findOne('1');
+
+      expect(mockFindOne).toHaveBeenCalledWith('1');
+      expect(result).toEqual(mockData);
     });
   });
 

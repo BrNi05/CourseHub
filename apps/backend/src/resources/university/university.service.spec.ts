@@ -17,6 +17,7 @@ describe('UniversityService', () => {
     prisma = {
       university: {
         findMany: vi.fn(),
+        findUniqueOrThrow: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
@@ -90,6 +91,21 @@ describe('UniversityService', () => {
       });
 
       expect(cacheManager.set).toHaveBeenCalledWith('all_universities_withfaculties', dbData);
+      expect(result).toEqual(dbData);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should query DB for one university without faculties', async () => {
+      const dbData = { id: '1', name: 'DB Uni', abbrevName: 'DBU' };
+      prisma.university.findUniqueOrThrow.mockResolvedValue(dbData);
+
+      const result = await service.findOne('1');
+
+      expect(prisma.university.findUniqueOrThrow).toHaveBeenCalledWith({
+        where: { id: '1' },
+        include: { faculties: false },
+      });
       expect(result).toEqual(dbData);
     });
   });

@@ -37,6 +37,13 @@ export class UniversityService {
     return universities;
   }
 
+  async findOne(id: string): Promise<UniversityWithoutFacultiesDto> {
+    return await this.prisma.university.findUniqueOrThrow({
+      where: { id },
+      include: { faculties: false },
+    });
+  }
+
   async findAllWithFaculties(): Promise<University[]> {
     const cached = await this.cacheManager.get<University[]>(this.getAllWithFacultiesCacheKey);
     if (cached) return cached;
