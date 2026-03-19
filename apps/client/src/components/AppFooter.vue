@@ -117,4 +117,18 @@ const route = useRoute();
     padding: 0 2rem 1.6rem;
   }
 }
+
+@media (max-width: 640px) {
+  .footer__inner {
+    align-items: flex-start;
+  }
+
+  .footer__tagline {
+    padding: 0.2rem 0 0 0.24rem;
+  }
+
+  .footer__links {
+    margin-top: 0.4rem;
+  }
+}
 </style>
