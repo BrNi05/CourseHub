@@ -111,14 +111,15 @@ async function submitReport() {
 }
 
 .form-grid {
+  align-items: start;
   display: grid;
-  gap: 0.85rem;
+  gap: 1.4em;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
 }
 
 .field {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.65rem;
 }
 
 .field--wide {
@@ -128,6 +129,8 @@ async function submitReport() {
 .field span {
   color: var(--text-muted);
   font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .field input,
@@ -139,12 +142,15 @@ async function submitReport() {
   color: var(--text-primary);
   font: inherit;
   padding: 0.85rem 0.95rem;
-  resize: vertical;
 }
 
 .field input,
 .field select {
   min-height: 3rem;
+}
+
+.field textarea {
+  resize: none;
 }
 
 .form-actions {
