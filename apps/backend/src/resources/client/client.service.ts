@@ -4,6 +4,7 @@ import {
   HttpStatus,
   InternalServerErrorException,
   OnModuleInit,
+  BadRequestException,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -128,8 +129,8 @@ export class ClientService implements OnModuleInit {
 
     const reports: ErrorReportResponseDto[] = [];
 
-    for (const file of files) {
-      const content = await fs.readFile(path.join(this.reportsDir, file), 'utf-8');
+    for (const file of files.filter((entry) => entry.endsWith('.json'))) {
+      const content = await fs.readFile(this.resolveReportFilePath(file), 'utf-8');
       reports.push(JSON.parse(content) as ErrorReportResponseDto);
     }
 
@@ -137,7 +138,7 @@ export class ClientService implements OnModuleInit {
   }
 
   async deleteErrorReport(fileName: string): Promise<void> {
-    const filePath = path.join(this.reportsDir, fileName);
+    const filePath = this.resolveReportFilePath(fileName);
 
     try {
       await fs.unlink(filePath);
@@ -171,5 +172,21 @@ export class ClientService implements OnModuleInit {
     } catch {
       this.logger.error('Failed to clean old error reports.');
     }
+  }
+
+  // Security: prevent path traversal and ensure only .json files are accessed
+  private resolveReportFilePath(fileName: string): string {
+    if (path.basename(fileName) !== fileName || !fileName.endsWith('.json')) {
+      throw new BadRequestException('Invalid error report file name.');
+    }
+
+    const resolvedPath = path.resolve(this.reportsDir, fileName);
+    const relativePath = path.relative(this.reportsDir, resolvedPath);
+
+    if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+      throw new BadRequestException('Invalid error report file name.');
+    }
+
+    return resolvedPath;
   }
 }

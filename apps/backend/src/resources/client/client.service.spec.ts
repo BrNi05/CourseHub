@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { ClientService } from './client.service.js';
 import { ClientPlatform } from '../../prisma/generated/client/client.js';
 import type { PrismaService } from '../../prisma/prisma.service.js';
@@ -238,5 +238,13 @@ describe('ClientService', () => {
     );
 
     expect(logger.error).toHaveBeenCalledWith('Failed to delete error report: bad.json.');
+  });
+
+  it('should reject deleting an error report outside the reports directory', async () => {
+    await expect(service.deleteErrorReport('../CourseHub-Backend.log')).rejects.toBeInstanceOf(
+      BadRequestException
+    );
+
+    expect(fs.unlink).not.toHaveBeenCalled();
   });
 });
