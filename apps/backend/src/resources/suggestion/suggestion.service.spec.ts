@@ -212,6 +212,9 @@ describe('SuggestionService', () => {
 
   describe('deleteOldSuggestions', () => {
     it('should delete old suggestions and log the deleted count', async () => {
+      const fixedNow = new Date('2026-03-19T12:40:27.941Z');
+      vi.useFakeTimers().setSystemTime(fixedNow);
+
       const deletedResult = { count: 5 };
       prisma.suggestedCourse.deleteMany.mockResolvedValue(deletedResult);
 
@@ -219,21 +222,21 @@ describe('SuggestionService', () => {
 
       await service.deleteOldSuggestions();
 
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+      const cutoffDate = new Date(fixedNow);
+      cutoffDate.setDate(cutoffDate.getDate() - 29);
 
       expect(prisma.suggestedCourse.deleteMany).toHaveBeenCalledWith({
         where: {
-          createdAt: { lt: thirtyDaysAgo },
+          createdAt: { lt: cutoffDate },
         },
       });
 
       const calledDate = prisma.suggestedCourse.deleteMany.mock.calls[0][0].where.createdAt.lt;
-      const expectedDate = new Date();
-      expectedDate.setDate(expectedDate.getDate() - 29);
-      expect(calledDate.toDateString()).toBe(expectedDate.toDateString());
+      expect(calledDate).toEqual(cutoffDate);
 
       expect(loggerSpy).toHaveBeenCalledWith(`Deleted ${deletedResult.count} old suggestions`);
+
+      vi.useRealTimers();
     });
   });
 });
