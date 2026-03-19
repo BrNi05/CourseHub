@@ -3,11 +3,15 @@ import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from
 import { Request, Response } from 'express';
 
 import { ErrorResponse } from '../common/responses/error.response.js';
-import { LoggerService } from '../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../logger/logger.service.js';
 
 @Catch()
 export class GlobalExceptionsFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
+  private readonly logger: ContextualLogger;
+
+  constructor(logger: LoggerService) {
+    this.logger = logger.forContext(GlobalExceptionsFilter.name);
+  }
 
   catch(exception: any, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();

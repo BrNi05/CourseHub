@@ -1,14 +1,17 @@
 import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
 
 // Basically AuthGuard('jwt'), but with logging
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private readonly logger: LoggerService) {
+  private readonly logger: ContextualLogger;
+
+  constructor(logger: LoggerService) {
     super();
+    this.logger = logger.forContext(JwtAuthGuard.name);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,31 +1,53 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Injectable, ConsoleLogger, Scope } from '@nestjs/common';
-import * as fs from 'node:fs';
+import { Injectable, ConsoleLogger, OnModuleDestroy } from '@nestjs/common';
+import { createWriteStream } from 'node:fs';
+import type { WriteStream } from 'node:fs';
 import * as path from 'node:path';
 
-@Injectable({ scope: Scope.DEFAULT }) // singleton
-export class LoggerService extends ConsoleLogger {
-  private readonly logFile = path.join(process.cwd(), 'CourseHub-Backend.log');
+// A wrapper around ConsoleLogger with file logging and context handling
+export class ContextualLogger {
+  constructor(
+    private readonly rootLogger: LoggerService,
+    private readonly context: string
+  ) {}
 
-  constructor(context: string = 'GenericLogger') {
-    super(context, { timestamp: false });
+  log(message: any) {
+    this.rootLogger.log(message, this.context);
   }
 
-  private formatTimestamp(): string {
-    return new Intl.DateTimeFormat('hu-HU', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    }).format(new Date());
+  error(message: any, trace?: string) {
+    this.rootLogger.error(message, trace, this.context);
   }
 
-  // File writer helper
-  private writeToFile(message: string) {
-    fs.appendFileSync(this.logFile, message + '\n');
+  warn(message: any) {
+    this.rootLogger.warn(message, this.context);
+  }
+
+  debug(message: any) {
+    this.rootLogger.debug(message, this.context);
+  }
+
+  verbose(message: any) {
+    this.rootLogger.verbose(message, this.context);
+  }
+}
+
+@Injectable()
+export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
+  private static readonly logFile = path.join(process.cwd(), 'CourseHub-Backend.log');
+  private static readonly sharedLogStream: WriteStream = LoggerService.createSharedLogStream();
+
+  constructor() {
+    super('Application', { timestamp: false });
+  }
+
+  // Creates a contextual logger for a specific context
+  forContext(context: string): ContextualLogger {
+    return new ContextualLogger(this, context);
+  }
+
+  onModuleDestroy() {
+    LoggerService.sharedLogStream.end();
   }
 
   // Message handler
@@ -38,39 +60,88 @@ export class LoggerService extends ConsoleLogger {
         return String(message);
       }
     }
+
     return String(message);
   }
 
-  log(message: any) {
+  log(message: any, context?: string) {
     const formattedMessage = this.formatMessage(message);
-    super.log(formattedMessage, this.context);
-    this.writeToFile(`${this.formatTimestamp()} [INFO] [${this.context}] ${formattedMessage}`);
+    const resolvedContext = this.resolveContext(context);
+
+    super.log(formattedMessage, resolvedContext);
+    this.writeToFile(`${this.formatTimestamp()} [INFO] [${resolvedContext}] ${formattedMessage}`);
   }
 
-  error(message: any, trace?: string) {
+  error(message: any, trace?: string, context?: string) {
     const formattedMessage = this.formatMessage(message);
-    super.error(formattedMessage, trace, this.context);
-    trace = trace || '';
+    const resolvedContext = this.resolveContext(context);
+
+    super.error(formattedMessage, trace, resolvedContext);
     this.writeToFile(
-      `${this.formatTimestamp()} [ERROR] [${this.context}] ${formattedMessage}${trace}`
+      `${this.formatTimestamp()} [ERROR] [${resolvedContext}] ${formattedMessage}${trace ?? ''}`
     );
   }
 
-  warn(message: any) {
+  warn(message: any, context?: string) {
     const formattedMessage = this.formatMessage(message);
-    super.warn(formattedMessage, this.context);
-    this.writeToFile(`${this.formatTimestamp()} [WARN] [${this.context}] ${formattedMessage}`);
+    const resolvedContext = this.resolveContext(context);
+
+    super.warn(formattedMessage, resolvedContext);
+    this.writeToFile(`${this.formatTimestamp()} [WARN] [${resolvedContext}] ${formattedMessage}`);
   }
 
-  debug(message: any) {
+  debug(message: any, context?: string) {
     const formattedMessage = this.formatMessage(message);
-    super.debug(formattedMessage, this.context);
-    this.writeToFile(`${this.formatTimestamp()} [DEBUG] [${this.context}] ${formattedMessage}`);
+    const resolvedContext = this.resolveContext(context);
+
+    super.debug(formattedMessage, resolvedContext);
+    this.writeToFile(`${this.formatTimestamp()} [DEBUG] [${resolvedContext}] ${formattedMessage}`);
   }
 
-  verbose(message: any) {
+  verbose(message: any, context?: string) {
     const formattedMessage = this.formatMessage(message);
-    super.verbose(formattedMessage, this.context);
-    this.writeToFile(`${this.formatTimestamp()} [VERBOSE] [${this.context}] ${formattedMessage}`);
+    const resolvedContext = this.resolveContext(context);
+
+    super.verbose(formattedMessage, resolvedContext);
+    this.writeToFile(
+      `${this.formatTimestamp()} [VERBOSE] [${resolvedContext}] ${formattedMessage}`
+    );
+  }
+
+  // Formats the current timestamp for file logging
+  private formatTimestamp(): string {
+    return new Intl.DateTimeFormat('hu-HU', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    }).format(new Date());
+  }
+
+  // Writes log messages to the file
+  private writeToFile(message: string) {
+    const logStream = LoggerService.sharedLogStream;
+
+    if (logStream.destroyed) return;
+    logStream.write(message + '\n');
+  }
+
+  // Get the set context of the logger
+  private resolveContext(context?: string): string {
+    return context ?? this.context ?? 'UnknownContext';
+  }
+
+  // Creates a shared log stream for the logger service
+  private static createSharedLogStream(): WriteStream {
+    const logStream = createWriteStream(LoggerService.logFile, { flags: 'a' });
+
+    logStream.on('error', (error) => {
+      process.stderr.write(`Logger file stream error: ${error.message}\n`);
+    });
+
+    return logStream;
   }
 }

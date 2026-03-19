@@ -12,7 +12,6 @@ import { JwtAuthGuard } from './guards/jwt.guard.js';
 import { AdminGuard } from './guards/admin.guard.js';
 import { UserOwnershipGuard } from './guards/ownership.guard.js';
 
-import { LoggerModule } from '../logger/logger.module.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
 
 @Module({
@@ -21,7 +20,6 @@ import { PrismaModule } from '../prisma/prisma.module.js';
     JwtModule.register({
       secret: process.env.JWT_SECRET,
     }),
-    LoggerModule.forRoot('AuthModule'),
     PrismaModule,
   ],
   providers: [

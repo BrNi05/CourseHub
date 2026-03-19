@@ -2,21 +2,24 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
 
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
 import { CreateNewsDto } from './dto/create.dto.js';
 
 @Injectable()
 export class NewsService implements OnModuleInit {
   private readonly newsStoreKey = 'news_store';
+  private readonly logger: ContextualLogger;
 
   // In-memory news array
   private readonly news: string[] = [];
 
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
-    private readonly logger: LoggerService
-  ) {}
+    logger: LoggerService
+  ) {
+    this.logger = logger.forContext(NewsService.name);
+  }
 
   // Load news from cache on startup
   async onModuleInit(): Promise<void> {
@@ -55,9 +58,9 @@ export class NewsService implements OnModuleInit {
 
     if (cached) {
       this.news.push(...cached);
-      this.logger.log(`Loaded ${cached.length} news items from cache.`);
+      this.logger.log(`Loaded ${cached.length} news items from cache on startup.`);
     } else {
-      this.logger.log('No news items found in cache.');
+      this.logger.log('No news items found in cache on startup.');
     }
   }
 }

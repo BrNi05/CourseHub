@@ -7,8 +7,18 @@ import type { PrismaService } from '../../prisma/prisma.service.js';
 import type { LoggerService } from '../../logger/logger.service.js';
 import { promises as fs } from 'node:fs';
 
+const { logStreamMock } = vi.hoisted(() => ({
+  logStreamMock: {
+    write: vi.fn(),
+    end: vi.fn(),
+    on: vi.fn(),
+    destroyed: false,
+  },
+}));
+
 vi.mock('node:fs', () => {
   return {
+    createWriteStream: vi.fn(() => logStreamMock),
     promises: {
       mkdir: vi.fn(),
       writeFile: vi.fn(),
@@ -35,8 +45,14 @@ describe('ClientService', () => {
       },
     };
 
-    logger = {
+    const scopedLogger = {
       error: vi.fn(),
+      log: vi.fn(),
+    };
+
+    logger = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+      scopedLogger,
     };
 
     service = new ClientService(
@@ -123,7 +139,7 @@ describe('ClientService', () => {
 
     await service.cleanOldPings();
 
-    expect(logger.error).toHaveBeenCalledWith('Failed to clean old client pings.');
+    expect(logger.scopedLogger.error).toHaveBeenCalledWith('Failed to clean old client pings.');
   });
 
   it('should write error report file with correct payload', async () => {
@@ -193,7 +209,7 @@ describe('ClientService', () => {
 
     await service.cleanOldErrorReports();
 
-    expect(logger.error).toHaveBeenCalledWith('Failed to clean old error reports.');
+    expect(logger.scopedLogger.error).toHaveBeenCalledWith('Failed to clean old error reports.');
   });
 
   it('should log error if readdir throws', async () => {
@@ -201,7 +217,7 @@ describe('ClientService', () => {
 
     await service.cleanOldErrorReports();
 
-    expect(logger.error).toHaveBeenCalledWith('Failed to clean old error reports.');
+    expect(logger.scopedLogger.error).toHaveBeenCalledWith('Failed to clean old error reports.');
   });
 
   it('should list and parse all error reports', async () => {
@@ -237,7 +253,9 @@ describe('ClientService', () => {
       'Failed to delete error report'
     );
 
-    expect(logger.error).toHaveBeenCalledWith('Failed to delete error report: bad.json.');
+    expect(logger.scopedLogger.error).toHaveBeenCalledWith(
+      'Failed to delete error report: bad.json.'
+    );
   });
 
   it('should reject deleting an error report outside the reports directory', async () => {

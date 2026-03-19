@@ -1,67 +1,52 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createWriteStream } from 'node:fs';
 import { LoggerService } from './logger.service.js';
 
-vi.mock('node:fs');
+const { logStreamMock } = vi.hoisted(() => ({
+  logStreamMock: {
+    write: vi.fn(),
+    end: vi.fn(),
+    on: vi.fn(),
+    destroyed: false,
+  },
+}));
+
+vi.mock('node:fs', () => ({
+  createWriteStream: vi.fn(() => logStreamMock),
+}));
 
 describe('LoggerService', () => {
   let logger: LoggerService;
-  const testContext = 'TestContext';
 
   beforeEach(() => {
     vi.clearAllMocks();
-    logger = new LoggerService(testContext);
-
-    // Spy on ConsoleLogger methods (superclass)
-    vi.spyOn(logger as any, 'log' as any);
-    vi.spyOn(logger as any, 'error' as any);
-    vi.spyOn(logger as any, 'warn' as any);
-    vi.spyOn(logger as any, 'debug' as any);
+    logger = new LoggerService();
   });
 
-  it('should log info messages', () => {
-    const message = 'Hello info';
-    const writeSpy = vi.spyOn(logger as any, 'writeToFile');
-
-    logger.log(message);
-
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('[INFO]'));
+  afterEach(() => {
+    logger.onModuleDestroy();
   });
 
-  it('should log error messages with trace', () => {
-    const message = 'Error occurred';
-    const trace = 'Stack trace';
-    const writeSpy = vi.spyOn(logger as any, 'writeToFile');
+  it('creates contextual loggers that write with the provided context', () => {
+    const appLogger = logger.forContext('AppService');
 
-    logger.error(message, trace);
+    appLogger.log('hello');
 
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(logStreamMock.write).toHaveBeenCalledWith(
+      expect.stringContaining('[AppService] hello\n')
+    );
   });
 
-  it('should log warnings', () => {
-    const message = 'Warning here';
-    const writeSpy = vi.spyOn(logger as any, 'writeToFile');
+  it('shares one file stream across contextual loggers', () => {
+    logger.forContext('FirstService');
+    logger.forContext('SecondService');
 
-    logger.warn(message);
-
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('[WARN]'));
+    expect(createWriteStream).toHaveBeenCalledTimes(0);
   });
 
-  it('should log debug messages', () => {
-    const message = { debug: true };
-    const writeSpy = vi.spyOn(logger as any, 'writeToFile');
+  it('closes the shared stream on destroy', () => {
+    logger.onModuleDestroy();
 
-    logger.debug(message);
-
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('[DEBUG]'));
-  });
-
-  it('should log verbose messages', () => {
-    const message = 'Verbose message';
-    const writeSpy = vi.spyOn(logger as any, 'writeToFile');
-
-    logger.verbose(message);
-
-    expect(writeSpy).toHaveBeenCalledWith(expect.stringContaining('[VERBOSE]'));
+    expect(logStreamMock.end).toHaveBeenCalledTimes(1);
   });
 });

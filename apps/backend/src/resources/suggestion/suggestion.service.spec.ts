@@ -39,8 +39,12 @@ describe('SuggestionService', () => {
     universityService = {
       create: vi.fn(),
     };
-    loggerMock = {
+    const scopedLogger = {
       log: vi.fn(),
+    };
+    loggerMock = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+      scopedLogger,
     };
     service = new SuggestionService(
       prisma,
@@ -211,7 +215,7 @@ describe('SuggestionService', () => {
       const deletedResult = { count: 5 };
       prisma.suggestedCourse.deleteMany.mockResolvedValue(deletedResult);
 
-      const loggerSpy = vi.spyOn(loggerMock, 'log');
+      const loggerSpy = vi.spyOn(loggerMock.scopedLogger, 'log');
 
       await service.deleteOldSuggestions();
 

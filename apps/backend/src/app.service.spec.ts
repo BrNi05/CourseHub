@@ -8,12 +8,15 @@ describe('AppService', () => {
   let mockLogger: any;
 
   beforeEach(() => {
-    mockLogger = {
+    const scopedLogger = {
       log: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-      setContext: vi.fn(),
+    };
+
+    mockLogger = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
     };
 
     service = new AppService(mockLogger);

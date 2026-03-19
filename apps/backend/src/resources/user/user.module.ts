@@ -4,10 +4,9 @@ import { UserController } from './user.controller.js';
 
 import { PrismaModule } from '../../prisma/prisma.module.js';
 import { AuthModule } from '../../auth/auth.module.js';
-import { LoggerModule } from '../../logger/logger.module.js';
 
 @Module({
-  imports: [PrismaModule, AuthModule, LoggerModule.forRoot('UserModule')],
+  imports: [PrismaModule, AuthModule],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

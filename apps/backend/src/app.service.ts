@@ -6,16 +6,16 @@ import * as os from 'node:os';
 
 import { HealthCheckDto } from './resources/healthcheck/health-check.response.dto.js';
 
-import { LoggerService } from './logger/logger.service.js';
+import { ContextualLogger, LoggerService } from './logger/logger.service.js';
 
 @Injectable()
 export class AppService {
   private readonly packageVersion: string;
   private readonly cores: number;
-  private readonly logger: LoggerService;
+  private readonly logger: ContextualLogger;
 
   constructor(logger: LoggerService) {
-    this.logger = logger;
+    this.logger = logger.forContext(AppService.name);
     const packageJsonPath = join(process.cwd(), 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
     this.packageVersion = packageJson.version || 'unknown';

@@ -3,11 +3,15 @@ import { Response } from 'express';
 import { Prisma } from '../prisma/generated/client/client.js';
 
 import { ErrorResponse } from '../common/responses/error.response.js';
-import { LoggerService } from '../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../logger/logger.service.js';
 
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
+  private readonly logger: ContextualLogger;
+
+  constructor(logger: LoggerService) {
+    this.logger = logger.forContext(PrismaExceptionFilter.name);
+  }
 
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

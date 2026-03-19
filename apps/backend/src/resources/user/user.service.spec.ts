@@ -25,8 +25,13 @@ describe('UserService', () => {
       del: vi.fn(),
     };
 
-    loggerMock = {
+    const scopedLogger = {
       log: vi.fn(),
+    };
+
+    loggerMock = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+      scopedLogger,
     };
 
     prismaMock = {
@@ -164,7 +169,7 @@ describe('UserService', () => {
       expect(cacheMock.del).toHaveBeenCalledWith('user_user2');
       expect(cacheMock.del).not.toHaveBeenCalledWith('user_user1');
 
-      expect(loggerMock.log).toHaveBeenCalledWith(
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
         'Invalidated all users cache due to university/faculty/course change.'
       );
     });

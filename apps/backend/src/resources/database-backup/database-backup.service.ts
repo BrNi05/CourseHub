@@ -6,18 +6,21 @@ import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
 @Injectable()
 export class DatabaseBackupService implements OnModuleInit {
   private readonly backupDir = path.join(process.cwd(), 'db-backups');
   private readonly backupRetentionDays = 14;
   private readonly pgDumpTimeoutMs = 60_000; // 60 sec
+  private readonly logger: ContextualLogger;
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly logger: LoggerService
-  ) {}
+    logger: LoggerService
+  ) {
+    this.logger = logger.forContext(DatabaseBackupService.name);
+  }
 
   async onModuleInit(): Promise<void> {
     try {

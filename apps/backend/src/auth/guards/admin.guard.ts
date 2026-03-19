@@ -1,15 +1,15 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
 
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
-  private readonly logger: LoggerService;
+  private readonly logger: ContextualLogger;
 
   constructor(logger: LoggerService) {
-    this.logger = logger;
+    this.logger = logger.forContext(AdminGuard.name);
   }
 
   canActivate(context: ExecutionContext): boolean {

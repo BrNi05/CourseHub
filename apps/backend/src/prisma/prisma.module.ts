@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service.js';
-import { LoggerModule } from '../logger/logger.module.js';
 
 @Module({
-  imports: [LoggerModule.forRoot('PrismaModule')],
   providers: [PrismaService],
   exports: [PrismaService],
 })

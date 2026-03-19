@@ -14,7 +14,7 @@ import { ErrorReportResponseDto } from './dto/error-report-response.dto.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ClientPlatform } from '../../prisma/generated/client/client.js';
 
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
@@ -22,14 +22,14 @@ import * as semver from 'semver';
 
 @Injectable()
 export class ClientService implements OnModuleInit {
-  private readonly logger: LoggerService;
+  private readonly logger: ContextualLogger;
   private readonly reportsDir: string;
 
   constructor(
     private readonly prisma: PrismaService,
     logger: LoggerService
   ) {
-    this.logger = logger;
+    this.logger = logger.forContext(ClientService.name);
     this.reportsDir = path.join(process.cwd(), 'error-reports');
   }
 

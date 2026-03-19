@@ -12,10 +12,14 @@ describe('PrismaService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    const mockLogger = {
+    const scopedLogger = {
       log: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),
+    };
+
+    const mockLogger = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
 
     class TestPrismaService extends PrismaService {

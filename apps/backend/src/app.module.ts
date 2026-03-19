@@ -24,8 +24,8 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
 
 @Module({
   imports: [
+    LoggerModule,
     PrismaModule,
-    LoggerModule.forRoot('AppService'),
     ResourcesModule,
     // .env validation
     ConfigModule.forRoot({

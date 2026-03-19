@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
 import { Course } from '../course/entity/course.entity.js';
 import { SuggestedCourse } from './entity/suggestion.entity.js';
@@ -15,13 +15,17 @@ import { UniversityService } from '../university/university.service.js';
 
 @Injectable()
 export class SuggestionService {
+  private readonly logger: ContextualLogger;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly courseService: CourseService,
     private readonly facultyService: FacultyService,
     private readonly universityService: UniversityService,
-    private readonly logger: LoggerService
-  ) {}
+    logger: LoggerService
+  ) {
+    this.logger = logger.forContext(SuggestionService.name);
+  }
 
   async findAll(): Promise<SuggestedCourse[]> {
     return await this.prisma.suggestedCourse.findMany();

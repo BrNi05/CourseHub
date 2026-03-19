@@ -7,7 +7,17 @@ import { DatabaseBackupService } from './database-backup.service.js';
 import type { ConfigService } from '@nestjs/config';
 import type { LoggerService } from '../../logger/logger.service.js';
 
+const { logStreamMock } = vi.hoisted(() => ({
+  logStreamMock: {
+    write: vi.fn(),
+    end: vi.fn(),
+    on: vi.fn(),
+    destroyed: false,
+  },
+}));
+
 vi.mock('node:fs', () => ({
+  createWriteStream: vi.fn(() => logStreamMock),
   promises: {
     mkdir: vi.fn(),
     mkdtemp: vi.fn(),
@@ -24,18 +34,23 @@ vi.mock('node:child_process', () => ({
 describe('DatabaseBackupService', () => {
   let service: DatabaseBackupService;
   let configService: Pick<ConfigService, 'get'>;
-  let logger: Pick<LoggerService, 'log' | 'error' | 'warn'>;
+  let logger: LoggerService & { scopedLogger?: { log: any; error: any; warn: any } };
 
   beforeEach(() => {
     configService = {
       get: vi.fn().mockReturnValue('postgresql://user:password@localhost:5432/coursehub'),
     };
 
-    logger = {
+    const scopedLogger = {
       log: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
     };
+
+    logger = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+      scopedLogger,
+    } as unknown as LoggerService & { scopedLogger?: { log: any; error: any; warn: any } };
 
     service = new DatabaseBackupService(configService as ConfigService, logger as LoggerService);
   });
@@ -61,7 +76,7 @@ describe('DatabaseBackupService', () => {
       (fs.mkdir as any).mockRejectedValueOnce(new Error('mkdir failed'));
 
       await expect(service.onModuleInit()).rejects.toThrow('mkdir failed');
-      expect(logger.error).toHaveBeenCalledWith(
+      expect(logger.scopedLogger!.error).toHaveBeenCalledWith(
         expect.stringContaining('Database backup module initialization failed: mkdir failed')
       );
     });
@@ -142,7 +157,7 @@ describe('DatabaseBackupService', () => {
         InternalServerErrorException
       );
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.scopedLogger!.warn).toHaveBeenCalledWith(
         expect.stringContaining(
           'Failed to clean up temp backup directory "/tmp/coursehub-db-export-abcd": cleanup failed'
         )
@@ -168,7 +183,7 @@ describe('DatabaseBackupService', () => {
 
       await service.cleanupTemporaryBackup('/tmp/coursehub-db-export-abcd/file.dump');
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.scopedLogger!.warn).toHaveBeenCalledWith(
         expect.stringContaining(
           'Failed to delete temporary backup directory "/tmp/coursehub-db-export-abcd": rm failed'
         )
@@ -199,7 +214,9 @@ describe('DatabaseBackupService', () => {
       expect(fs.rm).toHaveBeenCalledWith(expect.stringContaining('/db-backups/old.dump'), {
         force: true,
       });
-      expect(logger.log).toHaveBeenCalledWith('Deleted expired database backup: old.dump');
+      expect(logger.scopedLogger!.log).toHaveBeenCalledWith(
+        'Deleted expired database backup: old.dump'
+      );
     });
 
     it('throws if backup directory cannot be read', async () => {
@@ -218,7 +235,7 @@ describe('DatabaseBackupService', () => {
 
       await service.cleanupOldBackups();
 
-      expect(logger.warn).toHaveBeenCalledWith(
+      expect(logger.scopedLogger!.warn).toHaveBeenCalledWith(
         expect.stringContaining('Failed to process old backup "broken.dump": stat failed')
       );
     });
@@ -232,7 +249,9 @@ describe('DatabaseBackupService', () => {
 
       await service.createScheduledBackup();
 
-      expect(logger.log).toHaveBeenCalledWith('Created scheduled database backup: latest.dump');
+      expect(logger.scopedLogger!.log).toHaveBeenCalledWith(
+        'Created scheduled database backup: latest.dump'
+      );
     });
 
     it('logs an error if scheduled backup creation fails', async () => {
@@ -242,7 +261,7 @@ describe('DatabaseBackupService', () => {
 
       await service.createScheduledBackup();
 
-      expect(logger.error).toHaveBeenCalledWith(
+      expect(logger.scopedLogger!.error).toHaveBeenCalledWith(
         'Failed to create scheduled database backup: pg_dump failed'
       );
     });

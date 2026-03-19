@@ -4,17 +4,21 @@ import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import type { IJwtPayload } from '../interfaces.js';
 
 @Injectable()
 export class UserOwnershipGuard implements CanActivate {
+  private readonly logger: ContextualLogger;
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-    private readonly logger: LoggerService
-  ) {}
+    logger: LoggerService
+  ) {
+    this.logger = logger.forContext(UserOwnershipGuard.name);
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();

@@ -5,7 +5,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { LoggerService } from '../../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
 import { User } from './entity/user.entity.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -21,8 +21,12 @@ export class UserService {
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prisma: PrismaService,
-    private readonly logger: LoggerService
-  ) {}
+    logger: LoggerService
+  ) {
+    this.logger = logger.forContext(UserService.name);
+  }
+
+  private readonly logger: ContextualLogger;
 
   async getAllUsers(): Promise<UserResponseWithoutPinnedDto[]> {
     // Cache without pinned courses

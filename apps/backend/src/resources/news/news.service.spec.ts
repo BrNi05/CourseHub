@@ -9,7 +9,10 @@ type CacheMock = {
 };
 
 type LoggerMock = {
-  log: ReturnType<typeof vi.fn>;
+  forContext: ReturnType<typeof vi.fn>;
+  scopedLogger?: {
+    log: ReturnType<typeof vi.fn>;
+  };
 };
 
 describe('NewsService', () => {
@@ -24,9 +27,14 @@ describe('NewsService', () => {
       del: vi.fn(),
     };
 
-    logger = {
+    const scopedLogger = {
       log: vi.fn(),
     };
+
+    logger = {
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+      scopedLogger,
+    } as any;
 
     service = new NewsService(cacheManager as any, logger as any);
   });
@@ -42,7 +50,9 @@ describe('NewsService', () => {
 
     expect(cacheManager.get).toHaveBeenCalledWith('news_store');
     expect(service.getAllNews()).toEqual(['a', 'b']);
-    expect(logger.log).toHaveBeenCalledWith(expect.stringContaining('Loaded 2 news items'));
+    expect(logger.scopedLogger!.log).toHaveBeenCalledWith(
+      expect.stringContaining('Loaded 2 news items')
+    );
   });
 
   it('onModuleInit logs when no cache is present', async () => {
@@ -52,7 +62,7 @@ describe('NewsService', () => {
 
     expect(cacheManager.get).toHaveBeenCalledWith('news_store');
     expect(service.getAllNews()).toEqual([]);
-    expect(logger.log).toHaveBeenCalledWith(
+    expect(logger.scopedLogger!.log).toHaveBeenCalledWith(
       expect.stringContaining('No news items found in cache')
     );
   });

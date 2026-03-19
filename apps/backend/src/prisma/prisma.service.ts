@@ -2,11 +2,11 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from './generated/client/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { LoggerService } from '../logger/logger.service.js';
+import { ContextualLogger, LoggerService } from '../logger/logger.service.js';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  readonly logger: LoggerService;
+  readonly logger: ContextualLogger;
 
   constructor(logger: LoggerService) {
     const adapter = new PrismaPg({
@@ -14,7 +14,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     });
 
     super({ adapter }); // just pass adapter, no globalThis
-    this.logger = logger;
+    this.logger = logger.forContext(PrismaService.name);
   }
 
   async onModuleInit() {
