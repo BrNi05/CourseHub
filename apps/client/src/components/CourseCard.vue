@@ -17,13 +17,26 @@ const emit = defineEmits<{
   remove: [courseId: string];
 }>();
 
+// Mitigate a potential XSS attack by validating and sanitizing the assigned URLs
+function sanitizeExternalUrl(value?: string | null) {
+  if (!value) return undefined;
+
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return undefined;
+    return url.toString();
+  } catch {
+    return undefined;
+  }
+}
+
 const links = computed(() =>
   [
-    { label: 'Tárgyoldal', value: props.course.coursePageUrl },
-    { label: 'TAD', value: props.course.courseTadUrl },
-    { label: 'Moodle', value: props.course.courseMoodleUrl },
-    { label: 'Teams', value: props.course.courseTeamsUrl },
-    { label: 'Extra', value: props.course.courseExtraUrl },
+    { label: 'Tárgyoldal', value: sanitizeExternalUrl(props.course.coursePageUrl) },
+    { label: 'TAD', value: sanitizeExternalUrl(props.course.courseTadUrl) },
+    { label: 'Moodle', value: sanitizeExternalUrl(props.course.courseMoodleUrl) },
+    { label: 'Teams', value: sanitizeExternalUrl(props.course.courseTeamsUrl) },
+    { label: 'Extra', value: sanitizeExternalUrl(props.course.courseExtraUrl) },
   ].filter((entry) => Boolean(entry.value))
 );
 </script>
