@@ -86,18 +86,18 @@ try {
       'manifest-src': ["'self'"],
       'media-src': ["'none'"],
       'object-src': ["'none'"],
-      'require-trusted-types-for': ["'script'"],
+      // 'require-trusted-types-for': ["'script'"], // Cloudflare JS injection would be blocked
       'script-src': ["'self'", `'nonce-${nonce}'`],
       'script-src-attr': ["'none'"],
       'style-src': isSwaggerRoute ? ["'self'", "'unsafe-inline'"] : ["'self'"],
-      'trusted-types': ['vue', 'default'],
+      'trusted-types': ['vue', 'dompurify', 'default'], // Cloudflare and Swagger UI
       'worker-src': ["'none'"],
       'connect-src': ["'self'"],
       'upgrade-insecure-requests': [],
     });
   };
 
-  // Permissions-Policy header (all features disabled)
+  // Permissions-Policy header config
   const permissionsPolicyHeader = [
     'accelerometer=()',
     'ambient-light-sensor=()',
@@ -120,7 +120,7 @@ try {
     'midi=()',
     'otp-credentials=()',
     'payment=()',
-    'picture-in-picture=()',
+    'picture-in-picture=(self)', // Cloudflare JS challenge
     'publickey-credentials-create=()',
     'publickey-credentials-get=()',
     'screen-wake-lock=()',
