@@ -61,6 +61,8 @@ export class CourseService {
           courseCode ? { code: { contains: courseCode, mode: 'insensitive' } } : {},
         ],
       },
+      orderBy: { name: 'asc' },
+      take: 30, // a good search should never return more then 30 results
     });
 
     this.queryCache.set(cacheKey, result);

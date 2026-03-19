@@ -401,6 +401,16 @@ describe('CourseService', () => {
 
       const firstResult = await service.findByQuery(query);
       expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.course.findMany).toHaveBeenCalledWith({
+        where: {
+          faculty: {
+            universityId: 'u1',
+          },
+          AND: [{ name: { contains: 'math', mode: 'insensitive' } }, {}],
+        },
+        orderBy: { name: 'asc' },
+        take: 30,
+      });
       expect(firstResult).toEqual(courses);
 
       const secondResult = await service.findByQuery(query);
