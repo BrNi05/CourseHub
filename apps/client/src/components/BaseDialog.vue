@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .dialog {
-  align-items: end;
+  align-items: center;
   backdrop-filter: blur(12px);
   background: rgba(2, 6, 23, 0.72);
   display: flex;
@@ -197,7 +197,6 @@ onBeforeUnmount(() => {
 
 @media (min-width: 720px) {
   .dialog {
-    align-items: center;
     padding: 2rem;
   }
 
