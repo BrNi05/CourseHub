@@ -126,8 +126,10 @@ const links = computed(() =>
 }
 
 .course-card__links {
+  align-content: start;
   display: grid;
-  gap: 0.55rem;
+  gap: 0.7rem;
+  grid-auto-rows: max-content;
   min-height: 3.5rem;
   padding-top: 0.2rem;
 }
