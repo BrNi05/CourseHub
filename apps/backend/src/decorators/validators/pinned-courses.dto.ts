@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { ArrayUnique, IsArray, IsOptional, IsUUID } from 'class-validator';
 
 export function IsPinnedCourses() {
   return applyDecorators(
@@ -10,6 +10,12 @@ export function IsPinnedCourses() {
       description: 'Updated pinned courses IDs',
       example: ['uuid-of-course1', 'uuid-of-course2'],
     }),
-    IsOptional()
+    IsOptional(),
+    IsArray({ message: 'pinnedCourses must be an array' }),
+    ArrayUnique({ message: 'pinnedCourses must not contain duplicates' }),
+    IsUUID('4', {
+      each: true,
+      message: 'each pinnedCourses entry must be a valid UUID',
+    })
   );
 }
