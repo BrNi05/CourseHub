@@ -21,7 +21,7 @@ const logger = new Logger('BOOTSTRAP');
 try {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.enableShutdownHooks(['SIGINT', 'SIGTERM']);
+  app.enableShutdownHooks(['SIGINT', 'SIGTERM']); // onModuleDestroy will be called
 
   // Async error handling
   process.on('unhandledRejection', (error: Error) => {
@@ -29,6 +29,7 @@ try {
     logger.error(error?.message);
   });
 
+  // Do not remain in an inconsistent state after an uncaught exception
   process.on('uncaughtException', (error: Error) => {
     const logger = new Logger('UNCAUGHT EXCEPTION');
     logger.error(error?.stack || error?.message);
@@ -90,6 +91,42 @@ try {
     });
   };
 
+  // Permissions-Policy header (all features disabled)
+  const permissionsPolicyHeader = [
+    'accelerometer=()',
+    'ambient-light-sensor=()',
+    'autoplay=()',
+    'bluetooth=()',
+    'camera=()',
+    'display-capture=()',
+    'document-domain=()',
+    'encrypted-media=()',
+    'fullscreen=()',
+    'gamepad=()',
+    'geolocation=()',
+    'gyroscope=()',
+    'hid=()',
+    'identity-credentials-get=()',
+    'idle-detection=()',
+    'local-fonts=()',
+    'magnetometer=()',
+    'microphone=()',
+    'midi=()',
+    'otp-credentials=()',
+    'payment=()',
+    'picture-in-picture=()',
+    'publickey-credentials-create=()',
+    'publickey-credentials-get=()',
+    'screen-wake-lock=()',
+    'serial=()',
+    'speaker-selection=()',
+    'storage-access=()',
+    'usb=()',
+    'web-share=()',
+    'window-management=()',
+    'xr-spatial-tracking=()',
+  ].join(', ');
+
   // Security policies
   const swaggerHelmet = helmet({
     contentSecurityPolicy: false, // use custom CSP builder
@@ -111,6 +148,7 @@ try {
     crossOriginResourcePolicy: { policy: 'same-origin' },
     crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: false, // use custom CSP builder
+    originAgentCluster: true, // isolate browsing context to prevent side-channel attacks
   });
 
   // Choose helmet config based on route
@@ -119,6 +157,7 @@ try {
     const nonce = String(res.locals.cspNonce); // always defined
 
     res.setHeader('Content-Security-Policy', buildCspHeader(nonce, isSwaggerRoute));
+    res.setHeader('Permissions-Policy', permissionsPolicyHeader);
 
     if (isSwaggerRoute) return swaggerHelmet(req, res, next);
     return mainHelmet(req, res, next);
@@ -141,6 +180,7 @@ try {
   );
 
   // Generate API docs
+  // The public site does not have API docs generated
   if (process.env.NODE_ENV != 'production') setupSwagger(app);
 
   // Serve SPA frontend
