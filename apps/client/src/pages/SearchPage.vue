@@ -36,6 +36,7 @@ onMounted(() => {
         </div>
 
         <BaseButton
+          class="search-panel__submit"
           :disabled="app.state.searchingCourses || app.state.loadingUniversities"
           form="course-search-form"
           type="submit"
@@ -156,6 +157,10 @@ onMounted(() => {
   margin: 0;
 }
 
+.search-panel__submit {
+  width: 100%;
+}
+
 .search-grid {
   display: grid;
   gap: 0.85rem;
@@ -199,6 +204,10 @@ onMounted(() => {
 }
 
 @media (min-width: 960px) {
+  .search-panel__submit {
+    width: auto;
+  }
+
   .search-page__hero {
     grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 0.8fr);
   }
