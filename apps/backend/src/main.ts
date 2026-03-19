@@ -21,6 +21,8 @@ const logger = new Logger('BOOTSTRAP');
 try {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  app.enableShutdownHooks(['SIGINT', 'SIGTERM']);
+
   // Async error handling
   process.on('unhandledRejection', (error: Error) => {
     const logger = new Logger('ASYNC ERROR');
