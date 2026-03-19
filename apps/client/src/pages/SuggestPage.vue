@@ -179,6 +179,7 @@ async function submitForm() {
           <span>Egyetem neve</span>
           <input
             v-model="form.uniName"
+            name="uniName"
             required
             type="text"
             placeholder="Budapesti Műszaki és Gazdaságtudományi Egyetem"
@@ -187,13 +188,20 @@ async function submitForm() {
 
         <label class="field">
           <span>Egyetem rövidített neve</span>
-          <input v-model="form.uniAbbrevName" required type="text" placeholder="BME" />
+          <input
+            v-model="form.uniAbbrevName"
+            name="uniAbbrevName"
+            required
+            type="text"
+            placeholder="BME"
+          />
         </label>
 
         <label class="field">
           <span>Kar neve</span>
           <input
             v-model="form.facultyName"
+            name="facultyName"
             required
             type="text"
             placeholder="Villamosmérnöki és Informatikai Kar"
@@ -202,13 +210,20 @@ async function submitForm() {
 
         <label class="field">
           <span>Kar rövidített neve</span>
-          <input v-model="form.facultyAbbrevName" required type="text" placeholder="VIK" />
+          <input
+            v-model="form.facultyAbbrevName"
+            name="facultyAbbrevName"
+            required
+            type="text"
+            placeholder="VIK"
+          />
         </label>
 
         <label class="field">
           <span>Tárgy neve</span>
           <input
             v-model="form.courseName"
+            name="courseName"
             required
             type="text"
             placeholder="Programozás alapjai I."
@@ -217,18 +232,30 @@ async function submitForm() {
 
         <label class="field">
           <span>Tárgykód</span>
-          <input v-model="form.courseCode" required type="text" placeholder="BMEVIEEAA00" />
+          <input
+            v-model="form.courseCode"
+            name="courseCode"
+            required
+            type="text"
+            placeholder="BMEVIEEAA00"
+          />
         </label>
 
         <label class="field">
           <span>Tágyoldal URL</span>
-          <input v-model="form.coursePageUrl" type="url" placeholder="https://infoc.eet.bme.hu/" />
+          <input
+            v-model="form.coursePageUrl"
+            name="coursePageUrl"
+            type="url"
+            placeholder="https://infoc.eet.bme.hu/"
+          />
         </label>
 
         <label class="field">
           <span>TAD URL</span>
           <input
             v-model="form.courseTadUrl"
+            name="courseTadUrl"
             type="url"
             placeholder="https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00/"
           />
@@ -238,6 +265,7 @@ async function submitForm() {
           <span>Moodle URL</span>
           <input
             v-model="form.courseMoodleUrl"
+            name="courseMoodleUrl"
             type="url"
             placeholder="https://edu.vik.bme.hu/course/view.php?id=..."
           />
@@ -247,6 +275,7 @@ async function submitForm() {
           <span>Teams URL</span>
           <input
             v-model="form.courseTeamsUrl"
+            name="courseTeamsUrl"
             type="url"
             placeholder="https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=..."
           />
@@ -254,7 +283,12 @@ async function submitForm() {
 
         <label class="field field--wide">
           <span>Extra URL</span>
-          <input v-model="form.courseExtraUrl" type="url" placeholder="https://example.com/extra" />
+          <input
+            v-model="form.courseExtraUrl"
+            name="courseExtraUrl"
+            type="url"
+            placeholder="https://example.com/extra"
+          />
         </label>
       </div>
 

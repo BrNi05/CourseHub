@@ -50,6 +50,7 @@ onMounted(() => {
           <span>Egyetem</span>
           <select
             v-model="app.state.searchFilters.universityId"
+            name="universityId"
             :disabled="app.state.loadingUniversities"
           >
             <option
@@ -64,13 +65,19 @@ onMounted(() => {
 
         <label class="field">
           <span>Tárgy neve</span>
-          <input v-model="app.state.searchFilters.courseName" placeholder="Adatb.." type="text" />
+          <input
+            v-model="app.state.searchFilters.courseName"
+            name="courseName"
+            placeholder="Adatb.."
+            type="text"
+          />
         </label>
 
         <label class="field">
           <span>Tárgykód</span>
           <input
             v-model="app.state.searchFilters.courseCode"
+            name="courseCode"
             placeholder="BMEVITMA.."
             type="text"
           />

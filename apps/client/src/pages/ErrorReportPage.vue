@@ -42,7 +42,7 @@ async function submitReport() {
       <div class="form-grid">
         <label class="field">
           <span>Platform</span>
-          <select v-model="form.platform">
+          <select v-model="form.platform" name="platform">
             <option value="windows">Windows</option>
             <option value="linux">Linux</option>
             <option value="macos">macOS</option>
@@ -53,17 +53,17 @@ async function submitReport() {
 
         <label class="field field--wide">
           <span>Elérési út</span>
-          <input v-model="form.route" required type="text" />
+          <input v-model="form.route" name="route" required type="text" />
         </label>
 
         <label class="field field--wide">
           <span>Felhasználói művelet</span>
-          <textarea v-model="form.userAction" required rows="3"></textarea>
+          <textarea v-model="form.userAction" name="userAction" required rows="3"></textarea>
         </label>
 
         <label class="field field--wide">
           <span>Hibabüzenet</span>
-          <textarea v-model="form.message" required rows="3"></textarea>
+          <textarea v-model="form.message" name="message" required rows="3"></textarea>
         </label>
       </div>
 
