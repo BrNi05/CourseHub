@@ -340,6 +340,11 @@ function dismissNotice(id: number) {
   state.notices = state.notices.filter((notice) => notice.id !== id);
 }
 
+// Can be called from components to trigger a notification toast
+function notify(tone: NoticeTone, title: string, detail: string) {
+  pushNotice(tone, title, detail);
+}
+
 function selectedUniversity() {
   return (
     state.universities.find((university) => university.id === state.searchFilters.universityId) ??
@@ -758,6 +763,7 @@ export function useAppStore() {
     logout,
     deleteProfile,
     dismissNotice,
+    notify,
     submitSuggestion,
     submitErrorReport,
     selectedUniversity,

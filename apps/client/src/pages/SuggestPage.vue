@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import type { Course, CreateSuggestionDto } from '@coursehub/sdk';
+import {
+  findOne as getUniversityById,
+  findOne2 as getCourseById,
+  getOne as getFacultyById,
+  type Course,
+  type CreateSuggestionDto,
+} from '@coursehub/sdk';
 
 import BaseButton from '@/components/BaseButton.vue';
 import { useAppStore } from '@/lib/app-store';
@@ -24,7 +30,7 @@ type SuggestionForm = {
 const app = useAppStore();
 const route = useRoute();
 const router = useRouter();
-const selectedCourses = app.state.selectedCourses as Course[];
+const editCourse = ref<Course>();
 
 const form = reactive<SuggestionForm>({
   uniName: '',
@@ -45,29 +51,89 @@ const editCourseId = computed(() => {
   return typeof value === 'string' ? value : undefined;
 });
 
-const editCourse = computed<Course | undefined>(() => {
-  const courseId = editCourseId.value;
-  if (!courseId) return undefined;
-  return selectedCourses.find((course) => course.id === courseId);
-});
+let editPrefillSequence = 0;
 
-function prefillFromRouteCourse() {
-  if (!editCourse.value) return;
-
-  const selectedUniversity = app.selectedUniversity();
-
-  form.uniName = form.uniName || selectedUniversity?.name || '';
-  form.uniAbbrevName = form.uniAbbrevName || selectedUniversity?.abbrevName || '';
-  form.courseName = editCourse.value.name;
-  form.courseCode = editCourse.value.code;
-  form.coursePageUrl = editCourse.value.coursePageUrl;
-  form.courseTadUrl = editCourse.value.courseTadUrl;
-  form.courseMoodleUrl = editCourse.value.courseMoodleUrl;
-  form.courseTeamsUrl = editCourse.value.courseTeamsUrl;
-  form.courseExtraUrl = editCourse.value.courseExtraUrl;
+function resetForm() {
+  form.uniName = '';
+  form.uniAbbrevName = '';
+  form.facultyName = '';
+  form.facultyAbbrevName = '';
+  form.courseName = '';
+  form.courseCode = '';
+  form.coursePageUrl = '';
+  form.courseTadUrl = '';
+  form.courseMoodleUrl = '';
+  form.courseTeamsUrl = '';
+  form.courseExtraUrl = '';
 }
 
-watch(editCourse, prefillFromRouteCourse, { immediate: true });
+async function prefillFromCourseId(courseId?: string) {
+  const sequence = ++editPrefillSequence; // stale request guard
+
+  resetForm();
+  editCourse.value = undefined;
+
+  if (!courseId) return;
+
+  try {
+    const courseResponse = await getCourseById({
+      baseURL: '/api',
+      path: { id: courseId },
+      throwOnError: true,
+    });
+
+    if (sequence !== editPrefillSequence) return;
+
+    const course = courseResponse.data;
+    editCourse.value = course;
+    form.courseName = course.name;
+    form.courseCode = course.code;
+    form.coursePageUrl = course.coursePageUrl;
+    form.courseTadUrl = course.courseTadUrl;
+    form.courseMoodleUrl = course.courseMoodleUrl;
+    form.courseTeamsUrl = course.courseTeamsUrl;
+    form.courseExtraUrl = course.courseExtraUrl;
+
+    const facultyResponse = await getFacultyById({
+      baseURL: '/api',
+      path: { id: course.facultyId },
+      throwOnError: true,
+    });
+
+    if (sequence !== editPrefillSequence) return;
+
+    const faculty = facultyResponse.data;
+    form.facultyName = faculty.name;
+    form.facultyAbbrevName = faculty.abbrevName;
+
+    const universityResponse = await getUniversityById({
+      baseURL: '/api',
+      path: { id: faculty.universityId },
+      throwOnError: true,
+    });
+
+    if (sequence !== editPrefillSequence) return;
+
+    const university = universityResponse.data;
+    form.uniName = university.name;
+    form.uniAbbrevName = university.abbrevName;
+  } catch (error) {
+    if (sequence !== editPrefillSequence) return;
+    app.notify(
+      'danger',
+      'Nem sikerült betölteni a tárgy adatait',
+      error instanceof Error ? error.message : 'Próbáld meg kicsit később.'
+    );
+  }
+}
+
+watch(
+  editCourseId,
+  (courseId) => {
+    void prefillFromCourseId(courseId);
+  },
+  { immediate: true }
+);
 
 async function submitForm() {
   const payload: CreateSuggestionDto = {
