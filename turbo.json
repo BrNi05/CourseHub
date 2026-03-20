@@ -3,56 +3,62 @@
   "tasks": {
     // Global lint task
     "lint:all": {
-      "cache": false
+      "outputs": [],
+      "cache": true
     },
     // Backend (API) build
     "@coursehub/backend#build": {
       "dependsOn": [],
-      "outputs": ["build/**/*"]
+      "outputs": ["build/**/*"],
+      "cache": true
+    },
+    // Backend tests
+    "@coursehub/backend#test": {
+      "dependsOn": ["@coursehub/backend#build"],
+      "outputs": [],
+      "cache": true
     },
     // Prisma client generation
     "@coursehub/backend#db:generate": {
       "dependsOn": ["@coursehub/backend#build"],
       "cache": true,
       "outputs": ["prisma/generated"],
-      "persistent": false
+      "persistent": true
     },
     // API docs generation (openapi.json)
     "@coursehub/backend#api:gen": {
-      "dependsOn": ["@coursehub/backend#build"],
-      "outputs": ["../../openapi.json"]
+      "dependsOn": ["@coursehub/backend#test"],
+      "outputs": ["../../openapi.json"],
+      "cache": true
     },
     // SDK generation from OpenAPI spec
     "@coursehub/sdk#gen:sdk": {
       "dependsOn": ["@coursehub/backend#api:gen"],
-      "outputs": ["src/**/*"]
+      "outputs": ["src/**/*"],
+      "cache": true
     },
     // SDK build
     "@coursehub/sdk#build": {
       "dependsOn": ["@coursehub/sdk#gen:sdk"],
-      "outputs": ["build/**/*"]
+      "outputs": ["build/**/*"],
+      "cache": true
     },
     // Frontend
     "@coursehub/client#build": {
       "dependsOn": ["@coursehub/sdk#build"],
-      "outputs": ["dist/**/*"]
+      "outputs": ["dist/**/*"],
+      "cache": true
     },
     // Bundle frontend static assets to backend public dir
     "@coursehub/coursehub#bundle:static": {
       "dependsOn": ["@coursehub/client#build", "@coursehub/backend#build"],
-      "outputs": ["public/**"],
-      "cache": false
+      "outputs": ["apps/backend/public/frontend/**"],
+      "cache": true
     },
     // General build task
     "build": {
       "dependsOn": ["^build", "lint:all", "@coursehub/coursehub#bundle:static"],
-      "outputs": ["build/**", "dist/**", "prisma/generated/**", "public/**"]
-    },
-    // Global test task
-    "test": {
-    "dependsOn": ["build"],
-    "outputs": [],
-    "cache": false
+      "outputs": ["build/**", "dist/**", "prisma/generated/**", "apps/backend/public/frontend/**"]
     }
   },
   "globalDependencies": [".env", "tsconfig.base.json"]
