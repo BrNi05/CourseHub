@@ -6,9 +6,15 @@
       "outputs": [],
       "cache": true
     },
+    // Prisma generate
+    "@coursehub/backend#db:generate": {
+      "dependsOn": ["lint:all"],
+      "cache": true,
+      "outputs": ["src/prisma/generated/client/**"]
+    },
     // Backend (API) build
     "@coursehub/backend#build": {
-      "dependsOn": [],
+      "dependsOn": ["@coursehub/backend#db:generate"],
       "outputs": ["build/**/*"],
       "cache": true
     },
@@ -17,13 +23,6 @@
       "dependsOn": ["@coursehub/backend#build"],
       "outputs": [],
       "cache": true
-    },
-    // Prisma client generation
-    "@coursehub/backend#db:generate": {
-      "dependsOn": ["@coursehub/backend#build"],
-      "cache": true,
-      "outputs": ["prisma/generated"],
-      "persistent": true
     },
     // API docs generation (openapi.json)
     "@coursehub/backend#api:gen": {
@@ -58,7 +57,7 @@
     // General build task
     "build": {
       "dependsOn": ["^build", "lint:all", "@coursehub/coursehub#bundle:static"],
-      "outputs": ["build/**", "dist/**", "prisma/generated/**", "apps/backend/public/frontend/**"]
+      "outputs": ["build/**", "dist/**", "prisma/generated/**", "apps/backend/public/frontend/**", "src/prisma/generated/client/**"]
     }
   },
   "globalDependencies": [".env", "tsconfig.base.json"]
