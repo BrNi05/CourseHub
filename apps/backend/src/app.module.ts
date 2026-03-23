@@ -18,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { ResourcesModule } from './resources/resources.module.js';
 import { LoggerModule } from './logger/logger.module.js'; // globally available
 
+import { InternalOnlyGuard } from './common/security/guards/internal-only.guard.js';
 import { ThrottleGuard } from './common/throttling/throttler.guard.js';
 import { GlobalExceptionsFilter } from './filters/exception.filter.js';
 import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
@@ -119,6 +120,7 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
   controllers: [AppController],
   providers: [
     AppService,
+    InternalOnlyGuard,
     {
       provide: APP_GUARD,
       useClass: ThrottleGuard,

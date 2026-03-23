@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as os from 'node:os';
+import { Registry, collectDefaultMetrics } from 'prom-client';
 
 import { HealthCheckDto } from './resources/healthcheck/health-check.response.dto.js';
 
@@ -13,13 +14,21 @@ export class AppService {
   private readonly packageVersion: string;
   private readonly cores: number;
   private readonly logger: ContextualLogger;
+  private readonly metricsRegistry: Registry;
 
   constructor(logger: LoggerService) {
     this.logger = logger.forContext(AppService.name);
+
     const packageJsonPath = join(process.cwd(), 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
     this.packageVersion = packageJson.version || 'unknown';
     this.cores = os.cpus().length;
+    this.metricsRegistry = new Registry();
+
+    collectDefaultMetrics({
+      prefix: 'coursehub_backend_',
+      register: this.metricsRegistry,
+    });
   }
 
   getHealth(): HealthCheckDto {
@@ -29,7 +38,7 @@ export class AppService {
     const realLoad5 = (load5 / this.cores) * 100;
     const realLoad15 = (load15 / this.cores) * 100;
 
-    let status: string = 'healthy';
+    let status = 'healthy';
 
     if (avgRealLoad > 130) status = 'critical';
     else if (avgRealLoad > 100) status = 'unhealthy';
@@ -39,11 +48,16 @@ export class AppService {
       status,
       this.interpretLoad(realLoad1, realLoad5, realLoad15),
       Math.floor(Date.now() / 1000),
-      this.packageVersion,
-      realLoad1,
-      realLoad5,
-      realLoad15
+      this.packageVersion
     );
+  }
+
+  getMetrics(): Promise<string> {
+    return this.metricsRegistry.metrics();
+  }
+
+  getMetricsContentType(): string {
+    return this.metricsRegistry.contentType;
   }
 
   // Heuristics to interpret system load
