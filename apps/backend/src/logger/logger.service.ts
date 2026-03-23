@@ -35,10 +35,16 @@ export class ContextualLogger {
 @Injectable()
 export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   private static readonly logFile = path.join(process.cwd(), 'CourseHub-Backend.log');
-  private static readonly sharedLogStream: WriteStream = LoggerService.createSharedLogStream();
+  private static sharedLogStream: WriteStream | null = LoggerService.createSharedLogStream();
+
+  // Maintenance mode (log deletion/GDPR compliance)
+  private static isMaintenanceMode = false;
+  private static readonly pendingMessages: string[] = [];
+  private static rotationLock: Promise<void> = Promise.resolve();
 
   constructor() {
     super('Application', { timestamp: false });
+    LoggerService.sharedLogStream ??= LoggerService.createSharedLogStream();
   }
 
   // Creates a contextual logger for a specific context
@@ -46,13 +52,13 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
     return new ContextualLogger(this, context);
   }
 
-  onModuleDestroy() {
-    LoggerService.sharedLogStream.end();
+  async onModuleDestroy() {
+    await LoggerService.closeSharedLogStream();
   }
 
   // Message handler
   // Parse as JSON if possible, otherwise log as string
-  protected formatMessage(message: any): string {
+  protected stringifyLogMessage(message: any): string {
     if (typeof message === 'object') {
       try {
         return JSON.stringify(message, null, 2);
@@ -65,7 +71,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   }
 
   log(message: any, context?: string) {
-    const formattedMessage = this.formatMessage(message);
+    const formattedMessage = this.stringifyLogMessage(message);
     const resolvedContext = this.resolveContext(context);
 
     super.log(formattedMessage, resolvedContext);
@@ -73,7 +79,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   }
 
   error(message: any, trace?: string, context?: string) {
-    const formattedMessage = this.formatMessage(message);
+    const formattedMessage = this.stringifyLogMessage(message);
     const resolvedContext = this.resolveContext(context);
 
     super.error(formattedMessage, trace, resolvedContext);
@@ -83,7 +89,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   }
 
   warn(message: any, context?: string) {
-    const formattedMessage = this.formatMessage(message);
+    const formattedMessage = this.stringifyLogMessage(message);
     const resolvedContext = this.resolveContext(context);
 
     super.warn(formattedMessage, resolvedContext);
@@ -91,7 +97,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   }
 
   debug(message: any, context?: string) {
-    const formattedMessage = this.formatMessage(message);
+    const formattedMessage = this.stringifyLogMessage(message);
     const resolvedContext = this.resolveContext(context);
 
     super.debug(formattedMessage, resolvedContext);
@@ -99,7 +105,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   }
 
   verbose(message: any, context?: string) {
-    const formattedMessage = this.formatMessage(message);
+    const formattedMessage = this.stringifyLogMessage(message);
     const resolvedContext = this.resolveContext(context);
 
     super.verbose(formattedMessage, resolvedContext);
@@ -123,10 +129,30 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
 
   // Writes log messages to the file
   private writeToFile(message: string) {
-    const logStream = LoggerService.sharedLogStream;
+    const logStream = LoggerService.getWritableStream();
 
-    if (logStream.destroyed) return;
+    if (!logStream) {
+      LoggerService.pendingMessages.push(message); // Buffer messages if in maintenance mode
+      return;
+    }
+
     logStream.write(message + '\n');
+  }
+
+  // Executes an operation while releasing the shared log stream for maintenance
+  async withReleasedFileStream<T>(operation: () => Promise<T>): Promise<T> {
+    return LoggerService.runExclusive(async () => {
+      LoggerService.isMaintenanceMode = true;
+      await LoggerService.closeSharedLogStream();
+
+      try {
+        return await operation();
+      } finally {
+        LoggerService.sharedLogStream = LoggerService.createSharedLogStream();
+        LoggerService.isMaintenanceMode = false;
+        LoggerService.flushPendingMessages();
+      }
+    });
   }
 
   // Get the set context of the logger
@@ -143,5 +169,59 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
     });
 
     return logStream;
+  }
+
+  // Flushes any pending log messages that were buffered during maintenance mode
+  private static flushPendingMessages() {
+    const logStream = LoggerService.getWritableStream();
+
+    if (!logStream) return;
+
+    for (const message of LoggerService.pendingMessages.splice(0)) {
+      logStream.write(message + '\n');
+    }
+  }
+
+  // Gets a writable stream for logging, or null if in maintenance mode
+  private static getWritableStream(): WriteStream | null {
+    const logStream = LoggerService.sharedLogStream;
+
+    if (logStream && !logStream.destroyed && !logStream.writableEnded) return logStream;
+
+    if (LoggerService.isMaintenanceMode) return null;
+
+    LoggerService.sharedLogStream = LoggerService.createSharedLogStream();
+    return LoggerService.sharedLogStream;
+  }
+
+  // Closes the shared log stream
+  private static async closeSharedLogStream(): Promise<void> {
+    const logStream = LoggerService.sharedLogStream;
+    LoggerService.sharedLogStream = null;
+
+    if (!logStream || logStream.destroyed || logStream.writableEnded) return;
+
+    await new Promise<void>((resolve) => {
+      logStream.once('close', resolve);
+      logStream.end();
+    });
+  }
+
+  // Makes sure that only one maintenance operation runs at a time
+  private static async runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+    const previousLock = LoggerService.rotationLock;
+    let releaseLock!: () => void;
+
+    LoggerService.rotationLock = new Promise<void>((resolve) => {
+      releaseLock = resolve;
+    });
+
+    await previousLock;
+
+    try {
+      return await operation();
+    } finally {
+      releaseLock();
+    }
   }
 }
