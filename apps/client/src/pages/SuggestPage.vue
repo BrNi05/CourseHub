@@ -168,7 +168,7 @@ async function submitForm() {
       </p>
     </div>
 
-    <form class="form-card" @submit.prevent="submitForm">
+    <form class="form-card" autocomplete="off" @submit.prevent="submitForm">
       <div v-if="editCourse" class="helper-banner">
         Szerkesztés:
         <strong>{{ editCourse.name }} ({{ editCourse.code }})</strong>
@@ -179,6 +179,7 @@ async function submitForm() {
           <span>Egyetem neve</span>
           <input
             v-model="form.uniName"
+            autocomplete="on"
             name="uniName"
             required
             type="text"
@@ -190,6 +191,7 @@ async function submitForm() {
           <span>Egyetem rövidített neve</span>
           <input
             v-model="form.uniAbbrevName"
+            autocomplete="on"
             name="uniAbbrevName"
             required
             type="text"
@@ -201,6 +203,7 @@ async function submitForm() {
           <span>Kar neve</span>
           <input
             v-model="form.facultyName"
+            autocomplete="on"
             name="facultyName"
             required
             type="text"
@@ -212,6 +215,7 @@ async function submitForm() {
           <span>Kar rövidített neve</span>
           <input
             v-model="form.facultyAbbrevName"
+            autocomplete="on"
             name="facultyAbbrevName"
             required
             type="text"
@@ -223,6 +227,7 @@ async function submitForm() {
           <span>Tárgy neve</span>
           <input
             v-model="form.courseName"
+            autocomplete="off"
             name="courseName"
             required
             type="text"
@@ -234,6 +239,7 @@ async function submitForm() {
           <span>Tárgykód</span>
           <input
             v-model="form.courseCode"
+            autocomplete="off"
             name="courseCode"
             required
             type="text"
@@ -245,6 +251,7 @@ async function submitForm() {
           <span>Tágyoldal URL</span>
           <input
             v-model="form.coursePageUrl"
+            autocomplete="off"
             name="coursePageUrl"
             type="url"
             placeholder="https://infoc.eet.bme.hu/"
@@ -255,6 +262,7 @@ async function submitForm() {
           <span>TAD URL</span>
           <input
             v-model="form.courseTadUrl"
+            autocomplete="off"
             name="courseTadUrl"
             type="url"
             placeholder="https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00/"
@@ -265,6 +273,7 @@ async function submitForm() {
           <span>Moodle URL</span>
           <input
             v-model="form.courseMoodleUrl"
+            autocomplete="off"
             name="courseMoodleUrl"
             type="url"
             placeholder="https://edu.vik.bme.hu/course/view.php?id=..."
@@ -275,6 +284,7 @@ async function submitForm() {
           <span>Teams URL</span>
           <input
             v-model="form.courseTeamsUrl"
+            autocomplete="off"
             name="courseTeamsUrl"
             type="url"
             placeholder="https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=..."
@@ -285,6 +295,7 @@ async function submitForm() {
           <span>Extra URL</span>
           <input
             v-model="form.courseExtraUrl"
+            autocomplete="off"
             name="courseExtraUrl"
             type="url"
             placeholder="https://example.com/extra"
@@ -380,6 +391,20 @@ async function submitForm() {
   min-height: 3rem;
   padding: 0 0.95rem;
   width: 100%;
+}
+
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover,
+.field input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px rgb(15 23 42) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  background-color: transparent !important;
+  border: 1px solid var(--border-soft);
+  caret-color: var(--text-primary);
+  box-shadow: 0 0 0 1000px rgb(15 23 42) inset !important;
+  transition:
+    background-color 999999s ease-in-out 0s,
+    color 999999s ease-in-out 0s;
 }
 
 .form-actions {
