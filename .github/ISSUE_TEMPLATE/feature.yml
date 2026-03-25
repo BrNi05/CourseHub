@@ -37,14 +37,14 @@ body:
       description: Select which component is affected
       options:
         - Backend (API) or API docs
+        - Database
         - CI (and GitHub related)
         - Release process
-        - Desktop release
-        - Android release
-        - iOS release
+        - Webpage
         - SDK (and related docs)
         - VS Code related
         - Docs
+        - Cloudflare
         - More of these
         - Other
     validations:
