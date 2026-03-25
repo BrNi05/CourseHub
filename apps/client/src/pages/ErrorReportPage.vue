@@ -62,7 +62,7 @@ async function submitReport() {
         </label>
 
         <label class="field field--wide">
-          <span>Hibabüzenet</span>
+          <span>Hibaüzenet</span>
           <textarea v-model="form.message" name="message" required rows="3"></textarea>
         </label>
       </div>
