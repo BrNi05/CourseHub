@@ -69,6 +69,13 @@
       "problemMatcher": []
     },
     {
+      "label": "Update pnpm",
+      "type": "shell",
+      "command": "pnpm update:pnpm",
+      "detail": "Updates pnpm with Corepack across the repo and syncs workflow pins",
+      "problemMatcher": []
+    },
+    {
       "label": "Update Dependencies",
       "type": "shell",
       "command": "pnpm update:deps",
