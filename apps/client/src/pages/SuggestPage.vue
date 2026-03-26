@@ -23,6 +23,7 @@ type SuggestionForm = {
   coursePageUrl: string;
   courseTadUrl: string;
   courseMoodleUrl: string;
+  courseSubmissionUrl: string;
   courseTeamsUrl: string;
   courseExtraUrl: string;
 };
@@ -42,6 +43,7 @@ const form = reactive<SuggestionForm>({
   coursePageUrl: '',
   courseTadUrl: '',
   courseMoodleUrl: '',
+  courseSubmissionUrl: '',
   courseTeamsUrl: '',
   courseExtraUrl: '',
 });
@@ -63,6 +65,7 @@ function resetForm() {
   form.coursePageUrl = '';
   form.courseTadUrl = '';
   form.courseMoodleUrl = '';
+  form.courseSubmissionUrl = '';
   form.courseTeamsUrl = '';
   form.courseExtraUrl = '';
 }
@@ -91,6 +94,7 @@ async function prefillFromCourseId(courseId?: string) {
     form.coursePageUrl = course.coursePageUrl;
     form.courseTadUrl = course.courseTadUrl;
     form.courseMoodleUrl = course.courseMoodleUrl;
+    form.courseSubmissionUrl = course.courseSubmissionUrl;
     form.courseTeamsUrl = course.courseTeamsUrl;
     form.courseExtraUrl = course.courseExtraUrl;
 
@@ -146,6 +150,7 @@ async function submitForm() {
     coursePageUrl: form.coursePageUrl.trim() || undefined,
     courseTadUrl: form.courseTadUrl.trim() || undefined,
     courseMoodleUrl: form.courseMoodleUrl.trim() || undefined,
+    courseSubmissionUrl: form.courseSubmissionUrl.trim() || undefined,
     courseTeamsUrl: form.courseTeamsUrl.trim() || undefined,
     courseExtraUrl: form.courseExtraUrl.trim() || undefined,
   };
@@ -277,6 +282,17 @@ async function submitForm() {
             name="courseMoodleUrl"
             type="url"
             placeholder="https://edu.vik.bme.hu/course/view.php?id=..."
+          />
+        </label>
+
+        <label class="field">
+          <span>HF beadó portál URL</span>
+          <input
+            v-model="form.courseSubmissionUrl"
+            autocomplete="off"
+            name="courseSubmissionUrl"
+            type="url"
+            placeholder="https://fecske.db.bme.hu/#/student"
           />
         </label>
 

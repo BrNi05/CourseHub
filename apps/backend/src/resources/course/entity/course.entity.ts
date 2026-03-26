@@ -42,6 +42,12 @@ export class Course extends Timestamp {
   courseMoodleUrl?: string;
 
   @ApiProperty({
+    example: 'https://submit.vik.bme.hu/courses/12345',
+    description: "URL to the course's submission system, if available",
+  })
+  courseSubmissionUrl?: string;
+
+  @ApiProperty({
     example: 'https://teams.microsoft.com/l/team/...',
     description: "URL to the course's Microsoft Teams group, if available",
   })

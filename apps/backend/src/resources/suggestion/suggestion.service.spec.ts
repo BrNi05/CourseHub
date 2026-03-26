@@ -106,6 +106,7 @@ describe('SuggestionService', () => {
         facultyAbbrevName: 'CS',
         courseName: 'Databases',
         courseCode: 'BMECS101',
+        courseSubmissionUrl: 'https://submit.bme.hu/BMECS101',
       };
 
       const createdUni = { id: 'u1' };
@@ -144,6 +145,7 @@ describe('SuggestionService', () => {
         name: suggestion.courseName,
         code: suggestion.courseCode,
         facultyId: createdFaculty.id,
+        courseSubmissionUrl: suggestion.courseSubmissionUrl,
       });
       expect(prisma.suggestedCourse.delete).toHaveBeenCalledWith({ where: { id: 's1' } });
       expect(result).toEqual(createdCourse);
@@ -158,6 +160,7 @@ describe('SuggestionService', () => {
         facultyAbbrevName: 'CS',
         courseName: 'Algorithms',
         courseCode: 'BMECS102',
+        courseSubmissionUrl: 'https://submit.bme.hu/BMECS102',
       };
 
       const existingUni = { id: 'u1' };
@@ -178,6 +181,7 @@ describe('SuggestionService', () => {
         name: suggestion.courseName,
         code: suggestion.courseCode,
         facultyId: existingFaculty.id,
+        courseSubmissionUrl: suggestion.courseSubmissionUrl,
       });
       expect(result).toEqual(createdCourse);
     });

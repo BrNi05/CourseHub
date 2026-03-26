@@ -104,6 +104,7 @@ export class SuggestionService {
       coursePageUrl: suggestion.coursePageUrl,
       courseTadUrl: suggestion.courseTadUrl,
       courseMoodleUrl: suggestion.courseMoodleUrl,
+      courseSubmissionUrl: suggestion.courseSubmissionUrl,
       courseTeamsUrl: suggestion.courseTeamsUrl,
       courseExtraUrl: suggestion.courseExtraUrl,
     });

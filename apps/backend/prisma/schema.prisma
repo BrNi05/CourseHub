@@ -55,23 +55,24 @@ model Faculty {
 // Name and code are not necessarily unique
 // A course belongs to a faculty and can be pinned by many users
 model Course {
-  id              String   @id @default(uuid())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @default(now()) @updatedAt
+  id                  String   @id @default(uuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
 
-  name            String
-  code            String   @unique
+  name                String
+  code                String   @unique
 
-  facultyId       String
-  faculty         Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  facultyId           String
+  faculty             Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
 
-  pinnedBy        User[]   @relation("UserPinnedCourses")
+  pinnedBy            User[]   @relation("UserPinnedCourses")
 
-  coursePageUrl   String   @default("") // official (lecturer) page
-  courseTadUrl    String   @default("") // TAD (uni) page
-  courseMoodleUrl String   @default("") // Moodle page
-  courseTeamsUrl  String   @default("") // Microsoft Teams page
-  courseExtraUrl  String   @default("") // Additional course page (Wiki, Github)
+  coursePageUrl       String   @default("") // official (lecturer) page
+  courseTadUrl        String   @default("") // TAD (uni) page
+  courseMoodleUrl     String   @default("") // Moodle page
+  courseSubmissionUrl String   @default("") // For homework, etc submission
+  courseTeamsUrl      String   @default("") // Microsoft Teams page
+  courseExtraUrl      String   @default("") // Additional course page (Wiki, Github)
 
   // CourseHub assumes course codes are unique, globally. This is made sure like so:
   // Course code at BME: BMEVIIIAB12 --> BMEVIIIAB12
@@ -86,25 +87,26 @@ model Course {
 // A course suggested by a user, but not yet verified by admins
 // On accept, it is deleted and a new Course (and faculty, and university) is created with the same data
 model SuggestedCourse {
-  id                String   @id @default(uuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @default(now()) @updatedAt
-  userEmail         String
+  id                  String   @id @default(uuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+  userEmail           String
 
-  uniName           String
-  uniAbbrevName     String
+  uniName             String
+  uniAbbrevName       String
 
-  facultyName       String
-  facultyAbbrevName String
+  facultyName         String
+  facultyAbbrevName   String
 
-  courseName        String
-  courseCode        String   @unique      // only one suggestion per course at a time
+  courseName          String
+  courseCode          String   @unique      // only one suggestion per course at a time
 
-  coursePageUrl     String   @default("") // official (lecturer) page
-  courseTadUrl      String   @default("") // TAD (uni) page
-  courseMoodleUrl   String   @default("") // Moodle page
-  courseTeamsUrl    String   @default("") // Microsoft Teams page
-  courseExtraUrl    String   @default("") // Additional course page (Wiki, Github)
+  coursePageUrl       String   @default("") // official (lecturer) page
+  courseTadUrl        String   @default("") // TAD (uni) page
+  courseMoodleUrl     String   @default("") // Moodle page
+  courseSubmissionUrl String   @default("") // For homework, etc submission
+  courseTeamsUrl      String   @default("") // Microsoft Teams page
+  courseExtraUrl      String   @default("") // Additional course page (Wiki, Github)
 }
 
 // User

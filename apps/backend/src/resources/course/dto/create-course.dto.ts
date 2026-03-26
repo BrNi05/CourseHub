@@ -34,6 +34,13 @@ export class CreateCourseDto {
   courseMoodleUrl?: string;
 
   @CourseLink(
+    'courseSubmissionUrl must be a valid URL',
+    'https://submit.vik.bme.hu/courses/12345',
+    "URL to the course's submission system, if available"
+  )
+  courseSubmissionUrl?: string;
+
+  @CourseLink(
     'courseTeamsUrl must be a valid URL',
     'https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=...',
     "URL to the course's Microsoft Teams group, if available",

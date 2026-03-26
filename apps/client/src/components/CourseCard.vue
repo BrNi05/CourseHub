@@ -17,8 +17,8 @@ const emit = defineEmits<{
   remove: [courseId: string];
 }>();
 
-// Mitigate a potential XSS attack by validating and sanitizing the assigned URLs
-function sanitizeExternalUrl(value?: string | null) {
+// Mitigate potential XSS attacks by validating and sanitizing the assigned URLs
+function sanitizeUrl(value?: string | null) {
   if (!value) return undefined;
 
   try {
@@ -32,11 +32,12 @@ function sanitizeExternalUrl(value?: string | null) {
 
 const links = computed(() =>
   [
-    { label: 'Tárgyoldal', value: sanitizeExternalUrl(props.course.coursePageUrl) },
-    { label: 'TAD', value: sanitizeExternalUrl(props.course.courseTadUrl) },
-    { label: 'Moodle', value: sanitizeExternalUrl(props.course.courseMoodleUrl) },
-    { label: 'Teams', value: sanitizeExternalUrl(props.course.courseTeamsUrl) },
-    { label: 'Extra', value: sanitizeExternalUrl(props.course.courseExtraUrl) },
+    { label: 'Tárgyoldal', value: sanitizeUrl(props.course.coursePageUrl) },
+    { label: 'TAD', value: sanitizeUrl(props.course.courseTadUrl) },
+    { label: 'Moodle', value: sanitizeUrl(props.course.courseMoodleUrl) },
+    { label: 'HF beadás', value: sanitizeUrl(props.course.courseSubmissionUrl) },
+    { label: 'Teams', value: sanitizeUrl(props.course.courseTeamsUrl) },
+    { label: 'Extra', value: sanitizeUrl(props.course.courseExtraUrl) },
   ].filter((entry) => Boolean(entry.value))
 );
 </script>

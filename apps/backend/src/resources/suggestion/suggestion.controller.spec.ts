@@ -89,6 +89,7 @@ describe('SuggestionController', () => {
         coursePageUrl: '',
         courseTadUrl: '',
         courseMoodleUrl: '',
+        courseSubmissionUrl: '',
         courseTeamsUrl: '',
         courseExtraUrl: '',
       };

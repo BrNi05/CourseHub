@@ -81,6 +81,7 @@ export class CourseService {
         coursePageUrl: this.normalizeUrl(dto.coursePageUrl),
         courseTadUrl: this.normalizeUrl(dto.courseTadUrl),
         courseMoodleUrl: this.normalizeUrl(dto.courseMoodleUrl),
+        courseSubmissionUrl: this.normalizeUrl(dto.courseSubmissionUrl),
         courseTeamsUrl: this.normalizeUrl(dto.courseTeamsUrl),
         courseExtraUrl: this.normalizeUrl(dto.courseExtraUrl),
       },
@@ -129,6 +130,8 @@ export class CourseService {
         coursePageUrl: this.normalizeUrl(dto.coursePageUrl) || existingCourse.coursePageUrl,
         courseTadUrl: this.normalizeUrl(dto.courseTadUrl) || existingCourse.courseTadUrl,
         courseMoodleUrl: this.normalizeUrl(dto.courseMoodleUrl) || existingCourse.courseMoodleUrl,
+        courseSubmissionUrl:
+          this.normalizeUrl(dto.courseSubmissionUrl) || existingCourse.courseSubmissionUrl,
         courseTeamsUrl: this.normalizeUrl(dto.courseTeamsUrl) || existingCourse.courseTeamsUrl,
         courseExtraUrl: this.normalizeUrl(dto.courseExtraUrl) || existingCourse.courseExtraUrl,
       },

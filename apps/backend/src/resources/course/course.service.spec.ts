@@ -102,6 +102,7 @@ describe('CourseService', () => {
           coursePageUrl: '',
           courseTadUrl: '',
           courseMoodleUrl: '',
+          courseSubmissionUrl: '',
           courseTeamsUrl: '',
           courseExtraUrl: '',
         },
@@ -141,6 +142,7 @@ describe('CourseService', () => {
           coursePageUrl: '',
           courseTadUrl: '',
           courseMoodleUrl: '',
+          courseSubmissionUrl: '',
           courseTeamsUrl: '',
           courseExtraUrl: '',
         },
@@ -176,6 +178,7 @@ describe('CourseService', () => {
         coursePageUrl: '',
         courseTadUrl: '',
         courseMoodleUrl: '',
+        courseSubmissionUrl: '',
         courseTeamsUrl: '',
         courseExtraUrl: '',
       };
@@ -213,6 +216,7 @@ describe('CourseService', () => {
         coursePageUrl: '',
         courseTadUrl: '',
         courseMoodleUrl: '',
+        courseSubmissionUrl: '',
         courseTeamsUrl: '',
         courseExtraUrl: '',
       };
@@ -255,6 +259,7 @@ describe('CourseService', () => {
         coursePageUrl: '',
         courseTadUrl: '',
         courseMoodleUrl: '',
+        courseSubmissionUrl: '',
         courseTeamsUrl: '',
         courseExtraUrl: '',
       };
@@ -292,6 +297,7 @@ describe('CourseService', () => {
         coursePageUrl: 'https://oldpage.com',
         courseTadUrl: 'https://oldtad.com',
         courseMoodleUrl: 'https://oldmoodle.com',
+        courseSubmissionUrl: 'https://oldsubmission.com',
         courseTeamsUrl: 'https://oldteams.com',
         courseExtraUrl: 'https://oldextra.com',
       };
@@ -321,6 +327,7 @@ describe('CourseService', () => {
           coursePageUrl: existingCourse.coursePageUrl,
           courseTadUrl: existingCourse.courseTadUrl,
           courseMoodleUrl: existingCourse.courseMoodleUrl,
+          courseSubmissionUrl: existingCourse.courseSubmissionUrl,
           courseTeamsUrl: existingCourse.courseTeamsUrl,
           courseExtraUrl: existingCourse.courseExtraUrl,
         },
@@ -362,6 +369,7 @@ describe('CourseService', () => {
           coursePageUrl: undefined,
           courseTadUrl: undefined,
           courseMoodleUrl: undefined,
+          courseSubmissionUrl: undefined,
           courseTeamsUrl: undefined,
           courseExtraUrl: undefined,
         },

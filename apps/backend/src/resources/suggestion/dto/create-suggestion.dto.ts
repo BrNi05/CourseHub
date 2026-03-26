@@ -48,6 +48,13 @@ export class CreateSuggestionDto {
   courseMoodleUrl?: string;
 
   @CourseLink(
+    'A HF beadó portál URL-je érvénytelen!',
+    'https://submit.vik.bme.hu/courses/12345',
+    "URL to the course's submission system, if available"
+  )
+  courseSubmissionUrl?: string;
+
+  @CourseLink(
     'A Teams csoport URL-je érvénytelen!',
     'https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=...',
     "URL to the course's Microsoft Teams group, if available",
