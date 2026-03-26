@@ -199,7 +199,9 @@ describe('CourseService', () => {
       });
 
       expect(cacheManager.set).toHaveBeenCalledWith(`course_${createdCourse.id}`, createdCourse, 0);
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
+        courseId: createdCourse.id,
+      });
       expect(result).toEqual(createdCourse);
     });
 
@@ -237,7 +239,9 @@ describe('CourseService', () => {
       });
 
       expect(cacheManager.set).toHaveBeenCalledWith(`course_${updatedCourse.id}`, updatedCourse, 0);
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
+        courseId: updatedCourse.id,
+      });
       expect(result).toEqual(updatedCourse);
     });
 
@@ -334,7 +338,9 @@ describe('CourseService', () => {
       });
 
       expect(cacheManager.set).toHaveBeenCalledWith('course_c1', { ...existingCourse, ...dto }, 0);
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated');
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
+        courseId: 'c1',
+      });
       expect(result).toEqual({ ...existingCourse, ...dto });
     });
 
@@ -391,7 +397,7 @@ describe('CourseService', () => {
 
       expect(cacheManager.del).toHaveBeenCalledWith('course_c1');
 
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted');
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted', { courseId: 'c1' });
     });
   });
 

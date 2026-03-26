@@ -149,28 +149,52 @@ describe('UserService', () => {
     });
   });
 
-  describe('handleUniversityChange', () => {
-    it('should invalidate all users cache', async () => {
-      const dbUsers = [
-        { id: 'user1', pinnedCourses: [{ id: 'course1' }] },
-        { id: 'user2', pinnedCourses: [{ id: 'course2' }] },
-      ];
-      prismaMock.user.findMany.mockResolvedValue(dbUsers);
+  describe('handleCourseChange', () => {
+    it('should invalidate all users cache and affected pinned user caches', async () => {
+      const affectedUsers = [{ id: 'user1' }, { id: 'user2' }];
+      prismaMock.user.findMany.mockResolvedValue(affectedUsers);
 
-      cacheMock.get.mockImplementation((key: string) => {
-        if (key === 'user_user1') return Promise.resolve({ pinnedCourses: [{ id: 'course1' }] });
-        if (key === 'user_user2') return Promise.resolve({ pinnedCourses: [{ id: 'courseX' }] });
-        return Promise.resolve(null);
-      });
-
-      await service.handleUniversityChange();
+      await service.handleCourseChange({ courseId: 'course1' });
 
       expect(cacheMock.del).toHaveBeenCalledWith('all_users_admin_nopinned');
+      expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+        where: {
+          pinnedCourses: {
+            some: { id: 'course1' },
+          },
+        },
+        select: { id: true },
+      });
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user1');
       expect(cacheMock.del).toHaveBeenCalledWith('user_user2');
-      expect(cacheMock.del).not.toHaveBeenCalledWith('user_user1');
-
       expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
-        'Invalidated all users cache due to university/faculty/course change.'
+        'Invalidated 2 user cache entries due to course change for course course1.'
+      );
+    });
+
+    it('should only invalidate the shared cache if the course ID is missing', async () => {
+      await service.handleCourseChange();
+
+      expect(cacheMock.del).toHaveBeenCalledWith('all_users_admin_nopinned');
+      expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
+        'Invalidated all users cache due to course change without a course ID.'
+      );
+    });
+  });
+
+  describe('handleUniversityOrFacultyDeletion', () => {
+    it('should reset all user caches', async () => {
+      const dbUsers = [{ id: 'user1' }, { id: 'user2' }];
+      prismaMock.user.findMany.mockResolvedValue(dbUsers);
+
+      await service.handleUniversityOrFacultyDeletion();
+
+      expect(cacheMock.del).toHaveBeenCalledWith('all_users_admin_nopinned');
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user1');
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user2');
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
+        'Reset all users cache due to university/faculty deletion.'
       );
     });
   });

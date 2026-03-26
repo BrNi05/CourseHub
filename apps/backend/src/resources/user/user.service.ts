@@ -94,32 +94,41 @@ export class UserService {
     }
   }
 
-  // Also invalidate when pinned courses might change
-  @OnEvent('university.deleted')
-  @OnEvent('faculty.deleted')
+  // Scoped invalidation based on course changes to avoid unnecessary cache invalidation for unaffected users
   @OnEvent('course.updated')
   @OnEvent('course.deleted')
-  async handleUniversityChange() {
+  async handleCourseChange(payload?: { courseId?: string }) {
     await this.cacheManager.del(this.getAllCacheKey);
-    this.logger.log('Invalidated all users cache due to university/faculty/course change.');
-
-    // Load all user IDs from DB and check if their pinned courses are different from the cached version
-    const users = await this.prisma.user.findMany({ include: { pinnedCourses: true } });
-    for (const user of users) {
-      const cached = await this.cacheManager.get<User>(this.getUserCacheKey(user.id));
-
-      if (cached?.pinnedCourses && user.pinnedCourses) {
-        const cachedCourseIds = new Set(cached.pinnedCourses.map((c) => c.id));
-        const currentCourseIds = new Set(user.pinnedCourses.map((c) => c.id));
-
-        if (
-          cachedCourseIds.size !== currentCourseIds.size ||
-          [...cachedCourseIds].some((id) => !currentCourseIds.has(id))
-        ) {
-          await this.cacheManager.del(this.getUserCacheKey(user.id));
-        }
-      }
+    const courseId = payload?.courseId;
+    if (!courseId) {
+      this.logger.log('Invalidated all users cache due to course change without a course ID.');
+      return;
     }
+
+    const affectedUsers = await this.prisma.user.findMany({
+      where: {
+        pinnedCourses: {
+          some: { id: courseId },
+        },
+      },
+      select: { id: true },
+    });
+
+    for (const user of affectedUsers) {
+      await this.cacheManager.del(this.getUserCacheKey(user.id));
+    }
+
+    this.logger.log(
+      `Invalidated ${affectedUsers.length} user cache entries due to course change for course ${courseId}.`
+    );
+  }
+
+  // Mass invalidation of cache as such deletions affect many users
+  @OnEvent('university.deleted')
+  @OnEvent('faculty.deleted')
+  async handleUniversityOrFacultyDeletion() {
+    await this.resetAllUsersCache();
+    this.logger.log('Reset all users cache due to university/faculty deletion.');
   }
 
   // Remove users who haven't updated their profile in the last year (inactive users)

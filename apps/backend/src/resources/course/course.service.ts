@@ -105,7 +105,7 @@ export class CourseService {
 
     await this.cacheManager.set(`course_${course.id}`, course, 0);
     this.clearSearchQueryCache();
-    await this.eventEmitter.emitAsync('course.updated');
+    await this.eventEmitter.emitAsync('course.updated', { courseId: course.id });
 
     return course;
   }
@@ -139,7 +139,7 @@ export class CourseService {
 
     await this.cacheManager.set(`course_${id}`, updatedCourse, 0);
 
-    await this.eventEmitter.emitAsync('course.updated');
+    await this.eventEmitter.emitAsync('course.updated', { courseId: updatedCourse.id });
 
     return updatedCourse;
   }
@@ -148,7 +148,7 @@ export class CourseService {
     await this.prisma.course.delete({ where: { id } }); // No GDPR compliance is needed here
     await this.cacheManager.del(`course_${id}`);
     this.clearSearchQueryCache();
-    await this.eventEmitter.emitAsync('course.deleted');
+    await this.eventEmitter.emitAsync('course.deleted', { courseId: id });
   }
 
   // Map emptry string or undefined to empty string ('') for Prisma
