@@ -60,7 +60,7 @@ export class ClientController {
       'Report a client error for later analysis. User is indentified by the userId in the JWT.',
   })
   @ApiCreatedResponse({ description: 'Error report received' })
-  @Throttable(60, 20000)
+  @Throttable(60, 6)
   @FileSystemOperation()
   async errorReport(@AuthUserId() userId: string, @Body() body: ErrorReportDto) {
     await this.clientService.reportError(userId, body);
