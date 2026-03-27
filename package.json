@@ -12,7 +12,7 @@
     "clear:all": "pnpm -r exec rimraf node_modules .build build .turbo .eslintcache openapi.json && rm -rf node_modules",
     "update:node": "node ./dev-tools/node-updater.js",
     "update:pnpm": "node ./dev-tools/pnpm-updater.mjs",
-    "update:deps": "pnpm update && pnpm dedupe",
+    "update:deps": "pnpm -r update && pnpm dedupe",
     "safe": "git config core.hooksPath .husky",
     "unsafe": "git config --unset core.hooksPath"
   },
