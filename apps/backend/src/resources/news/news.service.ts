@@ -11,9 +11,6 @@ export class NewsService implements OnModuleInit {
   private readonly newsStoreKey = 'news_store';
   private readonly logger: ContextualLogger;
 
-  // In-memory news array
-  private readonly news: string[] = [];
-
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     logger: LoggerService
@@ -23,44 +20,49 @@ export class NewsService implements OnModuleInit {
 
   // Load news from cache on startup
   async onModuleInit(): Promise<void> {
-    await this.loadNewsFromCache();
+    const cached = await this.readNewsFromCache();
+
+    if (cached.length > 0) {
+      this.logger.log(`Loaded ${cached.length} news items on startup.`);
+    } else {
+      this.logger.log('No news items found on startup.');
+    }
   }
 
-  getAllNews(): string[] {
-    return this.news;
+  async getAllNews(): Promise<string[]> {
+    return await this.readNewsFromCache();
   }
 
   async createNews(createNewsDto: CreateNewsDto): Promise<string[]> {
-    this.news.push(...createNewsDto.news);
-    await this.cacheManager.set(this.newsStoreKey, this.news, 0);
-    return this.news;
+    const news = await this.readNewsFromCache();
+    const updatedNews = [...news, ...createNewsDto.news];
+
+    await this.cacheManager.set(this.newsStoreKey, updatedNews, 0);
+    return updatedNews;
   }
 
   async deleteOldestNews(): Promise<void> {
-    if (this.news.length === 0) return;
-    this.news.shift();
-    await this.cacheManager.set(this.newsStoreKey, this.news, 0);
+    const news = await this.readNewsFromCache();
+    if (news.length === 0) return;
+
+    const updatedNews = news.slice(1);
+    await this.cacheManager.set(this.newsStoreKey, updatedNews, 0);
   }
 
   async deleteLatestNews(): Promise<void> {
-    if (this.news.length === 0) return;
-    this.news.pop();
-    await this.cacheManager.set(this.newsStoreKey, this.news, 0);
+    const news = await this.readNewsFromCache();
+    if (news.length === 0) return;
+
+    const updatedNews = news.slice(0, -1);
+    await this.cacheManager.set(this.newsStoreKey, updatedNews, 0);
   }
 
   async deleteAllNews(): Promise<void> {
-    this.news.splice(0);
     await this.cacheManager.del(this.newsStoreKey);
   }
 
-  async loadNewsFromCache(): Promise<void> {
-    const cached = await this.cacheManager.get<string[]>(this.newsStoreKey);
-
-    if (cached) {
-      this.news.push(...cached);
-      this.logger.log(`Loaded ${cached.length} news items from cache on startup.`);
-    } else {
-      this.logger.log('No news items found in cache on startup.');
-    }
+  // Helper method to read news from cache
+  private async readNewsFromCache(): Promise<string[]> {
+    return [...((await this.cacheManager.get<string[]>(this.newsStoreKey)) ?? [])];
   }
 }

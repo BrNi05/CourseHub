@@ -31,10 +31,10 @@ describe('NewsController', () => {
     controller = new NewsController(newsService as unknown as NewsService);
   });
 
-  it('news() returns all news items from service', () => {
-    newsService.getAllNews.mockReturnValueOnce(['a', 'b']);
+  it('news() returns all news items from service', async () => {
+    newsService.getAllNews.mockResolvedValueOnce(['a', 'b']);
 
-    const result = controller.news();
+    const result = await controller.news();
 
     expect(result).toEqual(['a', 'b']);
     expect(newsService.getAllNews).toHaveBeenCalledTimes(1);
