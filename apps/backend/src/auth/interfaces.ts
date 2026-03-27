@@ -4,3 +4,10 @@ export interface IJwtPayload {
   email: string; // User.googleEmail
   exp: number; // milliseconds since UNIX epoch
 }
+
+// req.user after JwtStrategy.validate()
+export interface IAuthenticatedUser {
+  id: string;
+  googleEmail: string;
+  isAdmin: boolean;
+}

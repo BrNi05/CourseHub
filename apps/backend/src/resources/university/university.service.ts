@@ -13,7 +13,6 @@ import { UniversityWithoutFacultiesDto } from './dto/uni-reponse-nofaculty.dto.j
 @Injectable()
 export class UniversityService {
   private readonly getAllCacheKey = 'all_universities_nofaculties';
-  private readonly getAllWithFacultiesCacheKey = 'all_universities_withfaculties';
 
   constructor(
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
@@ -45,17 +44,10 @@ export class UniversityService {
   }
 
   async findAllWithFaculties(): Promise<University[]> {
-    const cached = await this.cacheManager.get<University[]>(this.getAllWithFacultiesCacheKey);
-    if (cached) return cached;
-
-    const universities = await this.prisma.university.findMany({
+    return await this.prisma.university.findMany({
       include: { faculties: true },
       orderBy: { name: 'asc' },
     });
-
-    await this.cacheManager.set(this.getAllWithFacultiesCacheKey, universities);
-
-    return universities;
   }
 
   async create(dto: CreateUniversityDto): Promise<University> {
@@ -90,6 +82,5 @@ export class UniversityService {
   @OnEvent('faculty.deleted')
   async resetAllCache() {
     await this.cacheManager.del(this.getAllCacheKey);
-    await this.cacheManager.del(this.getAllWithFacultiesCacheKey);
   }
 }

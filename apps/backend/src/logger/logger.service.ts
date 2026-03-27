@@ -37,6 +37,16 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
   private static readonly logFile = path.join(process.cwd(), 'CourseHub-Backend.log');
   private static sharedLogStream: WriteStream | null = LoggerService.createSharedLogStream();
 
+  private static readonly timestampFormatter = new Intl.DateTimeFormat('hu-HU', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+
   // Maintenance mode (log deletion/GDPR compliance)
   private static isMaintenanceMode = false;
   private static readonly pendingMessages: string[] = [];
@@ -116,15 +126,7 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
 
   // Formats the current timestamp for file logging
   private formatTimestamp(): string {
-    return new Intl.DateTimeFormat('hu-HU', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true,
-    }).format(new Date());
+    return LoggerService.timestampFormatter.format(new Date());
   }
 
   // Writes log messages to the file

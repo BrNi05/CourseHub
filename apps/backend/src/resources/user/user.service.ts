@@ -4,6 +4,8 @@ import { type Cache } from 'cache-manager';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
+import { type CourseChangeEvent } from '../../common/events/course.events.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
@@ -13,9 +15,15 @@ import { UserResponseWithoutPinnedDto } from './dto/user-response-nopinned.dto.j
 
 @Injectable()
 export class UserService {
-  private readonly getAllCacheKey = 'all_users_admin_nopinned';
+  private readonly logger: ContextualLogger;
+
   private getUserCacheKey(id: string) {
     return `user_${id}`;
+  }
+
+  private async invalidateUserCacheEntries(ids: string[]): Promise<void> {
+    if (ids.length === 0) return;
+    await Promise.all(ids.map((id) => this.cacheManager.del(this.getUserCacheKey(id))));
   }
 
   constructor(
@@ -26,17 +34,8 @@ export class UserService {
     this.logger = logger.forContext(UserService.name);
   }
 
-  private readonly logger: ContextualLogger;
-
   async getAllUsers(): Promise<UserResponseWithoutPinnedDto[]> {
-    // Cache without pinned courses
-    const cached = await this.cacheManager.get<UserResponseWithoutPinnedDto[]>(this.getAllCacheKey);
-    if (cached) return cached;
-
-    const users = await this.prisma.user.findMany({ include: { pinnedCourses: false } });
-    await this.cacheManager.set(this.getAllCacheKey, users, 0);
-
-    return users;
+    return await this.prisma.user.findMany({ include: { pinnedCourses: false } });
   }
 
   async getUserById(id: string): Promise<User> {
@@ -48,14 +47,12 @@ export class UserService {
       include: { pinnedCourses: true },
     });
 
-    await this.cacheManager.set(this.getUserCacheKey(id), user, 0);
+    await this.cacheManager.set(this.getUserCacheKey(id), user, ONE_MONTH_CACHE_TTL);
 
     return user;
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.invalidateAllUsersCache(id);
-
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
@@ -67,41 +64,43 @@ export class UserService {
       include: { pinnedCourses: true },
     });
 
-    await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, 0);
+    await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, ONE_MONTH_CACHE_TTL);
 
     return updatedUser;
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.invalidateAllUsersCache(id); // GDPR compliance: remove from cache before deletion
-
+    await this.invalidateUserCacheEntries([id]); // GDPR compliance: remove from cache before deletion
     await this.prisma.user.delete({ where: { id } });
-  }
-
-  // Invalidates user specific and global users cache
-  async invalidateAllUsersCache(id: string): Promise<void> {
-    await this.cacheManager.del(this.getAllCacheKey);
-    await this.cacheManager.del(this.getUserCacheKey(id));
   }
 
   // Invalidate global and all user specific cache
   async resetAllUsersCache() {
-    await this.cacheManager.del(this.getAllCacheKey);
-
     const users = await this.prisma.user.findMany({ select: { id: true } });
-    for (const user of users) {
-      await this.cacheManager.del(this.getUserCacheKey(user.id));
-    }
+    await this.invalidateUserCacheEntries(users.map((user) => user.id));
   }
 
   // Scoped invalidation based on course changes to avoid unnecessary cache invalidation for unaffected users
   @OnEvent('course.updated')
   @OnEvent('course.deleted')
-  async handleCourseChange(payload?: { courseId?: string }) {
-    await this.cacheManager.del(this.getAllCacheKey);
+  async handleCourseChange(payload?: CourseChangeEvent) {
+    const affectedUserIds = payload?.affectedUserIds ?? [];
+
+    if (affectedUserIds.length > 0) {
+      await this.invalidateUserCacheEntries(affectedUserIds);
+
+      this.logger.log(
+        `Invalidated ${affectedUserIds.length} user cache entries due to course change for course ${payload?.courseId ?? 'unknown'}.`
+      );
+      return;
+    }
+
     const courseId = payload?.courseId;
     if (!courseId) {
-      this.logger.log('Invalidated all users cache due to course change without a course ID.');
+      this.logger.log(
+        'Skipped user cache invalidation because course change payload had no course ID. All cache will be invalidated as a fallback.'
+      );
+      await this.resetAllUsersCache(); // Fallback to mass invalidation
       return;
     }
 
@@ -114,9 +113,7 @@ export class UserService {
       select: { id: true },
     });
 
-    for (const user of affectedUsers) {
-      await this.cacheManager.del(this.getUserCacheKey(user.id));
-    }
+    await this.invalidateUserCacheEntries(affectedUsers.map((user) => user.id));
 
     this.logger.log(
       `Invalidated ${affectedUsers.length} user cache entries due to course change for course ${courseId}.`
@@ -134,27 +131,24 @@ export class UserService {
   // Remove users who haven't updated their profile in the last year (inactive users)
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async removeInactiveUsers(): Promise<void> {
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const now = new Date();
+    const oneYearAgo = new Date(
+      Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate())
+    );
 
     const inactiveUsers = await this.prisma.user.findMany({
-      where: { updatedAt: { lt: oneYearAgo } },
+      where: {
+        updatedAt: { lt: oneYearAgo },
+        clientPings: {
+          none: {
+            date: { gte: oneYearAgo }, // date is indexed
+          },
+        },
+      },
       select: { id: true },
     });
 
-    // Users who pinged the server but haven't updated their profile in the last year should be considered active
-    const activeUserIds = await this.prisma.clientPing
-      .findMany({
-        where: { createdAt: { gte: oneYearAgo } },
-        distinct: ['userId'],
-        select: { userId: true },
-      })
-      .then((pings) => new Set(pings.map((ping) => ping.userId)));
-
     for (const user of inactiveUsers) {
-      if (activeUserIds.has(user.id)) {
-        continue;
-      }
       await this.deleteUser(user.id);
       this.logger.log(`Deleted inactive user with ID: ${user.id}`);
     }

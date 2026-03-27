@@ -15,12 +15,6 @@ describe('StatisticsService', () => {
         groupBy: vi.fn(),
       },
       $queryRaw: vi.fn(),
-      course: {
-        findMany: vi.fn(),
-      },
-      university: {
-        findMany: vi.fn(),
-      },
     } as unknown as PrismaService;
 
     service = new StatisticsService(prisma);
@@ -65,69 +59,185 @@ describe('StatisticsService', () => {
   });
 
   describe('getPinStatistics', () => {
-    it('returns courses sorted by pin count', async () => {
-      (prisma.course.findMany as any).mockResolvedValue([
+    it('returns courses from the database in aggregated order', async () => {
+      (prisma.$queryRaw as any).mockResolvedValue([
         {
           name: 'Course A',
-          code: 'A101',
-          _count: { pinnedBy: 5 },
-          faculty: { university: { abbrevName: 'BME' } },
+          courseCode: 'A101',
+          universityAbbrev: 'BME',
+          pinCount: 5,
         },
         {
           name: 'Course B',
-          code: 'B101',
-          _count: { pinnedBy: 10 },
-          faculty: { university: { abbrevName: 'ELTE' } },
+          courseCode: 'B101',
+          universityAbbrev: 'ELTE',
+          pinCount: 10,
         },
       ]);
 
       const result = await service.getPinStatistics();
-      expect(result[0].name).toBe('Course B');
-      expect(result[1].name).toBe('Course A');
-      expect(result[0].pinCount).toBe(10);
+      expect(result).toEqual([
+        {
+          name: 'Course A',
+          courseCode: 'A101',
+          universityAbbrev: 'BME',
+          pinCount: 5,
+        },
+        {
+          name: 'Course B',
+          courseCode: 'B101',
+          universityAbbrev: 'ELTE',
+          pinCount: 10,
+        },
+      ]);
     });
   });
 
   describe('getUserStatistics', () => {
     it('returns unique user counts per faculty and university', async () => {
-      (prisma.university.findMany as any).mockResolvedValue([
-        {
-          abbrevName: 'BME',
-          faculties: [
-            {
-              name: 'Faculty 1',
-              courses: [
-                { pinnedBy: [{ id: 'u1' }, { id: 'u2' }] },
-                { pinnedBy: [{ id: 'u2' }, { id: 'u3' }] },
-              ],
-            },
-          ],
-        },
-      ]);
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            facultyId: 'fac-1',
+            facultyName: 'Faculty 1',
+            userCount: 3,
+          },
+          {
+            universityId: 'uni-2',
+            uniAbbrev: 'ELTE',
+            facultyId: 'fac-2',
+            facultyName: 'Faculty 2',
+            userCount: 0,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            userCount: 3,
+          },
+          {
+            universityId: 'uni-2',
+            uniAbbrev: 'ELTE',
+            userCount: 0,
+          },
+        ]);
 
       const result = await service.getUserStatistics();
       expect(result[0].uniAbbrev).toBe('BME');
       expect(result[0].allUsers).toBe(3);
       expect(result[0].faculties[0].allUsersOfFacultyCourses).toBe(3);
+      expect(result[1]).toEqual({
+        uniAbbrev: 'ELTE',
+        allUsers: 0,
+        faculties: [
+          {
+            facultyName: 'Faculty 2',
+            allUsersOfFacultyCourses: 0,
+          },
+        ],
+      });
+    });
+
+    it('returns empty faculties for universities without faculties', async () => {
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            facultyId: null,
+            facultyName: null,
+            userCount: 0,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            userCount: 0,
+          },
+        ]);
+
+      const result = await service.getUserStatistics();
+      expect(result).toEqual([
+        {
+          uniAbbrev: 'BME',
+          allUsers: 0,
+          faculties: [],
+        },
+      ]);
     });
   });
 
   describe('getCourseStatistics', () => {
     it('returns course counts aggregated per faculty and university', async () => {
-      (prisma.university.findMany as any).mockResolvedValue([
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            universityAbbrevName: 'BME',
+            facultyId: 'fac-2',
+            facultyName: 'Faculty 2',
+            courseCount: 3,
+          },
+          {
+            universityId: 'uni-1',
+            universityAbbrevName: 'BME',
+            facultyId: 'fac-1',
+            facultyName: 'Faculty 1',
+            courseCount: 2,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            universityAbbrevName: 'BME',
+            courseCount: 5,
+          },
+        ]);
+
+      const result = await service.getCourseStatistics();
+      expect(result).toEqual([
         {
-          abbrevName: 'BME',
+          universityAbbrevName: 'BME',
+          courseCount: 5,
           faculties: [
-            { name: 'Faculty 1', _count: { courses: 2 } },
-            { name: 'Faculty 2', _count: { courses: 3 } },
+            { facultyName: 'Faculty 2', courseCount: 3 },
+            { facultyName: 'Faculty 1', courseCount: 2 },
           ],
         },
       ]);
+    });
+
+    it('returns empty faculties for universities without faculties', async () => {
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            universityAbbrevName: 'BME',
+            facultyId: null,
+            facultyName: null,
+            courseCount: 0,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            universityAbbrevName: 'BME',
+            courseCount: 0,
+          },
+        ]);
 
       const result = await service.getCourseStatistics();
-      expect(result[0].universityAbbrevName).toBe('BME');
-      expect(result[0].courseCount).toBe(5);
-      expect(result[0].faculties[0].courseCount).toBe(2);
+      expect(result).toEqual([
+        {
+          universityAbbrevName: 'BME',
+          courseCount: 0,
+          faculties: [],
+        },
+      ]);
     });
   });
 });

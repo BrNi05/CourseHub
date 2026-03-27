@@ -67,20 +67,8 @@ describe('UniversityService', () => {
   });
 
   describe('findAllWithFaculties', () => {
-    it('should return universities from cache if available', async () => {
-      const cached = [{ id: '1', name: 'Cached Uni', faculties: [] }];
-      cacheManager.get.mockResolvedValue(cached);
-
-      const result = await service.findAllWithFaculties();
-
-      expect(cacheManager.get).toHaveBeenCalledWith('all_universities_withfaculties');
-      expect(prisma.university.findMany).not.toHaveBeenCalled();
-      expect(result).toEqual(cached);
-    });
-
-    it('should query DB and cache result if not cached', async () => {
+    it('should query DB for universities with faculties', async () => {
       const dbData = [{ id: '1', name: 'DB Uni', faculties: [] }];
-      cacheManager.get.mockResolvedValue(null);
       prisma.university.findMany.mockResolvedValue(dbData);
 
       const result = await service.findAllWithFaculties();
@@ -89,8 +77,8 @@ describe('UniversityService', () => {
         include: { faculties: true },
         orderBy: { name: 'asc' },
       });
-
-      expect(cacheManager.set).toHaveBeenCalledWith('all_universities_withfaculties', dbData);
+      expect(cacheManager.get).not.toHaveBeenCalled();
+      expect(cacheManager.set).not.toHaveBeenCalled();
       expect(result).toEqual(dbData);
     });
   });
@@ -122,8 +110,6 @@ describe('UniversityService', () => {
 
       // Cache cleared
       expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
-      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
-
       expect(prisma.university.create).toHaveBeenCalledWith({ data: dto });
       expect(result).toEqual(created);
     });
@@ -140,8 +126,6 @@ describe('UniversityService', () => {
       const result = await service.update('1', dto);
 
       expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
-      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
-
       expect(prisma.university.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: dto,
@@ -160,8 +144,6 @@ describe('UniversityService', () => {
       await service.remove('1');
 
       expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
-      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
-
       expect(prisma.university.delete).toHaveBeenCalledWith({ where: { id: '1' } });
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('university.deleted');
     });
@@ -174,7 +156,6 @@ describe('UniversityService', () => {
       await service.resetAllCache();
 
       expect(cacheManager.del).toHaveBeenCalledWith('all_universities_nofaculties');
-      expect(cacheManager.del).toHaveBeenCalledWith('all_universities_withfaculties');
     });
   });
 });

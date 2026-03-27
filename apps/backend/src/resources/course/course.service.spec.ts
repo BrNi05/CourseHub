@@ -2,6 +2,7 @@
 
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
+import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
 import { CourseService } from './course.service.js';
 
 describe('CourseService', () => {
@@ -14,6 +15,7 @@ describe('CourseService', () => {
     prisma = {
       course: {
         findMany: vi.fn(),
+        findUnique: vi.fn(),
         findUniqueOrThrow: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
@@ -53,7 +55,7 @@ describe('CourseService', () => {
         where: { id: 'c1' },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', course, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', course, ONE_MONTH_CACHE_TTL);
       expect(result).toEqual(course);
     });
 
@@ -108,7 +110,11 @@ describe('CourseService', () => {
         },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', createdCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'course_c1',
+        createdCourse,
+        ONE_MONTH_CACHE_TTL
+      );
 
       expect(result).toEqual(createdCourse);
     });
@@ -198,7 +204,11 @@ describe('CourseService', () => {
         update: dto,
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith(`course_${createdCourse.id}`, createdCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `course_${createdCourse.id}`,
+        createdCourse,
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: createdCourse.id,
       });
@@ -238,7 +248,11 @@ describe('CourseService', () => {
         update: dto,
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith(`course_${updatedCourse.id}`, updatedCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `course_${updatedCourse.id}`,
+        updatedCourse,
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: updatedCourse.id,
       });
@@ -337,7 +351,11 @@ describe('CourseService', () => {
         },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', { ...existingCourse, ...dto }, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'course_c1',
+        { ...existingCourse, ...dto },
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: 'c1',
       });
@@ -387,9 +405,21 @@ describe('CourseService', () => {
 
   describe('remove', () => {
     it('should delete course, clear cache and emit event', async () => {
+      prisma.course.findUnique.mockResolvedValue({
+        pinnedBy: [{ id: 'user1' }, { id: 'user2' }],
+      });
       prisma.course.delete.mockResolvedValue({});
 
       await service.remove('c1');
+
+      expect(prisma.course.findUnique).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        select: {
+          pinnedBy: {
+            select: { id: true },
+          },
+        },
+      });
 
       expect(prisma.course.delete).toHaveBeenCalledWith({
         where: { id: 'c1' },
@@ -397,7 +427,10 @@ describe('CourseService', () => {
 
       expect(cacheManager.del).toHaveBeenCalledWith('course_c1');
 
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted', { courseId: 'c1' });
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted', {
+        courseId: 'c1',
+        affectedUserIds: ['user1', 'user2'],
+      });
     });
   });
 
@@ -428,6 +461,29 @@ describe('CourseService', () => {
       expect(firstResult).toEqual(courses);
 
       const secondResult = await service.findByQuery(query);
+      expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
+      expect(secondResult).toBe(firstResult);
+    });
+
+    it('should reuse the same cache entry for equivalent query objects with different key order', async () => {
+      const courses = [{ id: 'c1', name: 'Math', code: 'BMEMATH101' }];
+
+      prisma.course.findMany.mockResolvedValue(courses);
+
+      const firstQuery = {
+        universityId: 'u1',
+        courseName: 'Math',
+        courseCode: 'BME',
+      };
+      const secondQuery = {
+        courseCode: 'BME',
+        courseName: 'Math',
+        universityId: 'u1',
+      };
+
+      const firstResult = await service.findByQuery(firstQuery);
+      const secondResult = await service.findByQuery(secondQuery);
+
       expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
       expect(secondResult).toBe(firstResult);
     });

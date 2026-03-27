@@ -4,6 +4,13 @@ import { PingsStatisticsResponseDto, WeeklyPingDto } from './dto/pings-response.
 import { CoursesPinnedDto } from './dto/pins-response.dto.js';
 import { UniversityUsersDto, FacultyUsersDto } from './dto/users-reponse.dto.js';
 import { UniversityCoursesDto, FacultyCoursesDto } from './dto/courses-reponse.dto.js';
+import type {
+  CoursePinCountRow,
+  FacultyCourseCountRow,
+  FacultyUserCountRow,
+  UniversityCourseCountRow,
+  UniversityUserCountRow,
+} from './statistics.types.js';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ClientPlatform } from '../../prisma/generated/client/client.js';
@@ -12,6 +19,7 @@ import { ClientPlatform } from '../../prisma/generated/client/client.js';
 export class StatisticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Get number of pings in the last day, week, month, platform distribution in the last month, and weekly distribution for the last year
   async getPingStatistics(): Promise<PingsStatisticsResponseDto> {
     // Date calc: start of today, start of current week (Monday), start of current month
     const now = new Date();
@@ -126,86 +134,80 @@ export class StatisticsService {
     };
   }
 
+  // Get how many users have pinned each course, and sort by the most pinned courses
   async getPinStatistics(): Promise<CoursesPinnedDto[]> {
-    const courses = await this.prisma.course.findMany({
-      select: {
-        name: true,
-        code: true,
-        _count: {
-          select: {
-            pinnedBy: true,
-          },
-        },
-        faculty: {
-          select: {
-            university: {
-              select: {
-                abbrevName: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const rows = await this.prisma.$queryRaw<CoursePinCountRow[]>`
+      SELECT
+        c."name" AS "name",
+        u."abbrevName" AS "universityAbbrev",
+        c."code" AS "courseCode",
+        COUNT(upc."B")::int AS "pinCount"
+      FROM "Course" c
+      INNER JOIN "Faculty" f ON f."id" = c."facultyId"
+      INNER JOIN "University" u ON u."id" = f."universityId"
+      LEFT JOIN "_UserPinnedCourses" upc ON upc."A" = c."id"
+      GROUP BY c."id", c."name", u."abbrevName", c."code"
+      ORDER BY "pinCount" DESC, c."name" ASC, c."code" ASC
+    `;
 
-    const result: CoursesPinnedDto[] = courses.map((course) => ({
-      name: course.name,
-      universityAbbrev: course.faculty.university.abbrevName,
-      courseCode: course.code,
-      pinCount: course._count.pinnedBy,
+    return rows.map((row) => ({
+      name: row.name,
+      universityAbbrev: row.universityAbbrev,
+      courseCode: row.courseCode,
+      pinCount: Number(row.pinCount),
     }));
-
-    result.sort((a, b) => b.pinCount - a.pinCount); // Sort descending by pinCount
-
-    return result;
   }
 
   // How many unique users have pinned courses in each faculty and university
   async getUserStatistics(): Promise<UniversityUsersDto[]> {
-    const universities = await this.prisma.university.findMany({
-      select: {
-        abbrevName: true,
-        faculties: {
-          select: {
-            name: true,
-            courses: {
-              select: {
-                pinnedBy: {
-                  select: {
-                    id: true, // only need unique IDs
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const [facultyRows, universityRows] = await Promise.all([
+      this.prisma.$queryRaw<FacultyUserCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "uniAbbrev",
+          f."id" AS "facultyId",
+          f."name" AS "facultyName",
+          COUNT(DISTINCT upc."B")::int AS "userCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        LEFT JOIN "_UserPinnedCourses" upc ON upc."A" = c."id"
+        GROUP BY u."id", u."abbrevName", f."id", f."name"
+      `,
+      this.prisma.$queryRaw<UniversityUserCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "uniAbbrev",
+          COUNT(DISTINCT upc."B")::int AS "userCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        LEFT JOIN "_UserPinnedCourses" upc ON upc."A" = c."id"
+        GROUP BY u."id", u."abbrevName"
+      `,
+    ]);
 
-    const universitiesDto: UniversityUsersDto[] = universities.map((university) => {
-      const universityUserSet = new Set<string>();
+    const facultiesByUniversityId = new Map<string, FacultyUsersDto[]>();
 
-      const faculties: FacultyUsersDto[] = university.faculties.map((faculty) => {
-        const facultyUserSet = new Set<string>();
+    for (const row of facultyRows) {
+      if (!row.facultyId || !row.facultyName) continue;
 
-        faculty.courses.forEach((course) => {
-          course.pinnedBy.forEach((user) => {
-            facultyUserSet.add(user.id);
-            universityUserSet.add(user.id);
-          });
-        });
-
-        return {
-          facultyName: faculty.name,
-          allUsersOfFacultyCourses: facultyUserSet.size,
-        };
+      const faculties = facultiesByUniversityId.get(row.universityId) ?? [];
+      faculties.push({
+        facultyName: row.facultyName,
+        allUsersOfFacultyCourses: Number(row.userCount),
       });
+      facultiesByUniversityId.set(row.universityId, faculties);
+    }
+
+    const universitiesDto: UniversityUsersDto[] = universityRows.map((row) => {
+      const faculties = facultiesByUniversityId.get(row.universityId) ?? [];
 
       faculties.sort((a, b) => b.allUsersOfFacultyCourses - a.allUsersOfFacultyCourses); // Sort faculties descending
 
       return {
-        uniAbbrev: university.abbrevName,
-        allUsers: universityUserSet.size,
+        uniAbbrev: row.uniAbbrev,
+        allUsers: Number(row.userCount),
         faculties,
       };
     });
@@ -217,41 +219,50 @@ export class StatisticsService {
 
   // How many courses are there in each faculty and university
   async getCourseStatistics(): Promise<UniversityCoursesDto[]> {
-    const universities = await this.prisma.university.findMany({
-      select: {
-        abbrevName: true,
-        faculties: {
-          select: {
-            name: true,
-            _count: {
-              select: {
-                courses: true, // number of courses in this faculty
-              },
-            },
-          },
-        },
-      },
-    });
+    const [facultyRows, universityRows] = await Promise.all([
+      this.prisma.$queryRaw<FacultyCourseCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "universityAbbrevName",
+          f."id" AS "facultyId",
+          f."name" AS "facultyName",
+          COUNT(c."id")::int AS "courseCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        GROUP BY u."id", u."abbrevName", f."id", f."name"
+        ORDER BY u."abbrevName" ASC, "courseCount" DESC, f."name" ASC
+      `,
+      this.prisma.$queryRaw<UniversityCourseCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "universityAbbrevName",
+          COUNT(c."id")::int AS "courseCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        GROUP BY u."id", u."abbrevName"
+        ORDER BY "courseCount" DESC, u."abbrevName" ASC
+      `,
+    ]);
 
-    // Map to DTO format
-    const universitiesDto: UniversityCoursesDto[] = universities.map((university) => {
-      const faculties: FacultyCoursesDto[] = university.faculties.map((faculty) => ({
-        facultyName: faculty.name,
-        courseCount: faculty._count.courses,
-      }));
+    const facultiesByUniversityId = new Map<string, FacultyCoursesDto[]>();
 
-      // Sum of all courses in this university
-      const courseCount = faculties.reduce((sum, f) => sum + f.courseCount, 0);
+    for (const row of facultyRows) {
+      if (!row.facultyId || !row.facultyName) continue;
 
-      return {
-        universityAbbrevName: university.abbrevName,
-        courseCount,
-        faculties,
-      };
-    });
+      const faculties = facultiesByUniversityId.get(row.universityId) ?? [];
+      faculties.push({
+        facultyName: row.facultyName,
+        courseCount: Number(row.courseCount),
+      });
+      facultiesByUniversityId.set(row.universityId, faculties);
+    }
 
-    universitiesDto.sort((a, b) => b.courseCount - a.courseCount); // Sort universities by total course count descending
-
-    return universitiesDto;
+    return universityRows.map((row) => ({
+      universityAbbrevName: row.universityAbbrevName,
+      courseCount: Number(row.courseCount),
+      faculties: facultiesByUniversityId.get(row.universityId) ?? [],
+    }));
   }
 }

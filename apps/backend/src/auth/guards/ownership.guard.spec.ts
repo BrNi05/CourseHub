@@ -1,17 +1,14 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-import type { ConfigService } from '@nestjs/config';
 import { ForbiddenException, type ExecutionContext } from '@nestjs/common';
-import type { JwtService } from '@nestjs/jwt';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { IAuthenticatedUser } from '../interfaces.js';
 import type { LoggerService } from '../../logger/logger.service.js';
-import type { PrismaService } from '../../prisma/prisma.service.js';
 import { UserOwnershipGuard } from './ownership.guard.js';
 
 type GuardRequest = {
   params: { id: string };
-  headers: Record<string, string | undefined>;
-  user?: unknown;
+  headers?: Record<string, string | undefined>;
+  user?: IAuthenticatedUser;
 };
 
 function createContext(request: GuardRequest, handlerName = 'updateUser'): ExecutionContext {
@@ -26,7 +23,7 @@ function createContext(request: GuardRequest, handlerName = 'updateUser'): Execu
 }
 
 describe('UserOwnershipGuard', () => {
-  it('rejects requests without a bearer token', async () => {
+  it('rejects requests without an authenticated user on the request', () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -34,32 +31,23 @@ describe('UserOwnershipGuard', () => {
     const logger = {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const jwtService = {
-      verify: vi.fn(),
-    } as unknown as JwtService;
-    const prisma = {
-      user: { findUnique: vi.fn() },
-    } as unknown as PrismaService;
-    const configService = {
-      get: vi.fn(),
-    } as unknown as ConfigService;
-    const guard = new UserOwnershipGuard(jwtService, prisma, configService, logger);
+    const guard = new UserOwnershipGuard(logger);
 
-    await expect(
+    expect(() =>
       guard.canActivate(
         createContext({
           params: { id: 'resource-user-id' },
           headers: {},
         })
       )
-    ).rejects.toThrow(new ForbiddenException('Érvénytelen vagy hiányzó Authorization header!'));
+    ).toThrow(new ForbiddenException('Érvénytelen vagy hiányzó JWT!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Missing or invalid Authorization header for resource resource-user-id'
+      'Missing authenticated user on request for resource resource-user-id'
     );
   });
 
-  it('allows the owner and attaches the verified JWT payload to the request', async () => {
+  it('allows the owner using the authenticated request user', () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -67,41 +55,28 @@ describe('UserOwnershipGuard', () => {
     const logger = {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const jwtService = {
-      verify: vi.fn().mockReturnValue({
-        sub: 'resource-user-id',
-        email: 'owner@example.com',
-        exp: 123456,
-      }),
-    } as unknown as JwtService;
-    const prisma = {
-      user: { findUnique: vi.fn() },
-    } as unknown as PrismaService;
-    const configService = {
-      get: vi.fn().mockReturnValue('jwt-secret'),
-    } as unknown as ConfigService;
     const request: GuardRequest = {
       params: { id: 'resource-user-id' },
       headers: { authorization: 'Bearer token' },
+      user: {
+        id: 'resource-user-id',
+        googleEmail: 'owner@example.com',
+        isAdmin: false,
+      },
     };
-    const guard = new UserOwnershipGuard(jwtService, prisma, configService, logger);
+    const guard = new UserOwnershipGuard(logger);
 
-    const result = await guard.canActivate(createContext(request));
+    const result = guard.canActivate(createContext(request));
 
     expect(result).toBe(true);
-    expect(jwtService.verify).toHaveBeenCalledWith('token', {
-      secret: 'jwt-secret',
-      algorithms: ['HS384'],
-    });
-    expect(prisma.user.findUnique).not.toHaveBeenCalled();
     expect(request.user).toEqual({
-      sub: 'resource-user-id',
-      email: 'owner@example.com',
-      exp: 123456,
+      id: 'resource-user-id',
+      googleEmail: 'owner@example.com',
+      isAdmin: false,
     });
   });
 
-  it('allows admin override on non-restricted handlers', async () => {
+  it('allows admin override on non-restricted handlers', () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -109,41 +84,31 @@ describe('UserOwnershipGuard', () => {
     const logger = {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const jwtService = {
-      verify: vi.fn().mockReturnValue({
-        sub: 'admin-user-id',
-        email: 'admin@example.com',
-        exp: 123456,
-      }),
-    } as unknown as JwtService;
-    const prisma = {
-      user: {
-        findUnique: vi.fn().mockResolvedValue({ isAdmin: true }),
-      },
-    } as unknown as PrismaService;
-    const configService = {
-      get: vi.fn().mockReturnValue('jwt-secret'),
-    } as unknown as ConfigService;
     const request: GuardRequest = {
       params: { id: 'resource-user-id' },
       headers: { authorization: 'Bearer token' },
+      user: {
+        id: 'admin-user-id',
+        googleEmail: 'admin@example.com',
+        isAdmin: true,
+      },
     };
-    const guard = new UserOwnershipGuard(jwtService, prisma, configService, logger);
+    const guard = new UserOwnershipGuard(logger);
 
-    const result = await guard.canActivate(createContext(request, 'updateUser'));
+    const result = guard.canActivate(createContext(request, 'updateUser'));
 
     expect(result).toBe(true);
     expect(scopedLogger.debug).toHaveBeenCalledWith(
       'Admin override granted for user admin-user-id (admin@example.com) on user resource resource-user-id'
     );
     expect(request.user).toEqual({
-      sub: 'admin-user-id',
-      email: 'admin@example.com',
-      exp: 123456,
+      id: 'admin-user-id',
+      googleEmail: 'admin@example.com',
+      isAdmin: true,
     });
   });
 
-  it('blocks admin override on restricted handlers like ping', async () => {
+  it('blocks admin override on restricted handlers like ping', () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -151,41 +116,31 @@ describe('UserOwnershipGuard', () => {
     const logger = {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const jwtService = {
-      verify: vi.fn().mockReturnValue({
-        sub: 'admin-user-id',
-        email: 'admin@example.com',
-        exp: 123456,
-      }),
-    } as unknown as JwtService;
-    const prisma = {
-      user: {
-        findUnique: vi.fn().mockResolvedValue({ isAdmin: true }),
-      },
-    } as unknown as PrismaService;
-    const configService = {
-      get: vi.fn().mockReturnValue('jwt-secret'),
-    } as unknown as ConfigService;
-    const guard = new UserOwnershipGuard(jwtService, prisma, configService, logger);
+    const guard = new UserOwnershipGuard(logger);
 
-    await expect(
+    expect(() =>
       guard.canActivate(
         createContext(
           {
             params: { id: 'resource-user-id' },
             headers: { authorization: 'Bearer token' },
+            user: {
+              id: 'admin-user-id',
+              googleEmail: 'admin@example.com',
+              isAdmin: true,
+            },
           },
           'ping'
         )
       )
-    ).rejects.toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
+    ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Access denied. JWT sub admin-user-id is not owner nor admin for resource resource-user-id'
+      'Access denied. JWT user admin-user-id is not owner nor admin for resource resource-user-id'
     );
   });
 
-  it('rejects invalid or expired tokens', async () => {
+  it('rejects non-owner non-admin authenticated users', () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -193,32 +148,24 @@ describe('UserOwnershipGuard', () => {
     const logger = {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const jwtService = {
-      verify: vi.fn().mockImplementation(() => {
-        throw new Error('jwt expired');
-      }),
-    } as unknown as JwtService;
-    const prisma = {
-      user: {
-        findUnique: vi.fn(),
-      },
-    } as unknown as PrismaService;
-    const configService = {
-      get: vi.fn().mockReturnValue('jwt-secret'),
-    } as unknown as ConfigService;
-    const guard = new UserOwnershipGuard(jwtService, prisma, configService, logger);
+    const guard = new UserOwnershipGuard(logger);
 
-    await expect(
+    expect(() =>
       guard.canActivate(
         createContext({
           params: { id: 'resource-user-id' },
           headers: { authorization: 'Bearer token' },
+          user: {
+            id: 'other-user-id',
+            googleEmail: 'user@example.com',
+            isAdmin: false,
+          },
         })
       )
-    ).rejects.toThrow(new ForbiddenException('Érvénytelen vagy hiányzó JWT!'));
+    ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'JWT validation failed for resource resource-user-id: jwt expired'
+      'Access denied. JWT user other-user-id is not owner nor admin for resource resource-user-id'
     );
   });
 });

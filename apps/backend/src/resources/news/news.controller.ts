@@ -21,8 +21,8 @@ export class NewsController {
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
   @Header('Cache-Control', 'public, max-age=3600')
   @Throttable(60, 60000)
-  news(): string[] {
-    return this.newsService.getAllNews();
+  async news(): Promise<string[]> {
+    return await this.newsService.getAllNews();
   }
 
   @Post()
