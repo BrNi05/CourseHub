@@ -4,6 +4,7 @@ import { PingsStatisticsResponseDto, WeeklyPingDto } from './dto/pings-response.
 import { CoursesPinnedDto } from './dto/pins-response.dto.js';
 import { UniversityUsersDto, FacultyUsersDto } from './dto/users-reponse.dto.js';
 import { UniversityCoursesDto, FacultyCoursesDto } from './dto/courses-reponse.dto.js';
+import type { FacultyUserCountRow, UniversityUserCountRow } from './statistics.types.js';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ClientPlatform } from '../../prisma/generated/client/client.js';
@@ -12,6 +13,7 @@ import { ClientPlatform } from '../../prisma/generated/client/client.js';
 export class StatisticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Get number of pings in the last day, week, month, platform distribution in the last month, and weekly distribution for the last year
   async getPingStatistics(): Promise<PingsStatisticsResponseDto> {
     // Date calc: start of today, start of current week (Monday), start of current month
     const now = new Date();
@@ -126,6 +128,7 @@ export class StatisticsService {
     };
   }
 
+  // Get how many users have pinned each course, and sort by the most pinned courses
   async getPinStatistics(): Promise<CoursesPinnedDto[]> {
     const courses = await this.prisma.course.findMany({
       select: {
@@ -162,50 +165,54 @@ export class StatisticsService {
 
   // How many unique users have pinned courses in each faculty and university
   async getUserStatistics(): Promise<UniversityUsersDto[]> {
-    const universities = await this.prisma.university.findMany({
-      select: {
-        abbrevName: true,
-        faculties: {
-          select: {
-            name: true,
-            courses: {
-              select: {
-                pinnedBy: {
-                  select: {
-                    id: true, // only need unique IDs
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const [facultyRows, universityRows] = await Promise.all([
+      this.prisma.$queryRaw<FacultyUserCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "uniAbbrev",
+          f."id" AS "facultyId",
+          f."name" AS "facultyName",
+          COUNT(DISTINCT upc."B")::int AS "userCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        LEFT JOIN "_UserPinnedCourses" upc ON upc."A" = c."id"
+        GROUP BY u."id", u."abbrevName", f."id", f."name"
+      `,
+      this.prisma.$queryRaw<UniversityUserCountRow[]>`
+        SELECT
+          u."id" AS "universityId",
+          u."abbrevName" AS "uniAbbrev",
+          COUNT(DISTINCT upc."B")::int AS "userCount"
+        FROM "University" u
+        LEFT JOIN "Faculty" f ON f."universityId" = u."id"
+        LEFT JOIN "Course" c ON c."facultyId" = f."id"
+        LEFT JOIN "_UserPinnedCourses" upc ON upc."A" = c."id"
+        GROUP BY u."id", u."abbrevName"
+      `,
+    ]);
 
-    const universitiesDto: UniversityUsersDto[] = universities.map((university) => {
-      const universityUserSet = new Set<string>();
+    const facultiesByUniversityId = new Map<string, FacultyUsersDto[]>();
 
-      const faculties: FacultyUsersDto[] = university.faculties.map((faculty) => {
-        const facultyUserSet = new Set<string>();
+    for (const row of facultyRows) {
+      if (!row.facultyId || !row.facultyName) continue;
 
-        faculty.courses.forEach((course) => {
-          course.pinnedBy.forEach((user) => {
-            facultyUserSet.add(user.id);
-            universityUserSet.add(user.id);
-          });
-        });
-
-        return {
-          facultyName: faculty.name,
-          allUsersOfFacultyCourses: facultyUserSet.size,
-        };
+      const faculties = facultiesByUniversityId.get(row.universityId) ?? [];
+      faculties.push({
+        facultyName: row.facultyName,
+        allUsersOfFacultyCourses: Number(row.userCount),
       });
+      facultiesByUniversityId.set(row.universityId, faculties);
+    }
+
+    const universitiesDto: UniversityUsersDto[] = universityRows.map((row) => {
+      const faculties = facultiesByUniversityId.get(row.universityId) ?? [];
 
       faculties.sort((a, b) => b.allUsersOfFacultyCourses - a.allUsersOfFacultyCourses); // Sort faculties descending
 
       return {
-        uniAbbrev: university.abbrevName,
-        allUsers: universityUserSet.size,
+        uniAbbrev: row.uniAbbrev,
+        allUsers: Number(row.userCount),
         faculties,
       };
     });

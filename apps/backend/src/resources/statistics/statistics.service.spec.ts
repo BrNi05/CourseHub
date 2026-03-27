@@ -90,25 +90,79 @@ describe('StatisticsService', () => {
 
   describe('getUserStatistics', () => {
     it('returns unique user counts per faculty and university', async () => {
-      (prisma.university.findMany as any).mockResolvedValue([
-        {
-          abbrevName: 'BME',
-          faculties: [
-            {
-              name: 'Faculty 1',
-              courses: [
-                { pinnedBy: [{ id: 'u1' }, { id: 'u2' }] },
-                { pinnedBy: [{ id: 'u2' }, { id: 'u3' }] },
-              ],
-            },
-          ],
-        },
-      ]);
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            facultyId: 'fac-1',
+            facultyName: 'Faculty 1',
+            userCount: 3,
+          },
+          {
+            universityId: 'uni-2',
+            uniAbbrev: 'ELTE',
+            facultyId: 'fac-2',
+            facultyName: 'Faculty 2',
+            userCount: 0,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            userCount: 3,
+          },
+          {
+            universityId: 'uni-2',
+            uniAbbrev: 'ELTE',
+            userCount: 0,
+          },
+        ]);
 
       const result = await service.getUserStatistics();
       expect(result[0].uniAbbrev).toBe('BME');
       expect(result[0].allUsers).toBe(3);
       expect(result[0].faculties[0].allUsersOfFacultyCourses).toBe(3);
+      expect(result[1]).toEqual({
+        uniAbbrev: 'ELTE',
+        allUsers: 0,
+        faculties: [
+          {
+            facultyName: 'Faculty 2',
+            allUsersOfFacultyCourses: 0,
+          },
+        ],
+      });
+    });
+
+    it('returns empty faculties for universities without faculties', async () => {
+      (prisma.$queryRaw as any)
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            facultyId: null,
+            facultyName: null,
+            userCount: 0,
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            universityId: 'uni-1',
+            uniAbbrev: 'BME',
+            userCount: 0,
+          },
+        ]);
+
+      const result = await service.getUserStatistics();
+      expect(result).toEqual([
+        {
+          uniAbbrev: 'BME',
+          allUsers: 0,
+          faculties: [],
+        },
+      ]);
     });
   });
 
