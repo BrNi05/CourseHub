@@ -574,20 +574,11 @@ async function initialize() {
       await loadNews();
 
       if (isAuthenticated()) {
-        if (restoredPendingLogin && state.selectedCourses.length > 0) {
-          await syncPinnedCourses(
-            state.selectedCourses.map((course) => course.id),
-            'Bejelentkezve',
-            'A tárgyaid szinkronizálva lettek.'
-          );
-          restoredPendingLogin = false;
-        } else {
-          const userLoaded = await loadCurrentUser();
-          if (restoredPendingLogin && userLoaded) {
-            pushNotice('success', 'Bejelentkezve', 'A tárgyaid szinkronizálva lettek.');
-          }
-          restoredPendingLogin = false;
+        const userLoaded = await loadCurrentUser();
+        if (restoredPendingLogin && userLoaded) {
+          pushNotice('success', 'Bejelentkezve', 'Mentett tárgyak betöltve.');
         }
+        restoredPendingLogin = false;
 
         await pingClient();
       } else if (state.selectedCourses.length > 0) {
