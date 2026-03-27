@@ -49,6 +49,7 @@ model Faculty {
 
   @@unique([name, universityId]) // A faculty name is unique within a university
   @@unique([abbrevName, universityId]) // A faculty abbrev name is unique within a university
+  @@index([universityId]) // Fast lookup when filtering faculties by universityId
 }
 
 // Course
@@ -81,6 +82,7 @@ model Course {
 
   //@@unique([name, facultyId]) // A course name is unique within a faculty
   //@@unique([code, facultyId]) // A course code is unique within a faculty
+  @@index([facultyId]) // Fast lookup when filtering courses by facultyId
 }
 
 // SuggestedCourse
