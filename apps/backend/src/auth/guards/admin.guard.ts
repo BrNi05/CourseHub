@@ -3,6 +3,7 @@ import type { Request } from 'express';
 
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
+import type { IAuthenticatedUser } from '../interfaces.js';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -13,16 +14,14 @@ export class AdminGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request>();
-
-    // req.user is populated by the JWT strategy
-    const user = request.user as { id: string; googleEmail: string; isAdmin: boolean };
+    const request = context.switchToHttp().getRequest<Request & { user?: IAuthenticatedUser }>();
 
     // undefined user or not admin
-    if (!user?.isAdmin) {
+    // request.user is populated by the JwtStrategy.validate() method
+    if (!request.user?.isAdmin) {
       const clientIp = getClientIp(context);
       this.logger.warn(
-        `Unauthorized admin access attempt. User: ${user?.googleEmail}, IP: ${clientIp}`
+        `Unauthorized admin access attempt. User: ${request.user?.googleEmail}, IP: ${clientIp}`
       );
       throw new UnauthorizedException('Hozzáférés megtagadva! Admin jogosultság szükséges!');
     }

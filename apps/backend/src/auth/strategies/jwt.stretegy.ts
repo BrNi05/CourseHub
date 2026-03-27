@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { IJwtPayload } from '../interfaces.js';
+import { IAuthenticatedUser, IJwtPayload } from '../interfaces.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -16,8 +16,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   // Assigned to req.user on successful Jwt auth
-  async validate(payload: IJwtPayload) {
+  async validate(payload: IJwtPayload): Promise<IAuthenticatedUser> {
+    // If a user is deleted but their JWT is still valid, this will throw acting as a gateway
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: payload.sub } });
+
     return {
       id: user.id,
       googleEmail: user.googleEmail,
