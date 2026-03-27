@@ -112,12 +112,8 @@ describe('UserService', () => {
         },
         include: { pinnedCourses: true },
       });
-      expect(cacheMock.del).toHaveBeenCalledWith('user_user1');
-      expect(cacheMock.set).toHaveBeenCalledWith(
-        'user_user1',
-        updatedUser,
-        ONE_MONTH_CACHE_TTL
-      );
+      expect(cacheMock.del).not.toHaveBeenCalled();
+      expect(cacheMock.set).toHaveBeenCalledWith('user_user1', updatedUser, ONE_MONTH_CACHE_TTL);
     });
   });
 
@@ -167,13 +163,30 @@ describe('UserService', () => {
       );
     });
 
-    it('should only log if the course ID is missing', async () => {
+    it('should fall back to invalidating all user caches if the course ID is missing', async () => {
+      prismaMock.user.findMany.mockResolvedValue([{ id: 'user1' }, { id: 'user2' }]);
+
       await service.handleCourseChange();
 
-      expect(cacheMock.del).not.toHaveBeenCalled();
-      expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+      expect(prismaMock.user.findMany).toHaveBeenCalledWith({ select: { id: true } });
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user1');
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user2');
       expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
-        'Invalidated all users cache due to course change without a course ID.'
+        'Skipped user cache invalidation because course change payload had no course ID. All cache will be invalidated as a fallback.'
+      );
+    });
+
+    it('should invalidate provided affected user IDs without re-querying', async () => {
+      await service.handleCourseChange({
+        courseId: 'course1',
+        affectedUserIds: ['user1', 'user2'],
+      });
+
+      expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user1');
+      expect(cacheMock.del).toHaveBeenCalledWith('user_user2');
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
+        'Invalidated 2 user cache entries due to course change for course course1.'
       );
     });
   });

@@ -6,6 +6,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { LRUCache } from 'lru-cache';
 
 import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
+import { CourseChangeEvent } from '../../common/events/course.events.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 import { Course } from './entity/course.entity.js';
@@ -106,7 +107,9 @@ export class CourseService {
 
     await this.cacheManager.set(`course_${course.id}`, course, ONE_MONTH_CACHE_TTL);
     this.clearSearchQueryCache();
-    await this.eventEmitter.emitAsync('course.updated', { courseId: course.id });
+
+    const payload: CourseChangeEvent = { courseId: course.id };
+    await this.eventEmitter.emitAsync('course.updated', payload);
 
     return course;
   }
@@ -140,16 +143,32 @@ export class CourseService {
 
     await this.cacheManager.set(`course_${id}`, updatedCourse, ONE_MONTH_CACHE_TTL);
 
-    await this.eventEmitter.emitAsync('course.updated', { courseId: updatedCourse.id });
+    const payload: CourseChangeEvent = { courseId: updatedCourse.id };
+    await this.eventEmitter.emitAsync('course.updated', payload);
 
     return updatedCourse;
   }
 
   async remove(id: string): Promise<void> {
-    await this.prisma.course.delete({ where: { id } }); // No GDPR compliance is needed here
+    // Cascde delete will remove all pinned courses for users, so affected users need to be determined before the course is deleted
+    const affectedUsers = await this.prisma.course.findUnique({
+      where: { id },
+      select: {
+        pinnedBy: {
+          select: { id: true },
+        },
+      },
+    });
+
+    await this.prisma.course.delete({ where: { id } });
     await this.cacheManager.del(`course_${id}`);
     this.clearSearchQueryCache();
-    await this.eventEmitter.emitAsync('course.deleted', { courseId: id });
+
+    const payload: CourseChangeEvent = {
+      courseId: id,
+      affectedUserIds: affectedUsers?.pinnedBy.map((user) => user.id) ?? [],
+    };
+    await this.eventEmitter.emitAsync('course.deleted', payload);
   }
 
   // Map emptry string or undefined to empty string ('') for Prisma

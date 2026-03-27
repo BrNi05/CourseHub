@@ -15,6 +15,7 @@ describe('CourseService', () => {
     prisma = {
       course: {
         findMany: vi.fn(),
+        findUnique: vi.fn(),
         findUniqueOrThrow: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
@@ -404,9 +405,21 @@ describe('CourseService', () => {
 
   describe('remove', () => {
     it('should delete course, clear cache and emit event', async () => {
+      prisma.course.findUnique.mockResolvedValue({
+        pinnedBy: [{ id: 'user1' }, { id: 'user2' }],
+      });
       prisma.course.delete.mockResolvedValue({});
 
       await service.remove('c1');
+
+      expect(prisma.course.findUnique).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        select: {
+          pinnedBy: {
+            select: { id: true },
+          },
+        },
+      });
 
       expect(prisma.course.delete).toHaveBeenCalledWith({
         where: { id: 'c1' },
@@ -414,7 +427,10 @@ describe('CourseService', () => {
 
       expect(cacheManager.del).toHaveBeenCalledWith('course_c1');
 
-      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted', { courseId: 'c1' });
+      expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.deleted', {
+        courseId: 'c1',
+        affectedUserIds: ['user1', 'user2'],
+      });
     });
   });
 
