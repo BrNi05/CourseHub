@@ -16,7 +16,7 @@ import { CourseQueryDto } from './dto/query-course.dto.js';
 export class CourseService {
   private readonly queryCache = new LRUCache<string, Course[]>({
     max: 10000, // max 10000 queries in cache
-    ttl: 1000 * 60 * 60 * 24 * 5, // 5 days
+    ttl: 1000 * 60 * 60 * 24 * 7 * 2, // 2 weeks
   });
 
   constructor(
@@ -44,7 +44,7 @@ export class CourseService {
     query.courseCode = query.courseCode?.toLowerCase();
     query.courseName = query.courseName?.toLowerCase();
 
-    const cacheKey = JSON.stringify(query);
+    const cacheKey = this.buildQueryCacheKey(query);
 
     const cached = this.queryCache.get(cacheKey);
     if (cached) return cached;
@@ -177,5 +177,13 @@ export class CourseService {
   @OnEvent('faculty.deleted')
   clearSearchQueryCache() {
     this.queryCache.clear();
+  }
+
+  private buildQueryCacheKey(query: CourseQueryDto): string {
+    return [
+      `university:${query.universityId}`,
+      `name:${query.courseName ?? ''}`,
+      `code:${query.courseCode ?? ''}`,
+    ].join('|');
   }
 }

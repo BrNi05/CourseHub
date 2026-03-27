@@ -431,5 +431,28 @@ describe('CourseService', () => {
       expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
       expect(secondResult).toBe(firstResult);
     });
+
+    it('should reuse the same cache entry for equivalent query objects with different key order', async () => {
+      const courses = [{ id: 'c1', name: 'Math', code: 'BMEMATH101' }];
+
+      prisma.course.findMany.mockResolvedValue(courses);
+
+      const firstQuery = {
+        universityId: 'u1',
+        courseName: 'Math',
+        courseCode: 'BME',
+      };
+      const secondQuery = {
+        courseCode: 'BME',
+        courseName: 'Math',
+        universityId: 'u1',
+      };
+
+      const firstResult = await service.findByQuery(firstQuery);
+      const secondResult = await service.findByQuery(secondQuery);
+
+      expect(prisma.course.findMany).toHaveBeenCalledTimes(1);
+      expect(secondResult).toBe(firstResult);
+    });
   });
 });
