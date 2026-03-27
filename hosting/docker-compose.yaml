@@ -30,7 +30,7 @@ services:
       image: redis:latest
       container_name: coursehub_redis_prod
       restart: unless-stopped
-      command: redis-server --appendonly yes --appendfsync everysec --requirepass ${REDIS_PASSWORD} --maxmemory 1gb --maxmemory-policy allkeys-lru
+      command: redis-server --appendonly yes --appendfsync everysec --requirepass ${REDIS_PASSWORD} --maxmemory 2gb --maxmemory-policy allkeys-lru
       volumes:
         - redis_data:/data
       healthcheck:
