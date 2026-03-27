@@ -2,7 +2,7 @@ name: PR Check
 
 on:
   pull_request:
-    branches: [developer]
+    branches: [main]
 
 permissions:
   contents: read
