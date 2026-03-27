@@ -134,27 +134,24 @@ export class UserService {
   // Remove users who haven't updated their profile in the last year (inactive users)
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async removeInactiveUsers(): Promise<void> {
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const now = new Date();
+    const oneYearAgo = new Date(
+      Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate())
+    );
 
     const inactiveUsers = await this.prisma.user.findMany({
-      where: { updatedAt: { lt: oneYearAgo } },
+      where: {
+        updatedAt: { lt: oneYearAgo },
+        clientPings: {
+          none: {
+            date: { gte: oneYearAgo }, // date is indexed
+          },
+        },
+      },
       select: { id: true },
     });
 
-    // Users who pinged the server but haven't updated their profile in the last year should be considered active
-    const activeUserIds = await this.prisma.clientPing
-      .findMany({
-        where: { createdAt: { gte: oneYearAgo } },
-        distinct: ['userId'],
-        select: { userId: true },
-      })
-      .then((pings) => new Set(pings.map((ping) => ping.userId)));
-
     for (const user of inactiveUsers) {
-      if (activeUserIds.has(user.id)) {
-        continue;
-      }
       await this.deleteUser(user.id);
       this.logger.log(`Deleted inactive user with ID: ${user.id}`);
     }

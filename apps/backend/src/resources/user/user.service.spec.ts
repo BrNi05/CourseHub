@@ -201,39 +201,67 @@ describe('UserService', () => {
 
   describe('removeInactiveUsers', () => {
     it('should remove inactive users who did not ping in the last year', async () => {
-      const fixedNow = new Date('2025-02-19T12:00:00.000Z');
-      vi.useFakeTimers().setSystemTime(fixedNow);
-
-      const oneYearAgo = new Date(fixedNow);
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
-      prismaMock.user.findMany.mockResolvedValue([
-        { id: 'user1' },
-        { id: 'user2' },
-        { id: 'user3' },
-      ]);
-
-      prismaMock.clientPing.findMany.mockResolvedValue([{ userId: 'user3' }]);
+      prismaMock.user.findMany.mockResolvedValue([{ id: 'user1' }, { id: 'user2' }]);
 
       const deleteSpy = vi.spyOn(service, 'deleteUser').mockResolvedValue(undefined);
 
       await service.removeInactiveUsers();
 
+      const query = prismaMock.user.findMany.mock.calls[0][0];
+      const oneYearAgo = query.where.updatedAt.lt;
+
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
-        where: { updatedAt: { lt: oneYearAgo } },
+        where: {
+          updatedAt: { lt: oneYearAgo },
+          clientPings: {
+            none: {
+              date: { gte: oneYearAgo },
+            },
+          },
+        },
         select: { id: true },
       });
-
-      expect(prismaMock.clientPing.findMany).toHaveBeenCalledWith({
-        where: { createdAt: { gte: oneYearAgo } },
-        distinct: ['userId'],
-        select: { userId: true },
-      });
+      expect(prismaMock.clientPing.findMany).not.toHaveBeenCalled();
 
       expect(deleteSpy).toHaveBeenCalledTimes(2);
       expect(deleteSpy).toHaveBeenCalledWith('user1');
       expect(deleteSpy).toHaveBeenCalledWith('user2');
       expect(deleteSpy).not.toHaveBeenCalledWith('user3');
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
+        'Deleted inactive user with ID: user1'
+      );
+      expect(loggerMock.scopedLogger.log).toHaveBeenCalledWith(
+        'Deleted inactive user with ID: user2'
+      );
+    });
+
+    it('should not delete or log anything when no inactive users are found', async () => {
+      prismaMock.user.findMany.mockResolvedValue([]);
+
+      const deleteSpy = vi.spyOn(service, 'deleteUser').mockResolvedValue(undefined);
+
+      await service.removeInactiveUsers();
+
+      expect(deleteSpy).not.toHaveBeenCalled();
+      expect(loggerMock.scopedLogger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('Deleted inactive user with ID:')
+      );
+    });
+
+    it('should normalize the inactivity cutoff to UTC midnight', async () => {
+      prismaMock.user.findMany.mockResolvedValue([]);
+
+      await service.removeInactiveUsers();
+
+      const query = prismaMock.user.findMany.mock.calls[0][0];
+      const updatedAtCutoff = query.where.updatedAt.lt as Date;
+      const pingCutoff = query.where.clientPings.none.date.gte as Date;
+
+      expect(updatedAtCutoff).toEqual(pingCutoff);
+      expect(updatedAtCutoff.getUTCHours()).toBe(0);
+      expect(updatedAtCutoff.getUTCMinutes()).toBe(0);
+      expect(updatedAtCutoff.getUTCSeconds()).toBe(0);
+      expect(updatedAtCutoff.getUTCMilliseconds()).toBe(0);
     });
   });
 });
