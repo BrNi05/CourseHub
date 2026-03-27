@@ -5,6 +5,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
 import { LRUCache } from 'lru-cache';
 
+import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 import { Course } from './entity/course.entity.js';
@@ -34,7 +35,7 @@ export class CourseService {
     }
 
     const course = await this.prisma.course.findUniqueOrThrow({ where: { id } });
-    await this.cacheManager.set(cacheKey, course, 0);
+    await this.cacheManager.set(cacheKey, course, ONE_MONTH_CACHE_TTL);
 
     return course;
   }
@@ -87,7 +88,7 @@ export class CourseService {
       },
     });
 
-    await this.cacheManager.set(`course_${course.id}`, course, 0);
+    await this.cacheManager.set(`course_${course.id}`, course, ONE_MONTH_CACHE_TTL);
     this.clearSearchQueryCache();
 
     return course;
@@ -103,7 +104,7 @@ export class CourseService {
       update: normalizedDto,
     });
 
-    await this.cacheManager.set(`course_${course.id}`, course, 0);
+    await this.cacheManager.set(`course_${course.id}`, course, ONE_MONTH_CACHE_TTL);
     this.clearSearchQueryCache();
     await this.eventEmitter.emitAsync('course.updated', { courseId: course.id });
 
@@ -137,7 +138,7 @@ export class CourseService {
       },
     });
 
-    await this.cacheManager.set(`course_${id}`, updatedCourse, 0);
+    await this.cacheManager.set(`course_${id}`, updatedCourse, ONE_MONTH_CACHE_TTL);
 
     await this.eventEmitter.emitAsync('course.updated', { courseId: updatedCourse.id });
 

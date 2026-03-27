@@ -2,6 +2,7 @@
 
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
+import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
 import { CourseService } from './course.service.js';
 
 describe('CourseService', () => {
@@ -53,7 +54,7 @@ describe('CourseService', () => {
         where: { id: 'c1' },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', course, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', course, ONE_MONTH_CACHE_TTL);
       expect(result).toEqual(course);
     });
 
@@ -108,7 +109,11 @@ describe('CourseService', () => {
         },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', createdCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'course_c1',
+        createdCourse,
+        ONE_MONTH_CACHE_TTL
+      );
 
       expect(result).toEqual(createdCourse);
     });
@@ -198,7 +203,11 @@ describe('CourseService', () => {
         update: dto,
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith(`course_${createdCourse.id}`, createdCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `course_${createdCourse.id}`,
+        createdCourse,
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: createdCourse.id,
       });
@@ -238,7 +247,11 @@ describe('CourseService', () => {
         update: dto,
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith(`course_${updatedCourse.id}`, updatedCourse, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        `course_${updatedCourse.id}`,
+        updatedCourse,
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: updatedCourse.id,
       });
@@ -337,7 +350,11 @@ describe('CourseService', () => {
         },
       });
 
-      expect(cacheManager.set).toHaveBeenCalledWith('course_c1', { ...existingCourse, ...dto }, 0);
+      expect(cacheManager.set).toHaveBeenCalledWith(
+        'course_c1',
+        { ...existingCourse, ...dto },
+        ONE_MONTH_CACHE_TTL
+      );
       expect(eventEmitter.emitAsync).toHaveBeenCalledWith('course.updated', {
         courseId: 'c1',
       });

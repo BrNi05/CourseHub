@@ -4,6 +4,7 @@ import { type Cache } from 'cache-manager';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { ONE_MONTH_CACHE_TTL } from '../../common/cache/cache-ttl.constants.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 
@@ -13,7 +14,6 @@ import { UserResponseWithoutPinnedDto } from './dto/user-response-nopinned.dto.j
 
 @Injectable()
 export class UserService {
-  private readonly getAllCacheKey = 'all_users_admin_nopinned';
   private getUserCacheKey(id: string) {
     return `user_${id}`;
   }
@@ -29,14 +29,7 @@ export class UserService {
   private readonly logger: ContextualLogger;
 
   async getAllUsers(): Promise<UserResponseWithoutPinnedDto[]> {
-    // Cache without pinned courses
-    const cached = await this.cacheManager.get<UserResponseWithoutPinnedDto[]>(this.getAllCacheKey);
-    if (cached) return cached;
-
-    const users = await this.prisma.user.findMany({ include: { pinnedCourses: false } });
-    await this.cacheManager.set(this.getAllCacheKey, users, 0);
-
-    return users;
+    return await this.prisma.user.findMany({ include: { pinnedCourses: false } });
   }
 
   async getUserById(id: string): Promise<User> {
@@ -48,13 +41,13 @@ export class UserService {
       include: { pinnedCourses: true },
     });
 
-    await this.cacheManager.set(this.getUserCacheKey(id), user, 0);
+    await this.cacheManager.set(this.getUserCacheKey(id), user, ONE_MONTH_CACHE_TTL);
 
     return user;
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.invalidateAllUsersCache(id);
+    await this.invalidateUsersCache(id);
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -67,27 +60,24 @@ export class UserService {
       include: { pinnedCourses: true },
     });
 
-    await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, 0);
+    await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, ONE_MONTH_CACHE_TTL);
 
     return updatedUser;
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.invalidateAllUsersCache(id); // GDPR compliance: remove from cache before deletion
+    await this.invalidateUsersCache(id); // GDPR compliance: remove from cache before deletion
 
     await this.prisma.user.delete({ where: { id } });
   }
 
   // Invalidates user specific and global users cache
-  async invalidateAllUsersCache(id: string): Promise<void> {
-    await this.cacheManager.del(this.getAllCacheKey);
+  async invalidateUsersCache(id: string): Promise<void> {
     await this.cacheManager.del(this.getUserCacheKey(id));
   }
 
   // Invalidate global and all user specific cache
   async resetAllUsersCache() {
-    await this.cacheManager.del(this.getAllCacheKey);
-
     const users = await this.prisma.user.findMany({ select: { id: true } });
     for (const user of users) {
       await this.cacheManager.del(this.getUserCacheKey(user.id));
@@ -98,7 +88,6 @@ export class UserService {
   @OnEvent('course.updated')
   @OnEvent('course.deleted')
   async handleCourseChange(payload?: { courseId?: string }) {
-    await this.cacheManager.del(this.getAllCacheKey);
     const courseId = payload?.courseId;
     if (!courseId) {
       this.logger.log('Invalidated all users cache due to course change without a course ID.');
