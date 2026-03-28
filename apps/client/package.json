@@ -20,7 +20,7 @@
     "@types/node": "^25.5.0",
     "@unocss/preset-wind3": "^66.6.7",
     "@vitejs/plugin-vue": "^6.0.5",
-    "@vue/tsconfig": "^0.8.1",
+    "@vue/tsconfig": "^0.9.1",
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
