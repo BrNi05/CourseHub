@@ -47,3 +47,6 @@ packages/sdk/src
 
 # Backend static assets
 apps/backend/public/frontend
+
+# Trivy scan result
+trivy-image-report.txt

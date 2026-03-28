@@ -119,6 +119,13 @@
       "command": "./push-to-ghcr.sh",
       "detail": "Build and push the backend Docker image to GitHub Container Registry",
       "problemMatcher": []
+    },
+    {
+      "label": "Trivy Scan Backend Image",
+      "type": "shell",
+      "command": "pnpm scan:image",
+      "detail": "Scan the backend Docker image for vulnerabilities",
+      "problemMatcher": []
     }
   ]
 }
