@@ -5,15 +5,16 @@
     "ms-azuretools.vscode-docker",
     "mikestead.dotenv",
     "redhat.vscode-yaml",
+    "github.vscode-github-actions",
+    "eamodio.gitlens",
     "aaron-bond.better-comments",
     "sonarsource.sonarlint-vscode",
     "prisma.prisma",
-    "firsttris.vscode-jest-runner",
     "formulahendry.code-runner",
     "davidanson.vscode-markdownlint",
     "christian-kohler.npm-intellisense",
-    "Vue.volar",
-    "timonwong.shellcheck",
+    "vue.volar",
+    "timonwong.shellcheck"
   ],
   "unwantedRecommendations": []
 }
