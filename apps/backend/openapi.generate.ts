@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import { AppModule } from './build/app.module.js';
-import { setupSwagger } from './src/swagger/swagger.ts';
+import { setupSwagger } from './build/swagger/swagger.js';
 import { writeFile } from 'node:fs/promises';
 
 async function genSwaggerSpec() {

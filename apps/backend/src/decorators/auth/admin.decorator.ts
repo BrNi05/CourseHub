@@ -1,6 +1,7 @@
 import { applyDecorators, UseGuards, SetMetadata } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 
+import { AUTH_COOKIE_SECURITY_NAME } from '../../auth/auth.constants.js';
 import { ErrorResponse } from '../../common/responses/error.response.js';
 
 import { AdminGuard } from '../../auth/guards/admin.guard.js';
@@ -14,7 +15,7 @@ export function Admin() {
     SetMetadata(ADMIN_KEY, true),
     RequiresAuth(),
     UseGuards(AdminGuard),
-    ApiBearerAuth('admin'),
+    ApiCookieAuth(AUTH_COOKIE_SECURITY_NAME),
     ApiResponse({
       status: 401,
       description: 'Not an admin',

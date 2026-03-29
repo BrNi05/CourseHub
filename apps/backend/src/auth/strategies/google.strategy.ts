@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 
 import { AuthService } from '../auth.service.js';
+import { OAuthStateStore } from '../oauth-state.store.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -11,13 +12,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    oauthStateStore: OAuthStateStore
   ) {
     super({
       clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL')!,
       scope: ['email'],
+      store: oauthStateStore,
     });
   }
 

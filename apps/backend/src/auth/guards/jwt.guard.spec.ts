@@ -44,6 +44,8 @@ describe('JwtAuthGuard', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     expect(() => guard.handleRequest(null, null, null, context)).toThrow(UnauthorizedException);
-    expect(scopedLogger.warn).toHaveBeenCalledWith('JWT validation failed. IP: 203.0.113.20');
+    expect(scopedLogger.warn).toHaveBeenCalledWith(
+      'Auth cookie validation failed. IP: 203.0.113.20'
+    );
   });
 });

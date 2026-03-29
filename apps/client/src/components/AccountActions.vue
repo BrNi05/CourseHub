@@ -31,10 +31,10 @@ function handleDeleteBack() {
   isAccountDialogOpen.value = true;
 }
 
-function handleLogout() {
+async function handleLogout() {
   closeAccountDialog();
   isDeleteDialogOpen.value = false;
-  app.logout();
+  await app.logout();
 }
 
 async function handleDeleteProfile() {

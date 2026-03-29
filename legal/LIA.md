@@ -4,9 +4,9 @@
 
 **Szolgáltatás:** CourseHub
 
-**Hatályba lép:** 2026.03.19. (első verzió)
+**Hatályba lép:** 2026.03.31. (második verzió)
 
-**Utolsó felülvizsgálat:** 2026.03.19.
+**Utolsó felülvizsgálat:** 2026.03.30.
 
 ## 1. A dokumentum célja
 
@@ -45,6 +45,8 @@ Jelen LIA az alábbi, a CourseHub adatkezelési tájékoztatójában is jogos é
 2. Biztonsági naplózás
 
 3. Cloudflare alapú peremvédelem és forgalomvédelmi intézkedések
+
+4. OAuth2 bejelentkezési folyamat védelme ideiglenes állapot-sütivel
 
 ## 4. Általános körülmények és közös garanciák
 
@@ -236,7 +238,7 @@ Garanciák:
 
 **Kezelt adatok:** IP cím, hosztnév, URL, HTTP fejlécek, User-Agent, időbélyeg, válaszkód, forgalmi mintázatok, biztonsági eseményekhez kapcsolódó technikai metaadatok.
 
-**Cél:** a Szolgáltatás publikus kiszolgálása, DDoS- és botvédelem, rosszindulatú forgalom kiszűrése, rendelkezésre állás és hálózati biztonság fenntartása.  
+**Cél:** a Szolgáltatás publikus kiszolgálása, DDoS- és botvédelem, rosszindulatú forgalom kiszűrése, rendelkezésre állás és hálózati biztonság fenntartása.
 
 **Megőrzési idő:** a Cloudflare mindenkori szolgáltatási és naplózási beállításai szerint, az Adatkezelő törekvése szerint a szükséges minimumra korlátozva.
 
@@ -291,6 +293,60 @@ Garanciák:
 - A biztonsági funkciókhoz kapcsolódó sütik használatának csak feltétlenül szükséges körre korlátozása.
 
 **Következtetés:** az adatkezelés a célhoz szükséges és arányos, az Érintetti oldalon jelentkező többletkockázatokat a beépített garanciák megfelelően mérséklik, az Adatkezelő jogos érdeke elsőbbséget élvez az Érintettek korlátozott beavatkozással járó érdekeivel szemben. A jogalap alkalmazása indokolt.
+
+### 5.4. OAuth2 bejelentkezési folyamat védelme ideiglenes állapot-sütivel
+
+**Kezelt adatok:** rövid élettartamú, véletlenszerű állapotazonosító (`coursehub_oauth_state`), amely a bejelentkezést kezdeményező böngészőhöz kötődik.
+
+**Cél:** annak biztosítása, hogy a külső azonosítótól (Google) visszaérkező callback-et csak az a böngésző tudja sikeresen lezárni, amely a bejelentkezést elindította. Login CSRF és jogosulatlan OAuth callback-kísérletek megelőzése.
+
+**Megőrzési idő:** a callback lezárásáig, de legfeljebb 2 percig.
+
+#### 5.4.1. Célteszt
+
+Az Adatkezelő jogos érdeke, hogy:
+
+- Megakadályozza, hogy egy támadó más böngészője által kezdeményezett vagy manipulált OAuth folyamatot egy Érintett böngészőjében fejezzen be.
+
+- A külső hitelesítési folyamatot egyszerű, de hatékony, széles körben használt védelemmel lássa el.
+
+Ez az érdek valós, jelenidejű, közvetlenül kapcsolódik a hitelesítési rendszer és a felhasználói fiókok védelméhez.
+
+#### 5.4.2. Szükségességi teszt
+
+Az adatkezelés szükséges, mert:
+
+- A Google OAuth2 callback önmagában nem bizonyítja, hogy a bejelentkezést ugyanaz a böngésző indította el, amely a callback-et fogadja.
+
+- Egy rövid élettartamú, véletlenszerű állapotérték hatékonyan és adattakarékosan köti össze a bejelentkezés indítását és lezárását.
+
+- Kevésbé invazív alternatíva, amely ugyanezt a védelmi szintet biztosítja külön infrastruktúra nélkül, ésszerűen nem áll rendelkezésre.
+
+A megoldás arányos, mert nem használ tartós azonosítót, nem követi a felhasználó viselkedését, és nem szolgál sem marketing-, sem analitikai célokat.
+
+#### 5.4.3. Mérlegelési teszt
+
+Az Érintettekre gyakorolt hatás minimális:
+
+- A kezelt adat véletlenszerű technikai azonosító, amely önmagában nem alkalmas a felhasználó közvetlen azonosítására.
+
+- A süti rövid élettartamú, egyszer használatos, és a callback ellenőrzése után törlésre kerül.
+
+- Az adatkezelés észszerűen elvárható egy külső OAuth2 alapú bejelentkezési folyamat biztonságos működéséhez.
+
+Garanciák:
+
+- Szűk adatkör: kizárólag véletlenszerű állapotérték.
+
+- Rövid megőrzési idő.
+
+- `HttpOnly`, `SameSite=Lax`, `Secure` sütibeállítások.
+
+- Kizárólag biztonsági célú felhasználás.
+
+- Átlátható tájékoztatás az adatkezelési tájékoztatóban.
+
+**Következtetés:** az Adatkezelő hitelesítési és fiókvédelmi érdeke erős, míg az Érintettek oldalán jelentkező többletbeavatkozás minimális és arányos. A jogos érdek jogalap alkalmazása indokolt.
 
 ## 6. Összesített mérlegelési következtetés
 

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import type { Response } from 'express';
 
+import { buildAuthCookieOptions, AUTH_COOKIE_NAME } from './auth.constants.js';
 import { IJwtPayload } from './interfaces.js';
 
 @Injectable()
@@ -23,5 +25,13 @@ export class AuthService {
     });
 
     return token;
+  }
+
+  setAuthCookie(response: Response, token: string, isSecure: boolean): void {
+    response.cookie(AUTH_COOKIE_NAME, token, buildAuthCookieOptions(isSecure));
+  }
+
+  clearAuthCookie(response: Response, isSecure: boolean): void {
+    response.clearCookie(AUTH_COOKIE_NAME, buildAuthCookieOptions(isSecure));
   }
 }

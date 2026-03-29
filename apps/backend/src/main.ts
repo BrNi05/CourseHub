@@ -13,6 +13,7 @@ import { setupUi } from './ui/ui.js';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import { json, urlencoded } from 'express';
+import cookieParser from 'cookie-parser';
 
 import { setupSwagger } from './swagger/swagger.js';
 
@@ -47,11 +48,13 @@ try {
   app.use(json({ limit: '4kb' }));
   app.use(urlencoded({ extended: true, limit: '4kb' }));
 
+  app.use(cookieParser());
+
   // CORS
   app.enableCors({
     origin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: false,
+    credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });

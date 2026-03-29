@@ -40,7 +40,7 @@ describe('UserOwnershipGuard', () => {
           headers: {},
         })
       )
-    ).toThrow(new ForbiddenException('Érvénytelen vagy hiányzó JWT!'));
+    ).toThrow(new ForbiddenException('Érvénytelen azonosított állapot!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'Missing authenticated user on request for resource resource-user-id'
@@ -136,7 +136,7 @@ describe('UserOwnershipGuard', () => {
     ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Access denied. JWT user admin-user-id is not owner nor admin for resource resource-user-id'
+      'Access denied. Authenticated user admin-user-id is not owner nor admin for resource resource-user-id'
     );
   });
 
@@ -165,7 +165,7 @@ describe('UserOwnershipGuard', () => {
     ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Access denied. JWT user other-user-id is not owner nor admin for resource resource-user-id'
+      'Access denied. Authenticated user other-user-id is not owner nor admin for resource resource-user-id'
     );
   });
 });

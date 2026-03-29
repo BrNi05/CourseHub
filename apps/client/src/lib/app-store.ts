@@ -4,12 +4,15 @@ import {
   delete2 as deleteUser,
   errorReport,
   findAll,
+  logout as logoutRequest,
+  me,
   news,
   ping,
   readOne,
   search,
   suggest,
   updatePinnedCourses,
+  type AuthSessionDto,
   type Course,
   type CreateSuggestionDto,
   type ErrorReportDto,
@@ -31,7 +34,6 @@ type Notice = {
 
 // Session state structure
 type SessionState = {
-  token: string | null;
   userId: string | null;
   email: string | null;
 };
@@ -42,15 +44,8 @@ type SearchFilters = {
   courseCode: string;
 };
 
-type LoginPayload = {
-  sub?: string;
-  email?: string;
-  exp?: number;
-};
-
 type PingRegistry = Record<string, true>;
 
-const SESSION_STORAGE_KEY = 'coursehub.web.session';
 const DRAFT_STORAGE_KEY = 'coursehub.web.draft-courses';
 const PING_STORAGE_KEY = 'coursehub.web.client-pings';
 const TOAST_DURATION_MS = 2400;
@@ -66,7 +61,6 @@ const state = reactive({
   deletingProfile: false,
   loginInFlight: false,
   session: {
-    token: null,
     userId: null,
     email: null,
   } as SessionState,
@@ -82,11 +76,12 @@ const state = reactive({
   notices: [] as Notice[],
 });
 
-let hydrated = false;
 let initializePromise: Promise<void> | null = null;
+let sessionPromise: Promise<AuthSessionDto | null> | null = null;
 let universitiesPromise: Promise<void> | null = null;
 let noticeSequence = 1;
-let restoredPendingLogin = false;
+let pendingLoginNotice = false;
+let cachedSession: AuthSessionDto | null = null;
 
 hydrateFromStorage();
 setupPersistence();
@@ -94,35 +89,9 @@ setupPersistence();
 function hydrateFromStorage() {
   if (globalThis.window === undefined) return;
 
-  const savedSession = globalThis.localStorage.getItem(SESSION_STORAGE_KEY);
   const savedDraft = globalThis.localStorage.getItem(DRAFT_STORAGE_KEY);
-  const callbackToken = readCallbackToken();
-
-  if (savedSession) {
-    try {
-      const parsed = JSON.parse(savedSession) as SessionState;
-      restoreSession(parsed);
-    } catch {
-      clearSession();
-    }
-  }
-
-  if (callbackToken) {
-    const hasActiveSession = isAuthenticated();
-    const isUnexpectedToken = hasActiveSession && state.session.token !== callbackToken;
-
-    if (isUnexpectedToken) {
-      pushNotice(
-        'danger',
-        'Gyanús bejelentkezési kísérlet',
-        'Ha te kezdeményezted a bejelentkezést, jelentkezz ki, és próbáld újra.'
-      );
-    } else {
-      restoredPendingLogin = applyToken(callbackToken);
-    }
-
-    clearCallbackTokenFromUrl();
-  }
+  pendingLoginNotice = readLoginResultFromUrl() === 'success';
+  clearLoginResultFromUrl();
 
   if (savedDraft) {
     try {
@@ -132,32 +101,13 @@ function hydrateFromStorage() {
       globalThis.localStorage.removeItem(DRAFT_STORAGE_KEY);
     }
   }
-
-  hydrated = true;
 }
 
 function setupPersistence() {
   watch(
-    () => state.session,
-    (session) => {
-      if (!hydrated || globalThis.window === undefined) {
-        return;
-      }
-
-      if (!session.token || !session.userId) {
-        globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
-        return;
-      }
-
-      globalThis.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    },
-    { deep: true, immediate: true }
-  );
-
-  watch(
     () => state.selectedCourses,
     (courses) => {
-      if (!hydrated || globalThis.window === undefined) {
+      if (globalThis.window === undefined) {
         return;
       }
 
@@ -186,53 +136,26 @@ function normalizeNewsItems(items: string[]) {
     .reverse();
 }
 
-function decodeJwtPayload(token: string): LoginPayload | null {
-  try {
-    const base64Url = token.split('.')[1];
-    if (!base64Url) return null;
-
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-    const decoded = globalThis.atob(padded);
-    const json = decodeURIComponent(
-      Array.from(decoded)
-        .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
-        .join('')
-    );
-
-    return JSON.parse(json) as LoginPayload;
-  } catch {
-    return null;
-  }
-}
-
-function apiOptions(tokenOverride?: string | null) {
-  const token = tokenOverride ?? state.session.token;
-
+function apiOptions() {
   return {
-    auth: token ?? undefined,
     baseURL: '/api',
+    withCredentials: true,
     throwOnError: true as const,
   };
 }
 
-function readCallbackToken() {
+function readLoginResultFromUrl() {
   if (globalThis.window === undefined) return null;
 
-  const hash = globalThis.location.hash.startsWith('#')
-    ? globalThis.location.hash.slice(1)
-    : globalThis.location.hash;
-
-  if (!hash) return null;
-
-  return new URLSearchParams(hash).get('token');
+  return new URLSearchParams(globalThis.location.search).get('login');
 }
 
-function clearCallbackTokenFromUrl() {
+function clearLoginResultFromUrl() {
   if (globalThis.window === undefined) return;
 
-  const sanitizedUrl = `${globalThis.location.pathname}${globalThis.location.search}`;
-  globalThis.history.replaceState(null, '', sanitizedUrl);
+  const url = new URL(globalThis.location.href);
+  url.searchParams.delete('login');
+  globalThis.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
 }
 
 function pingDayKey(now: Date = new Date()) {
@@ -353,60 +276,65 @@ function selectedUniversity() {
 }
 
 function isAuthenticated() {
-  return Boolean(state.session.token && state.session.userId);
+  return Boolean(state.session.userId);
 }
 
-function isExpiredJwtPayload(payload: LoginPayload | null) {
-  return typeof payload?.exp === 'number' && payload.exp * 1000 <= Date.now();
-}
-
-function applyToken(token: string) {
-  const payload = decodeJwtPayload(token);
-
-  if (!payload?.sub || isExpiredJwtPayload(payload)) {
-    clearSession();
-    return false;
-  }
-
-  state.session.token = token;
-  state.session.userId = payload.sub;
-  state.session.email = payload.email ?? null;
-  return true;
-}
-
-function restoreSession(session: SessionState) {
-  if (!session.token) {
-    clearSession();
-    return;
-  }
-
-  const restored = applyToken(session.token);
-
-  if (!restored) return;
-
-  if (!state.session.email && session.email) {
-    state.session.email = session.email;
-  }
+function applyAuthSession(session: AuthSessionDto) {
+  cachedSession = session;
+  state.session.userId = session.id;
 }
 
 function clearSession() {
-  state.session.token = null;
+  cachedSession = null;
+  sessionPromise = null;
   state.session.userId = null;
   state.session.email = null;
 
   if (globalThis.window !== undefined) {
-    globalThis.localStorage.removeItem(SESSION_STORAGE_KEY);
     globalThis.localStorage.removeItem(PING_STORAGE_KEY);
   }
 }
 
-function handleUnauthorized() {
+function handleUnauthorized(showNotice: boolean = true) {
   clearSession();
+
+  if (!showNotice) return;
+
   pushNotice('danger', 'Jelentkezz be', 'A munkamenet lejárt. Jelentkezz be újra a folytatáshoz.');
 }
 
+async function getCurrentSession(notifyOnUnauthorized: boolean = true) {
+  if (cachedSession) {
+    return cachedSession;
+  }
+
+  if (sessionPromise) {
+    return await sessionPromise;
+  }
+
+  sessionPromise = (async () => {
+    try {
+      const sessionResponse = await me(apiOptions());
+      applyAuthSession(sessionResponse.data);
+      return sessionResponse.data;
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 401) {
+        handleUnauthorized(notifyOnUnauthorized);
+        return null;
+      }
+
+      pushNotice('danger', 'Nem sikerült betölteni a tárgyaidat', getErrorMessage(error));
+      return null;
+    } finally {
+      sessionPromise = null;
+    }
+  })();
+
+  return await sessionPromise;
+}
+
 async function pingClient() {
-  if (!state.session.userId || !state.session.token) return;
+  if (!state.session.userId) return;
 
   const platform = getClientPlatform();
 
@@ -444,7 +372,7 @@ async function loadUniversities() {
     state.loadingUniversities = true;
 
     try {
-      const response = await findAll(apiOptions(null));
+      const response = await findAll(apiOptions());
       state.universities = response.data;
 
       const [firstUniversity] = state.universities;
@@ -465,26 +393,27 @@ async function loadUniversities() {
 
 async function loadNews() {
   try {
-    const response = await news(apiOptions(null));
+    const response = await news(apiOptions());
     state.news = normalizeNewsItems(response.data);
   } catch (error) {
     pushNotice('danger', 'Nem sikerült betölteni a híreket', getErrorMessage(error));
   }
 }
 
-async function loadCurrentUser() {
-  if (!state.session.userId || !state.session.token) return false;
+async function loadCurrentUser(notifyOnUnauthorized: boolean = true) {
+  const session = await getCurrentSession(notifyOnUnauthorized);
+  if (!session) return false;
 
   try {
     const response = await readOne({
       ...apiOptions(),
-      path: { id: state.session.userId },
+      path: { id: session.id },
     });
     applyUserResponse(response.data);
     return true;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized();
+      handleUnauthorized(notifyOnUnauthorized);
       return false;
     }
 
@@ -494,12 +423,13 @@ async function loadCurrentUser() {
 }
 
 function applyUserResponse(user: User) {
+  state.session.userId = user.id;
   state.session.email = user.googleEmail;
   state.selectedCourses = dedupeCourses(user.pinnedCourses ?? []);
 }
 
 async function syncPinnedCourses(ids: string[], successTitle: string, successDetail: string) {
-  if (!state.session.userId || !state.session.token) {
+  if (!state.session.userId) {
     pushNotice(
       'info',
       successTitle,
@@ -544,7 +474,7 @@ async function searchCourses() {
 
   try {
     const response = await search({
-      ...apiOptions(null),
+      ...apiOptions(),
       query: {
         universityId: state.searchFilters.universityId,
         courseName: state.searchFilters.courseName.trim() || undefined,
@@ -573,14 +503,18 @@ async function initialize() {
     try {
       await loadNews();
 
-      if (isAuthenticated()) {
-        const userLoaded = await loadCurrentUser();
-        if (restoredPendingLogin && userLoaded) {
+      const userLoaded = await loadCurrentUser(false);
+      if (userLoaded) {
+        if (pendingLoginNotice) {
           pushNotice('success', 'Bejelentkezve', 'Mentett tárgyak betöltve.');
         }
-        restoredPendingLogin = false;
-
         await pingClient();
+      } else if (pendingLoginNotice) {
+        pushNotice(
+          'danger',
+          'A bejelentkezés nem sikerült',
+          'Ellenőrizd a sütibeállításokat, majd próbáld újra.'
+        );
       } else if (state.selectedCourses.length > 0) {
         pushNotice(
           'info',
@@ -588,6 +522,8 @@ async function initialize() {
           'A helyi mentésed betöltöttük. Jelentkezz be, hogy szinkronizáld a tárgyaidat.'
         );
       }
+
+      pendingLoginNotice = false;
       state.initialized = true;
     } finally {
       initializePromise = null;
@@ -629,7 +565,18 @@ function loginWithGoogle() {
   globalThis.location.assign(`api/auth/google`);
 }
 
-function logout() {
+async function logout() {
+  try {
+    await logoutRequest(apiOptions());
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      clearSession();
+    } else {
+      pushNotice('danger', 'Nem sikerült kijelentkezni', getErrorMessage(error));
+      return;
+    }
+  }
+
   clearSession();
   pushNotice(
     'info',
@@ -639,7 +586,7 @@ function logout() {
 }
 
 async function deleteProfile() {
-  if (!state.session.userId || !state.session.token) {
+  if (!state.session.userId) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a profil törléséhez.');
     return false;
   }
@@ -675,7 +622,7 @@ async function deleteProfile() {
 }
 
 async function submitSuggestion(payload: CreateSuggestionDto) {
-  if (!state.session.token) {
+  if (!isAuthenticated()) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a javaslat elküldése előtt.');
     return false;
   }
@@ -707,7 +654,7 @@ async function submitSuggestion(payload: CreateSuggestionDto) {
 }
 
 async function submitErrorReport(payload: ErrorReportDto) {
-  if (!state.session.token) {
+  if (!isAuthenticated()) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a hibajelentés elküldése előtt.');
     return false;
   }
