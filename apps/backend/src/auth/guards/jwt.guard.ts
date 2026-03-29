@@ -1,24 +1,18 @@
 import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
-import { getClientIp } from '../../common/security/ip.resolver.js';
-
 // Basically AuthGuard('jwt'), but with logging
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  private readonly logger: ContextualLogger;
-
-  constructor(logger: LoggerService) {
+  constructor() {
     super();
-    this.logger = logger.forContext(JwtAuthGuard.name);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleRequest(err: any, user: any, _info: any, context: ExecutionContext): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  handleRequest(err: any, user: any, _info: any, _context: ExecutionContext): any {
     if (err || !user) {
-      const clientIp = getClientIp(context);
-      this.logger.warn(`Auth cookie validation failed. IP: ${clientIp}`);
+      //const clientIp = getClientIp(context);
+      //this.logger.warn(`Auth cookie validation failed. IP: ${clientIp}`); would log on every failed attempt, which is too noisy
       throw new UnauthorizedException('Érvénytelen azonosított állapot!');
     }
 
