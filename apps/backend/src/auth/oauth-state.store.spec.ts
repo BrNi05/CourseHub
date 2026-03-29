@@ -56,7 +56,8 @@ describe('OAuthStateStore', () => {
     expect(callback).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'OAuth state cookie could not be written because the response is missing.',
-      })
+      }),
+      undefined
     );
   });
 

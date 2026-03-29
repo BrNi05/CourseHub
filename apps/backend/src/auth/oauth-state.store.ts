@@ -2,20 +2,9 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
+import type OAuth2Strategy from 'passport-oauth2';
 
 import { OAUTH_STATE_COOKIE_NAME, buildOAuthStateCookieOptions } from './auth.constants.js';
-
-// Passport may pass an optional metadata object to the store and verify functions
-type OAuthMetadata = {
-  authorizationURL: string;
-  tokenURL: string;
-  clientID: string;
-  callbackURL?: string;
-};
-
-type StateStoreStoreCallback = (err: Error | null, state?: string) => void;
-
-type StateStoreVerifyCallback = (err: Error | null, ok: boolean, state?: unknown) => void;
 
 // Compare the browser and callback state
 function hasMatchingState(expectedState: string, providedState: string): boolean {
@@ -28,21 +17,25 @@ function hasMatchingState(expectedState: string, providedState: string): boolean
 }
 
 @Injectable()
-export class OAuthStateStore {
+export class OAuthStateStore implements OAuth2Strategy.StateStore {
   private readonly isSecure: boolean;
 
   constructor(configService: ConfigService) {
     this.isSecure = configService.get<string>('NODE_ENV') === 'production';
   }
 
-  store(req: Request, callback: StateStoreStoreCallback): void;
-
-  store(req: Request, _meta: OAuthMetadata, callback: StateStoreStoreCallback): void;
+  store(req: Request, callback: OAuth2Strategy.StateStoreStoreCallback): void;
 
   store(
     req: Request,
-    metaOrCallback: OAuthMetadata | StateStoreStoreCallback,
-    maybeCallback?: StateStoreStoreCallback
+    _meta: OAuth2Strategy.Metadata,
+    callback: OAuth2Strategy.StateStoreStoreCallback
+  ): void;
+
+  store(
+    req: Request,
+    metaOrCallback: OAuth2Strategy.Metadata | OAuth2Strategy.StateStoreStoreCallback,
+    maybeCallback?: OAuth2Strategy.StateStoreStoreCallback
   ): void {
     // Passport calls this with either (req, callback) or (req, meta, callback)
     const callback = typeof metaOrCallback === 'function' ? metaOrCallback : maybeCallback;
@@ -51,7 +44,8 @@ export class OAuthStateStore {
 
     if (!req.res) {
       callback(
-        new Error('OAuth state cookie could not be written because the response is missing.')
+        new Error('OAuth state cookie could not be written because the response is missing.'),
+        undefined
       );
       return;
     }
@@ -62,19 +56,19 @@ export class OAuthStateStore {
     callback(null, state);
   }
 
-  verify(req: Request, state: string, callback: StateStoreVerifyCallback): void;
+  verify(req: Request, state: string, callback: OAuth2Strategy.StateStoreVerifyCallback): void;
 
   verify(
     req: Request,
     state: string,
-    _meta: OAuthMetadata,
-    callback: StateStoreVerifyCallback
+    _meta: OAuth2Strategy.Metadata,
+    callback: OAuth2Strategy.StateStoreVerifyCallback
   ): void;
   verify(
     req: Request,
     state: string,
-    metaOrCallback: OAuthMetadata | StateStoreVerifyCallback,
-    maybeCallback?: StateStoreVerifyCallback
+    metaOrCallback: OAuth2Strategy.Metadata | OAuth2Strategy.StateStoreVerifyCallback,
+    maybeCallback?: OAuth2Strategy.StateStoreVerifyCallback
   ): void {
     // Passport calls this with either (req, state, callback) or (req, state, meta, callback)
     const callback = typeof metaOrCallback === 'function' ? metaOrCallback : maybeCallback;
