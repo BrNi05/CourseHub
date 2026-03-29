@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,13 +7,13 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
 const corepackCommand = process.platform === 'win32' ? 'corepack.cmd' : 'corepack';
 
-// Monorepo packages
-const packageDirs = [
-  { label: 'root', cwd: repoRoot },
-  { label: 'backend', cwd: path.join(repoRoot, 'apps', 'backend') },
-  { label: 'client', cwd: path.join(repoRoot, 'apps', 'client') },
-  { label: 'sdk', cwd: path.join(repoRoot, 'packages', 'sdk') },
-];
+const packageDirsPath = path.join(scriptDir, 'pnpm-package-dirs.json');
+const packageDirs = JSON.parse(readFileSync(packageDirsPath, 'utf-8')).map(
+  (packageDir) => ({
+    ...packageDir,
+    cwd: path.resolve(repoRoot, packageDir.path),
+  })
+);
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, {

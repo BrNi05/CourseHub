@@ -1,0 +1,6 @@
+[
+  { "label": "root", "path": "." },
+  { "label": "backend", "path": "apps/backend" },
+  { "label": "client", "path": "apps/client" },
+  { "label": "sdk", "path": "packages/sdk" }
+]

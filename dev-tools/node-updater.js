@@ -1,113 +1,114 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable no-console */
 const { spawnSync } = require('node:child_process');
+const { existsSync, readFileSync } = require('node:fs');
 const os = require('node:os');
-const { readFileSync } = require('node:fs');
 const path = require('node:path');
 
-const isWindows = os.platform() === 'win32';
-const shell = process.env.SHELL;
+const isWindows = process.platform === 'win32';
+const unixShell = process.env.SHELL || '/bin/bash';
 const nvmDir = process.env.NVM_DIR || path.join(os.homedir(), '.nvm');
+const nvmScript = path.join(nvmDir, 'nvm.sh');
+const repoRoot = path.join(__dirname, '..');
 
-// pnpm version
-const pkgPath = path.join(__dirname, '..', 'package.json');
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-if (!pkg.packageManager?.startsWith('pnpm@')) {
-  console.error(
-    'Error: package.json "packageManager" field is missing or invalid.'
-  );
-  process.exit(1);
-}
-const pnpmVersion = pkg.packageManager.split('@')[1];
+const packageDirsPath = path.join(__dirname, 'pnpm-package-dirs.json');
+const packageDirs = JSON.parse(readFileSync(packageDirsPath, 'utf-8')).map(
+  (packageDir) => ({
+    ...packageDir,
+    cwd: path.resolve(repoRoot, packageDir.path),
+    packageJsonPath: path.resolve(repoRoot, packageDir.path, 'package.json'),
+  })
+);
 
-// Execute a shell command
-function run(cmd, { silent = false } = {}) {
-  if (!silent) console.log(`> ${cmd}`);
-
-  // On Windows, spawn a new shell on every command so Node switch does not break the script
-  const isWindows = process.platform === 'win32';
-  let output;
-  if (isWindows) {
-    output = spawnSync('powershell', ['-Command', cmd], {
-      stdio: 'pipe',
-      encoding: 'utf-8',
-    });
-  } else {
-    // Load nvm in the shell
-    const nvmInit = `. ${nvmDir}/nvm.sh`;
-    const fullCmd = `${nvmInit} && ${cmd}`;
-    output = spawnSync(shell, ['-c', fullCmd], {
-      stdio: 'pipe',
-      encoding: 'utf-8',
-    });
-  }
-  if (!silent) {
-    process.stdout.write(output.stdout);
+function getPackageManager(packageDir) {
+  if (!existsSync(packageDir.packageJsonPath)) {
+    throw new Error(`package.json was not found at ${packageDir.packageJsonPath}`);
   }
 
-  if (output.error) throw output.error;
-  if (output.status !== 0) throw new Error(output.stderr);
+  const pkg = JSON.parse(readFileSync(packageDir.packageJsonPath, 'utf-8'));
 
-  return output;
+  if (!pkg.packageManager?.startsWith('pnpm@')) {
+    throw new Error(
+      `${packageDir.label} package.json "packageManager" field is missing or invalid.`
+    );
+  }
+
+  return pkg.packageManager;
 }
 
-// Return the current Node version
-function getCurrentNode() {
-  const output = run('node -v', { silent: true });
-
-  return output.stdout.trim().substring(1);
+function shellEscape(value) {
+  const newLocal = String.raw`'\''`;
+  return `'${String(value).replaceAll('\'', newLocal)}'`;
 }
 
-// Returns installed Node versions
-function getInstalledNodes() {
-  const output = run('nvm list', { silent: true });
-  const result = output.stdout.trim();
-  let parsed = result.match(/\d+\.\d+\.\d+/g) || [];
+function powershellEscape(value) {
+  return `'${String(value).replaceAll('\'', "''")}'`;
+}
 
-  parsed = parsed.filter((v) => v !== getCurrentNode()); // Do not remove current version
+function buildScript(command) {
+  if (isWindows) return command;
 
-  return parsed;
+  if (!existsSync(nvmScript)) throw new Error(`nvm.sh was not found at ${nvmScript}`);
+
+  return `. ${shellEscape(nvmScript)} && ${command}`;
+}
+
+function execute(command, { capture = false, cwd } = {}) {
+  const shellCommand = buildScript(command);
+  const executable = isWindows ? 'powershell' : unixShell;
+  const args = isWindows
+    ? ['-NoProfile', '-Command', shellCommand]
+    : ['-lc', shellCommand];
+
+  console.log(`> ${command}`);
+
+  const result = spawnSync(executable, args, {
+    cwd,
+    encoding: 'utf-8',
+    stdio: capture ? 'pipe' : 'inherit',
+  });
+
+  if (result.error) throw result.error;
+
+  if (result.status !== 0) {
+    const output = `${result.stderr || ''}${result.stdout || ''}`.trim();
+    throw new Error(output || `Command failed with exit code ${result.status}`);
+  }
+
+  return capture ? result.stdout.trim() : '';
 }
 
 try {
-  console.log('Current Node version:');
-  run('node -v');
+  console.log(`Current Node version: ${process.version}\n`);
 
-  console.log('\nUpdating Node to latest LTS...');
-  if (isWindows) {
-    run('nvm install lts');
-    run('nvm use lts');
-  } else {
-    run('nvm install --lts');
-    run('nvm alias default "lts/*"');
-    run('nvm use default');
+  execute(
+    isWindows
+      ? 'nvm install lts; nvm use lts'
+      : "nvm install --lts && nvm alias default 'lts/*' >/dev/null && nvm use --lts >/dev/null"
+  );
+
+  console.log(); // spacer
+
+  execute(
+    isWindows
+      ? 'corepack enable'
+      : 'nvm use --lts >/dev/null && corepack enable'
+  );
+
+  console.log(); // spacer
+
+  for (const packageDir of packageDirs) {
+    const packageManager = getPackageManager(packageDir);
+
+    execute(
+      isWindows
+        ? `corepack prepare ${powershellEscape(packageManager)} --activate; corepack install`
+        : `nvm use --lts >/dev/null && corepack prepare ${shellEscape(packageManager)} --activate && corepack install`,
+      { cwd: packageDir.cwd }
+    );
+
+    console.log(); // spacer
   }
-
-  console.log('\nUpdate complete! Now using:');
-  run('node -v');
-
-  // Install pnpm globally (or make sure it is already installed)
-  console.log('\nInstalling pnpm globally...');
-  run(`npm install -g pnpm@${pnpmVersion}`);
-
-  console.log('\nCleaning up old Node versions...');
-  const installedNodes = getInstalledNodes();
-
-  if (installedNodes.length == 0) {
-    console.log('No old Node versions found.');
-  } else {
-    console.log('Old Node versions:', installedNodes);
-    installedNodes.forEach((v) => {
-      console.log(`\nUninstalling ${v}...`);
-      // Might produce errors (when the old installs are used by other processes)
-      // Exit code is 0 so this script does not fail
-      run(`nvm uninstall ${v}`);
-    });
-    console.log(); // dummy print
-  }
-
-  console.log('\nCleanup complete!');
-} catch (err) {
-  console.error('\nUpdate process failed:', err.message);
+} catch (error) {
+  console.error('\nUpdate process failed:', error.message);
   process.exit(1);
 }
