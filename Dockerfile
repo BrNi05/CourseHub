@@ -39,4 +39,8 @@ LABEL org.opencontainers.image.source="https://github.com/BrNi05/CourseHub" \
       org.opencontainers.image.description="CourseHub backend server image" \
       org.opencontainers.image.licenses="Apache-2.0"
 
+# Only checks if the server is running
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=2 \
+  CMD curl -f http://localhost:3000/api/health
+
 CMD ["node", "build/main.js"]
