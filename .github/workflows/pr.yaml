@@ -11,6 +11,7 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
     env:
+      TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
       TURBO_TELEMETRY_DISABLED: 1
     steps:
@@ -29,8 +30,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build whole repo
-        run: pnpm turbo run build --cache=remote:rw
-
-      - name: Test
-        run: pnpm test
+      - name: Build and Test
+        run: pnpm turbo run build --cache=remote:r

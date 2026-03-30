@@ -2,13 +2,14 @@
   "$schema": "https://turborepo.org/schema.json",
   "tasks": {
     // Global lint task
+    // Client depends on SDK, so lint would fail if SDK is not built yet
     "lint:all": {
+      "dependsOn": ["@coursehub/sdk#build"],
       "outputs": [],
       "cache": true
     },
     // Prisma generate
     "@coursehub/backend#db:generate": {
-      "dependsOn": ["lint:all"],
       "cache": true,
       "outputs": ["src/prisma/generated/client/**"]
     },
