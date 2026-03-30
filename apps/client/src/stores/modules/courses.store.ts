@@ -5,7 +5,7 @@ import { getErrorMessage } from '../shared/errors';
 import { hydrateFromStorage, setupPersistence } from '../shared/storage';
 import type { SearchFilters } from '../shared/types';
 import { searchCoursesByFilters } from '../../api/courses.api';
-import { updateCurrentUserPinnedCourses } from '../../api/user.api';
+import { fetchCurrentUser, updateCurrentUserPinnedCourses } from '../../api/user.api';
 import { dedupeCourses } from '../helpers/course.utils';
 import { authState, handleUnauthorized } from './auth.store';
 import { pushNotice } from './notifications.store';
@@ -42,12 +42,31 @@ export function clearSelectedCourses(): void {
   coursesState.selectedCourses = [];
 }
 
+async function reloadPinnedCoursesFromServer(userId: string): Promise<boolean> {
+  try {
+    const user = await fetchCurrentUser(userId);
+    const { selectedCourses } = applyUserResponse(user);
+
+    replaceSelectedCourses(selectedCourses);
+    return true;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return false;
+    }
+
+    return false;
+  }
+}
+
 export async function syncPinnedCourses(
   ids: string[],
   successTitle: string,
   successDetail: string
 ): Promise<void> {
-  if (!authState.session.userId) {
+  const userId = authState.session.userId;
+
+  if (!userId) {
     pushNotice(
       'info',
       successTitle,
@@ -59,7 +78,7 @@ export async function syncPinnedCourses(
   coursesState.syncingCourses = true;
 
   try {
-    const user = await updateCurrentUserPinnedCourses(authState.session.userId, ids);
+    const user = await updateCurrentUserPinnedCourses(userId, ids);
     const { selectedCourses } = applyUserResponse(user);
 
     replaceSelectedCourses(selectedCourses);
@@ -70,7 +89,15 @@ export async function syncPinnedCourses(
       return;
     }
 
-    pushNotice('danger', 'Nem sikerült menteni a tárgyváltoztatásokat', getErrorMessage(error));
+    const restored = await reloadPinnedCoursesFromServer(userId);
+
+    pushNotice(
+      'danger',
+      'Sikertelen szinkronizáció',
+      restored
+        ? 'A szerveren tárolt választásaid visszaállításra kerültek.'
+        : 'A szerveren tárolt választásaid visszaállítása nem sikerült. Kérlek próbáld újra később.'
+    );
   } finally {
     coursesState.syncingCourses = false;
   }
