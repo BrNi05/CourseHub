@@ -17,7 +17,7 @@ import cookieParser from 'cookie-parser';
 
 import { setupSwagger } from './swagger/swagger.js';
 
-const logger = new Logger('BOOTSTRAP');
+const logger = new Logger('Bootstrap');
 
 try {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
