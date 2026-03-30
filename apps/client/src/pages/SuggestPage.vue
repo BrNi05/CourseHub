@@ -11,7 +11,7 @@ import {
 } from '@coursehub/sdk';
 
 import BaseButton from '@/components/BaseButton.vue';
-import { useAppStore } from '@/lib/app-store';
+import { useAppStore } from '@/stores/composables/use-app-store';
 
 type SuggestionForm = {
   uniName: string;

@@ -4,7 +4,8 @@ import { computed, ref } from 'vue';
 import BaseButton from './BaseButton.vue';
 import BaseDialog from './BaseDialog.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
-import { useAppStore } from '@/lib/app-store';
+
+import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
 const session = app.state.session as { email: string | null };

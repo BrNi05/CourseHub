@@ -3,7 +3,8 @@ import { computed, onMounted } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
 import CourseCard from '@/components/CourseCard.vue';
-import { useAppStore } from '@/lib/app-store';
+
+import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
 
