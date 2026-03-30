@@ -30,7 +30,7 @@ jobs:
         run: pnpm install
 
       - name: Build whole repo
-        run: pnpm turbo run build --cache=remote
+        run: pnpm turbo run build --cache=remote:rw
 
       - name: Test
         run: pnpm test
