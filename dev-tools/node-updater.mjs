@@ -1,16 +1,18 @@
 /* eslint-disable no-console */
-const { spawnSync } = require('node:child_process');
-const { existsSync, readFileSync } = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const isWindows = process.platform === 'win32';
 const unixShell = process.env.SHELL || '/bin/bash';
 const nvmDir = process.env.NVM_DIR || path.join(os.homedir(), '.nvm');
 const nvmScript = path.join(nvmDir, 'nvm.sh');
-const repoRoot = path.join(__dirname, '..');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.join(scriptDir, '..');
 
-const packageDirsPath = path.join(__dirname, 'pnpm-package-dirs.json');
+const packageDirsPath = path.join(scriptDir, 'pnpm-package-dirs.json');
 const packageDirs = JSON.parse(readFileSync(packageDirsPath, 'utf-8')).map(
   (packageDir) => ({
     ...packageDir,

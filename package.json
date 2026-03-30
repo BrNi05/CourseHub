@@ -11,7 +11,7 @@
     "docker:build": "docker build -t coursehub -f Dockerfile .",
     "scan:image": "trivy image --scanners vuln,secret --vuln-type library --severity HIGH,CRITICAL --ignore-unfixed -o trivy-image-report.txt coursehub:latest && code -r trivy-image-report.txt",
     "clear:all": "pnpm -r exec rimraf node_modules .build build .turbo .eslintcache openapi.json && rm -rf node_modules",
-    "update:node": "node ./dev-tools/node-updater.js",
+    "update:node": "node ./dev-tools/node-updater.mjs",
     "update:pnpm": "node ./dev-tools/pnpm-updater.mjs",
     "update:deps": "pnpm -r update && pnpm dedupe",
     "safe": "git config core.hooksPath .husky",
