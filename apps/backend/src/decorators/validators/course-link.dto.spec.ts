@@ -31,6 +31,15 @@ describe('CourseLink', () => {
     expect(errors).toHaveLength(0);
   });
 
+  it('accepts empty string for optional links so existing values can be cleared', async () => {
+    const dto = new GenericCourseLinkDto();
+    dto.link = '';
+
+    const errors = await validate(dto);
+
+    expect(errors).toHaveLength(0);
+  });
+
   it('rejects invalid URL values', async () => {
     const dto = new GenericCourseLinkDto();
     dto.link = 'javascript:alert(1)';

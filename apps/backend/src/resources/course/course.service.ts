@@ -131,13 +131,18 @@ export class CourseService {
         name: dto.name,
         code: dto.code ? normalizedCode : undefined,
         facultyId,
-        coursePageUrl: this.normalizeUrl(dto.coursePageUrl) || existingCourse.coursePageUrl,
-        courseTadUrl: this.normalizeUrl(dto.courseTadUrl) || existingCourse.courseTadUrl,
-        courseMoodleUrl: this.normalizeUrl(dto.courseMoodleUrl) || existingCourse.courseMoodleUrl,
-        courseSubmissionUrl:
-          this.normalizeUrl(dto.courseSubmissionUrl) || existingCourse.courseSubmissionUrl,
-        courseTeamsUrl: this.normalizeUrl(dto.courseTeamsUrl) || existingCourse.courseTeamsUrl,
-        courseExtraUrl: this.normalizeUrl(dto.courseExtraUrl) || existingCourse.courseExtraUrl,
+        coursePageUrl: this.resolveUpdatedUrl(dto.coursePageUrl, existingCourse.coursePageUrl),
+        courseTadUrl: this.resolveUpdatedUrl(dto.courseTadUrl, existingCourse.courseTadUrl),
+        courseMoodleUrl: this.resolveUpdatedUrl(
+          dto.courseMoodleUrl,
+          existingCourse.courseMoodleUrl
+        ),
+        courseSubmissionUrl: this.resolveUpdatedUrl(
+          dto.courseSubmissionUrl,
+          existingCourse.courseSubmissionUrl
+        ),
+        courseTeamsUrl: this.resolveUpdatedUrl(dto.courseTeamsUrl, existingCourse.courseTeamsUrl),
+        courseExtraUrl: this.resolveUpdatedUrl(dto.courseExtraUrl, existingCourse.courseExtraUrl),
       },
     });
 
@@ -175,6 +180,12 @@ export class CourseService {
   private normalizeUrl(url?: string): string {
     if (!url || url.trim() === '') return '';
     return url;
+  }
+
+  // Undefined keeps the stored URL, while an explicit empty string clears it.
+  private resolveUpdatedUrl(url: string | undefined, existingUrl: string): string {
+    if (url === undefined) return existingUrl;
+    return this.normalizeUrl(url);
   }
 
   // Ensures course code starts with the parent university abbreviation

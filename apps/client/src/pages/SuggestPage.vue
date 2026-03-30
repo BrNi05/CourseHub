@@ -147,12 +147,12 @@ async function submitForm() {
     facultyAbbrevName: form.facultyAbbrevName.trim(),
     courseName: form.courseName.trim(),
     courseCode: form.courseCode.trim(),
-    coursePageUrl: form.coursePageUrl.trim() || undefined,
-    courseTadUrl: form.courseTadUrl.trim() || undefined,
-    courseMoodleUrl: form.courseMoodleUrl.trim() || undefined,
-    courseSubmissionUrl: form.courseSubmissionUrl.trim() || undefined,
-    courseTeamsUrl: form.courseTeamsUrl.trim() || undefined,
-    courseExtraUrl: form.courseExtraUrl.trim() || undefined,
+    coursePageUrl: form.coursePageUrl.trim(),
+    courseTadUrl: form.courseTadUrl.trim(),
+    courseMoodleUrl: form.courseMoodleUrl.trim(),
+    courseSubmissionUrl: form.courseSubmissionUrl.trim(),
+    courseTeamsUrl: form.courseTeamsUrl.trim(),
+    courseExtraUrl: form.courseExtraUrl.trim(),
   };
 
   const ok = await app.submitSuggestion(payload);
