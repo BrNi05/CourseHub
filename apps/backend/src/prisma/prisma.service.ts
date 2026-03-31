@@ -4,6 +4,8 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { ContextualLogger, LoggerService } from '../logger/logger.service.js';
 
+const isOpenApiGeneration = process.env['OPENAPI_GENERATION'] === 'true';
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   readonly logger: ContextualLogger;
@@ -18,6 +20,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleInit() {
+    if (isOpenApiGeneration) {
+      this.logger.log('Skipping PostgreSQL connection during OpenAPI generation.');
+      return;
+    }
+
     let retries = 3;
     while (retries) {
       try {
@@ -34,6 +41,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleDestroy() {
+    if (isOpenApiGeneration) return;
+
     await this.$disconnect();
     this.logger.log('CourseHub-Backend is shutting down. Disconnected from PostgreSQL.');
   }

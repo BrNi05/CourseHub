@@ -4,7 +4,7 @@ import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CacheModule, type CacheModuleOptions } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
@@ -22,6 +22,8 @@ import { InternalOnlyGuard } from './common/security/guards/internal-only.guard.
 import { ThrottleGuard } from './common/throttling/throttler.guard.js';
 import { GlobalExceptionsFilter } from './filters/exception.filter.js';
 import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
+
+const isOpenApiGeneration = process.env['OPENAPI_GENERATION'] === 'true';
 
 @Module({
   imports: [
@@ -82,16 +84,19 @@ import { PrismaExceptionFilter } from './filters/prisma-exception.filter.js';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        stores: [
-          new KeyvRedis(
-            `redis://:${encodeURIComponent(
-              configService.getOrThrow('REDIS_PASSWORD')
-            )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
-          ),
-        ],
-        ttl: 0, // no expiration by default
-      }),
+      useFactory: (configService: ConfigService): CacheModuleOptions =>
+        isOpenApiGeneration
+          ? { ttl: 0 } // default in-memory cache for OpenAPI generation
+          : {
+              stores: [
+                new KeyvRedis(
+                  `redis://:${encodeURIComponent(
+                    configService.getOrThrow('REDIS_PASSWORD')
+                  )}@${configService.getOrThrow('REDIS_HOST')}:${configService.getOrThrow('REDIS_PORT')}`
+                ),
+              ],
+              ttl: 0, // no expiration by default
+            },
     }),
     // Cron jobs
     ScheduleModule.forRoot(),

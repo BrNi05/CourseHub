@@ -19,7 +19,7 @@
     "db:generate": "prisma generate --no-hints",
     "db:seed": "prisma db seed",
     "db:view": "prisma studio",
-    "api:gen": "ts-node --project tsconfig.json openapi.generate.ts",
+    "api:gen": "ts-node --project tsconfig.openapi.json openapi.generate.ts",
     "docker:prune": "docker system prune -a -f"
   },
   "dependencies": {
