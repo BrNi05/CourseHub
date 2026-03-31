@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router';
 
 import BaseButton from './BaseButton.vue';
 import type { Course } from '@coursehub/sdk';
+import { openMoodleLink, shouldUseMoodleAppRedirect } from '../utils/moodle-link';
 
 const props = defineProps<{
   course: Course;
@@ -16,6 +17,12 @@ const emit = defineEmits<{
   add: [course: Course];
   remove: [courseId: string];
 }>();
+
+type CourseLink = {
+  label: string;
+  value: string;
+  isMoodle: boolean;
+};
 
 // Mitigate potential XSS attacks by validating and sanitizing the assigned URLs
 function sanitizeUrl(value?: string | null) {
@@ -32,14 +39,21 @@ function sanitizeUrl(value?: string | null) {
 
 const links = computed(() =>
   [
-    { label: 'Tárgyoldal', value: sanitizeUrl(props.course.coursePageUrl) },
-    { label: 'TAD', value: sanitizeUrl(props.course.courseTadUrl) },
-    { label: 'Moodle', value: sanitizeUrl(props.course.courseMoodleUrl) },
-    { label: 'HF beadás', value: sanitizeUrl(props.course.courseSubmissionUrl) },
-    { label: 'Teams', value: sanitizeUrl(props.course.courseTeamsUrl) },
-    { label: 'Extra', value: sanitizeUrl(props.course.courseExtraUrl) },
-  ].filter((entry) => Boolean(entry.value))
+    { label: 'Tárgyoldal', value: sanitizeUrl(props.course.coursePageUrl), isMoodle: false },
+    { label: 'TAD', value: sanitizeUrl(props.course.courseTadUrl), isMoodle: false },
+    { label: 'Moodle', value: sanitizeUrl(props.course.courseMoodleUrl), isMoodle: true },
+    { label: 'HF beadás', value: sanitizeUrl(props.course.courseSubmissionUrl), isMoodle: false },
+    { label: 'Teams', value: sanitizeUrl(props.course.courseTeamsUrl), isMoodle: false },
+    { label: 'Extra', value: sanitizeUrl(props.course.courseExtraUrl), isMoodle: false },
+  ].filter((entry): entry is CourseLink => Boolean(entry.value))
 );
+
+function handleLinkClick(event: MouseEvent, entry: CourseLink) {
+  if (!entry.isMoodle || !shouldUseMoodleAppRedirect(entry.value)) return;
+
+  event.preventDefault();
+  openMoodleLink(entry.value);
+}
 </script>
 
 <template>
@@ -58,6 +72,7 @@ const links = computed(() =>
         :href="entry.value"
         class="course-card__link"
         rel="noreferrer"
+        @click="handleLinkClick($event, entry)"
       >
         <span class="course-card__dot"></span>
         <span>{{ entry.label }}</span>
