@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AuthService } from './auth.service.js';
 import type { JwtService } from '@nestjs/jwt';
 import type { ConfigService } from '@nestjs/config';
 import type { IJwtPayload } from './interfaces.js';
+import { AUTH_COOKIE_NAME, buildAuthCookieOptions } from './auth.constants.js';
+import type { Response } from 'express';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -42,6 +45,37 @@ describe('AuthService', () => {
         secret: 'fake-secret',
         algorithm: 'HS384',
       });
+    });
+  });
+
+  describe('setAuthCookie', () => {
+    it('should write the auth cookie with the expected options', () => {
+      const response = {
+        cookie: vi.fn(),
+      } as unknown as Response;
+
+      service.setAuthCookie(response, 'jwt-token', false);
+
+      expect(response.cookie).toHaveBeenCalledWith(
+        AUTH_COOKIE_NAME,
+        'jwt-token',
+        buildAuthCookieOptions(false)
+      );
+    });
+  });
+
+  describe('clearAuthCookie', () => {
+    it('should clear the auth cookie with the expected options', () => {
+      const response = {
+        clearCookie: vi.fn(),
+      } as unknown as Response;
+
+      service.clearAuthCookie(response, false);
+
+      expect(response.clearCookie).toHaveBeenCalledWith(
+        AUTH_COOKIE_NAME,
+        buildAuthCookieOptions(false)
+      );
     });
   });
 });

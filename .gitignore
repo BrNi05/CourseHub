@@ -50,3 +50,6 @@ apps/backend/public/frontend
 
 # Trivy scan result
 trivy-image-report.txt
+
+# VSCode Counter result
+.VSCodeCounter

@@ -2,15 +2,19 @@ import { type INestApplication } from '@nestjs/common';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_SECURITY_NAME } from '../auth/auth.constants.js';
+
 export function setupSwagger(app: INestApplication<unknown>): OpenAPIObject {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('CourseHub API')
     .setDescription('CourseHub API Documentation')
-    // Indicate to Swagger that certain endpoints require JWT auth
-    // This will also be reflected in the SDK: Bearer header / access token will be expected for each function
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'jwt' // used by both @RequiresAuth() and @Admin()
+    .addCookieAuth(
+      AUTH_COOKIE_NAME,
+      {
+        type: 'apiKey',
+        in: 'cookie',
+      },
+      AUTH_COOKIE_SECURITY_NAME
     )
     .build();
 

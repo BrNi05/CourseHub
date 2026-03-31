@@ -5,7 +5,8 @@ import { RouterView } from 'vue-router';
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
 import ToastStack from './components/ToastStack.vue';
-import { useAppStore } from './lib/app-store';
+
+import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
 

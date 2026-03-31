@@ -362,6 +362,56 @@ describe('CourseService', () => {
       expect(result).toEqual({ ...existingCourse, ...dto });
     });
 
+    it('should clear an existing URL when an empty string is provided', async () => {
+      const dto = {
+        coursePageUrl: '',
+      };
+
+      const existingCourse = {
+        id: 'c1',
+        facultyId: 'f1',
+        code: 'BMECS101',
+        coursePageUrl: 'https://oldpage.com',
+        courseTadUrl: 'https://oldtad.com',
+        courseMoodleUrl: 'https://oldmoodle.com',
+        courseSubmissionUrl: 'https://oldsubmission.com',
+        courseTeamsUrl: 'https://oldteams.com',
+        courseExtraUrl: 'https://oldextra.com',
+      };
+
+      prisma.course.findUniqueOrThrow.mockResolvedValue(existingCourse);
+      prisma.faculty.findUnique.mockResolvedValue({
+        id: 'f1',
+        university: { abbrevName: 'BME' },
+      });
+      prisma.course.update.mockResolvedValue({
+        ...existingCourse,
+        coursePageUrl: '',
+      });
+
+      const result = await service.update('c1', dto);
+
+      expect(prisma.course.update).toHaveBeenCalledWith({
+        where: { id: 'c1' },
+        data: {
+          name: undefined,
+          code: undefined,
+          facultyId: existingCourse.facultyId,
+          coursePageUrl: '',
+          courseTadUrl: existingCourse.courseTadUrl,
+          courseMoodleUrl: existingCourse.courseMoodleUrl,
+          courseSubmissionUrl: existingCourse.courseSubmissionUrl,
+          courseTeamsUrl: existingCourse.courseTeamsUrl,
+          courseExtraUrl: existingCourse.courseExtraUrl,
+        },
+      });
+
+      expect(result).toEqual({
+        ...existingCourse,
+        coursePageUrl: '',
+      });
+    });
+
     it('should prepend university abbrev if updated code does not start with it', async () => {
       const dto = { code: 'CS102' };
       const updatedCourse = {

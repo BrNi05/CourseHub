@@ -42,7 +42,7 @@ export class ClientController {
   @ApiOperation({
     summary: 'USER AUTH',
     description:
-      'Ping CourseHub so it can track usage statistics. User is indentified by the userId in the JWT.',
+      'Ping CourseHub so it can track usage statistics. User is identified by the authenticated cookie session.',
   })
   @ApiOkResponse({ description: 'Ping received' })
   @HttpCode(HttpStatus.OK)
@@ -57,7 +57,7 @@ export class ClientController {
   @ApiOperation({
     summary: 'USER AUTH',
     description:
-      'Report a client error for later analysis. User is indentified by the userId in the JWT.',
+      'Report a client error for later analysis. User is identified by the authenticated cookie session.',
   })
   @ApiCreatedResponse({ description: 'Error report received' })
   @Throttable(60, 6)

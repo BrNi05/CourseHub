@@ -4,7 +4,8 @@ import ErrorReportPage from '@/pages/ErrorReportPage.vue';
 import ManagePage from '@/pages/ManagePage.vue';
 import SearchPage from '@/pages/SearchPage.vue';
 import SuggestPage from '@/pages/SuggestPage.vue';
-import { applySeo, defaultSeo } from '@/lib/seo';
+
+import { applySeo, defaultSeo } from '@/seo/seo';
 
 const router = createRouter({
   history: createWebHistory(),

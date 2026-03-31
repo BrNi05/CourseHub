@@ -19,7 +19,7 @@ export class UserOwnershipGuard implements CanActivate {
 
     if (!user?.id) {
       this.logger.warn(`Missing authenticated user on request for resource ${resourceUserId}`);
-      throw new ForbiddenException('Érvénytelen vagy hiányzó JWT!');
+      throw new ForbiddenException('Érvénytelen azonosított állapot!');
     }
 
     // Owner access
@@ -38,7 +38,7 @@ export class UserOwnershipGuard implements CanActivate {
     }
 
     this.logger.warn(
-      `Access denied. JWT user ${user.id} is not owner nor admin for resource ${resourceUserId}`
+      `Access denied. Authenticated user ${user.id} is not owner nor admin for resource ${resourceUserId}`
     );
 
     throw new ForbiddenException('Hozzáférés megtagadva!');

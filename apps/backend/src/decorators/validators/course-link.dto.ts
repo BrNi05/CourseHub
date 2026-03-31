@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsUrl, Length, registerDecorator } from 'class-validator';
+import { IsOptional, IsUrl, Length, ValidateIf, registerDecorator } from 'class-validator';
 
 // Teams URL validation function
 export function isMicrosoftTeamsUrl(value: string) {
@@ -50,6 +50,7 @@ export function CourseLink(
 ) {
   return applyDecorators(
     IsOptional(),
+    ValidateIf((_object, value: unknown) => value !== ''),
     Length(15, 256, { message: `A link hossza min. $constraint1 és max. $constraint2 karakter.` }),
     IsUrl({ protocols: ['http', 'https'], require_protocol: true }, { message }), // Against invalid URLs and internal XSS attempts
     ...(options?.validate

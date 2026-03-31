@@ -2,8 +2,9 @@
 import { reactive } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
-import { useAppStore } from '@/lib/app-store';
-import { CLIENT_VERSION, getClientPlatform } from '@/lib/client-runtime';
+
+import { useAppStore } from '@/stores/composables/use-app-store';
+import { CLIENT_VERSION, getClientPlatform } from '@/utils/client-runtime';
 
 const app = useAppStore();
 
