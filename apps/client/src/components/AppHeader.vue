@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 import AccountActions from './AccountActions.vue';
+import BaseDialog from './BaseDialog.vue';
 
 const route = useRoute();
+const isMobileMenuOpen = ref(false);
 
 const navigation = computed(() => {
   return [
@@ -13,6 +15,22 @@ const navigation = computed(() => {
     { name: 'suggest', label: 'Tárgy hozzáadása', to: '/suggest' },
   ];
 });
+
+function openMobileMenu() {
+  isMobileMenuOpen.value = true;
+}
+
+function closeMobileMenu() {
+  isMobileMenuOpen.value = false;
+}
+
+// Close the mobile menu when navigating to a page
+watch(
+  () => route.fullPath,
+  () => {
+    closeMobileMenu();
+  }
+);
 </script>
 
 <template>
@@ -23,7 +41,7 @@ const navigation = computed(() => {
         <strong class="brand__title">CourseHub</strong>
       </RouterLink>
 
-      <nav class="header__nav" aria-label="Primary">
+      <nav class="header__nav header__nav--desktop" aria-label="Primary">
         <RouterLink
           v-for="item in navigation"
           :key="item.name"
@@ -34,11 +52,44 @@ const navigation = computed(() => {
         </RouterLink>
       </nav>
 
-      <div class="header__actions">
+      <div class="header__actions header__actions--desktop">
+        <AccountActions />
+      </div>
+
+      <button
+        aria-controls="mobile-navigation"
+        :aria-expanded="isMobileMenuOpen"
+        aria-label="Menü megnyitása"
+        class="header__menu-toggle"
+        type="button"
+        @click="openMobileMenu"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <BaseDialog v-model="isMobileMenuOpen" description="" title="Menü" width="md">
+    <div id="mobile-navigation" class="mobile-menu">
+      <nav class="mobile-menu__nav" aria-label="Mobile primary">
+        <RouterLink
+          v-for="item in navigation"
+          :key="item.name"
+          :class="['mobile-menu__link', { 'mobile-menu__link--active': route.name === item.name }]"
+          :to="item.to"
+          @click="closeMobileMenu"
+        >
+          {{ item.label }}
+        </RouterLink>
+      </nav>
+
+      <div class="mobile-menu__account">
         <AccountActions />
       </div>
     </div>
-  </header>
+  </BaseDialog>
 </template>
 
 <style scoped>
@@ -53,9 +104,9 @@ const navigation = computed(() => {
 
 .header__main {
   align-items: center;
-  display: grid;
+  display: flex;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1fr);
+  justify-content: space-between;
 }
 
 .brand {
@@ -88,6 +139,11 @@ const navigation = computed(() => {
   gap: 0.55rem;
 }
 
+.header__nav--desktop,
+.header__actions--desktop {
+  display: none;
+}
+
 .header__link {
   border-radius: 999px;
   color: var(--text-muted);
@@ -113,10 +169,84 @@ const navigation = computed(() => {
 
 .header__actions {
   align-items: center;
-  display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
   justify-content: space-between;
+}
+
+.header__menu-toggle {
+  align-items: center;
+  align-self: start;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid var(--border-soft);
+  border-radius: 1rem;
+  box-shadow: 0 18px 34px rgba(2, 6, 23, 0.28);
+  cursor: pointer;
+  display: inline-grid;
+  gap: 0.3rem;
+  justify-items: center;
+  margin-left: auto;
+  min-height: 3rem;
+  padding: 0.75rem 0.85rem;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.header__menu-toggle:hover {
+  background: rgba(30, 41, 59, 0.94);
+  border-color: rgba(96, 165, 250, 0.32);
+  transform: translateY(-1px);
+}
+
+.header__menu-toggle span {
+  background: var(--text-primary);
+  border-radius: 999px;
+  display: block;
+  height: 2px;
+  width: 1.2rem;
+}
+
+.mobile-menu {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.5rem;
+}
+
+.mobile-menu__nav {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.mobile-menu__link {
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(96, 165, 250, 0.12);
+  border-radius: 1rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  padding: 1rem 1.05rem;
+  text-decoration: none;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.mobile-menu__link:hover {
+  background: rgba(30, 41, 59, 0.94);
+  border-color: rgba(96, 165, 250, 0.28);
+  transform: translateY(-1px);
+}
+
+.mobile-menu__link--active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(124, 58, 237, 0.18));
+  border-color: rgba(129, 140, 248, 0.32);
+}
+
+.mobile-menu__account {
+  border-top: 1px solid var(--border-soft);
+  padding-top: 1rem;
 }
 
 @media (min-width: 900px) {
@@ -125,11 +255,22 @@ const navigation = computed(() => {
   }
 
   .header__main {
+    display: grid;
     grid-template-columns: auto 1fr auto;
+    justify-content: initial;
   }
 
-  .header__actions {
+  .header__nav--desktop,
+  .header__actions--desktop {
+    display: flex;
+  }
+
+  .header__actions--desktop {
     justify-content: flex-end;
+  }
+
+  .header__menu-toggle {
+    display: none;
   }
 }
 </style>
