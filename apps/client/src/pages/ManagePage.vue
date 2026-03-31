@@ -11,7 +11,7 @@ const app = useAppStore();
   <section class="page">
     <div class="page__intro">
       <div class="page__header">
-        <h1>Felvett tárgyak áttekintése</h1>
+        <h1>Felvett tárgyak</h1>
         <span class="page__badge">{{ app.state.selectedCourses.length }} felvett tárgy</span>
       </div>
     </div>
