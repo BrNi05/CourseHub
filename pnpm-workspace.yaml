@@ -12,3 +12,6 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - unrs-resolver
+
+# Mitigate supply chain attacks
+minimumReleaseAge: 720 # 12 hours
