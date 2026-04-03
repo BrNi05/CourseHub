@@ -22,10 +22,9 @@ export async function initialize(): Promise<void> {
   initializePromise = (async () => {
     const pendingLoginResult = consumePendingLoginResult();
     const hasLocalDraft = coursesState.selectedCourses.length > 0;
+    const newsPromise = loadNews();
 
     try {
-      await loadNews();
-
       const userResult = await loadCurrentUser(false);
 
       if (userResult) {
@@ -50,6 +49,7 @@ export async function initialize(): Promise<void> {
         );
       }
 
+      await newsPromise;
       appLifecycleState.initialized = true;
     } finally {
       initializePromise = null;
