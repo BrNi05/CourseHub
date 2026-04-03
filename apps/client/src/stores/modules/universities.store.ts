@@ -35,9 +35,15 @@ export async function loadUniversities(): Promise<void> {
     try {
       universitiesState.universities = await fetchUniversities();
 
+      // If the saved university ID is not in the loaded universities, reset it to the first university or empty
+      const selectedUniversityId = coursesState.searchFilters.universityId;
+      const hasSavedUniversity =
+        selectedUniversityId.length > 0 &&
+        universitiesState.universities.some((university) => university.id === selectedUniversityId);
       const [firstUniversity] = universitiesState.universities;
 
-      if (!coursesState.searchFilters.universityId && firstUniversity) {
+      if (selectedUniversityId && !hasSavedUniversity) coursesState.searchFilters.universityId = '';
+      else if (!selectedUniversityId && firstUniversity) {
         coursesState.searchFilters.universityId = firstUniversity.id;
       }
     } catch (error) {

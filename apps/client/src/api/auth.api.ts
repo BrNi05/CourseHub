@@ -24,8 +24,6 @@ export async function deleteProfileById(userId: string): Promise<void> {
 }
 
 export function consumeLoginResultFromUrl(): string | null {
-  if (globalThis.window === undefined) return null;
-
   const result = new URLSearchParams(globalThis.location.search).get('login');
   const url = new URL(globalThis.location.href);
 

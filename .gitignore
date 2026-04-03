@@ -53,3 +53,6 @@ trivy-image-report.txt
 
 # VSCode Counter result
 .VSCodeCounter
+
+# AI Agents generated
+.codex

@@ -11,7 +11,7 @@ export const CLIENT_VERSION = clientPackage.version;
 export function getClientPlatform(): ClientPlatform {
   if (cachedPlatform) return cachedPlatform;
 
-  const userAgent = globalThis.navigator?.userAgent?.toLowerCase() ?? '';
+  const userAgent = globalThis.navigator.userAgent.toLowerCase();
 
   if (userAgent.includes('android')) {
     cachedPlatform = 'android';
