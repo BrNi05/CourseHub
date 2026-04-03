@@ -35,22 +35,6 @@ export class UniversityController {
     return this.universityService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: 'PUBLIC',
-    description: 'Returns a university by ID without its faculties',
-  })
-  @ApiOkResponse({
-    type: UniversityWithoutFacultiesDto,
-    description: 'Success',
-  })
-  @Header('Cache-Control', 'public, max-age=3600')
-  @DatabaseOperation()
-  @Throttable(60, 60000)
-  findOne(@Param('id') id: string) {
-    return this.universityService.findOne(id);
-  }
-
   @Get('faculties')
   @Admin()
   @ApiOperation({
@@ -66,6 +50,22 @@ export class UniversityController {
   @Throttable(60, 3)
   findAllWithFaculties() {
     return this.universityService.findAllWithFaculties();
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'PUBLIC',
+    description: 'Returns a university by ID without its faculties',
+  })
+  @ApiOkResponse({
+    type: UniversityWithoutFacultiesDto,
+    description: 'Success',
+  })
+  @Header('Cache-Control', 'public, max-age=3600')
+  @DatabaseOperation()
+  @Throttable(60, 60000)
+  findOne(@Param('id') id: string) {
+    return this.universityService.findOne(id);
   }
 
   @Post()
