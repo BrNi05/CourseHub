@@ -20,8 +20,6 @@ export function pingStorageKey(
 }
 
 export function readPingRegistry(): PingRegistry {
-  if (globalThis.window === undefined) return {};
-
   const savedRegistry = globalThis.localStorage.getItem(PING_STORAGE_KEY);
 
   if (!savedRegistry) return {};
@@ -47,8 +45,6 @@ export function readPingRegistry(): PingRegistry {
 }
 
 export function writePingRegistry(registry: PingRegistry) {
-  if (globalThis.window === undefined) return;
-
   const today = pingDayKey();
   const entries: PingRegistry = {};
 

@@ -51,10 +51,7 @@ export function clearSession(): void {
   sessionPromise = null;
   authState.session.userId = null;
   authState.session.email = null;
-
-  if (globalThis.window !== undefined) {
-    globalThis.localStorage.removeItem(PING_STORAGE_KEY);
-  }
+  globalThis.localStorage.removeItem(PING_STORAGE_KEY);
 }
 
 export function handleUnauthorized(showNotice: boolean = true): void {

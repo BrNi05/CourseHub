@@ -13,8 +13,6 @@ function isStoredCourseArray(value: unknown): value is Course[] {
 }
 
 export function hydrateFromStorage(): Course[] {
-  if (globalThis.window === undefined) return [];
-
   const savedDraft = globalThis.localStorage.getItem(DRAFT_STORAGE_KEY);
 
   if (!savedDraft) return [];
@@ -39,8 +37,6 @@ export function setupPersistence(source: () => Course[]) {
   watch(
     source,
     (courses) => {
-      if (globalThis.window === undefined) return;
-
       globalThis.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(courses));
     },
     { deep: true, immediate: true }
