@@ -2,7 +2,12 @@ import { isAxiosError } from 'axios';
 import { reactive } from 'vue';
 
 import { getErrorMessage } from '../shared/errors';
-import { hydrateFromStorage, setupPersistence } from '../shared/storage';
+import {
+  hydrateFromStorage,
+  hydrateSearchUniversityId,
+  persistSearchUniversityId,
+  setupPersistence,
+} from '../shared/storage';
 import type { SearchFilters } from '../shared/types';
 import { searchCoursesByFilters } from '../../api/courses.api';
 import { fetchCurrentUser, updateCurrentUserPinnedCourses } from '../../api/user.api';
@@ -22,7 +27,7 @@ type CoursesState = {
 
 export const coursesState = reactive<CoursesState>({
   searchFilters: {
-    universityId: '',
+    universityId: hydrateSearchUniversityId() ?? '',
     courseName: '',
     courseCode: '',
   } as SearchFilters,
@@ -116,6 +121,7 @@ export async function searchCourses(): Promise<void> {
   coursesState.searchingCourses = true;
 
   try {
+    persistSearchUniversityId(coursesState.searchFilters.universityId);
     coursesState.searchResults = await searchCoursesByFilters(coursesState.searchFilters);
   } catch (error) {
     pushNotice('danger', 'Nem sikerült keresni a tárgyak között', getErrorMessage(error));
