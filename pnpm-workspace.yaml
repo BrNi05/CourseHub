@@ -4,14 +4,12 @@ packages:
   - packages/*
 
 onlyBuiltDependencies:
-  - '@nestjs/core'
-  - '@openapitools/openapi-generator-cli'
+  - prisma
   - '@prisma/engines'
-  - '@scarf/scarf'
   - bcrypt
   - esbuild
-  - prisma
-  - unrs-resolver
+  #- '@scarf/scarf' - logging and analytics
+  #- '@nestjs/core' - funding notice
 
 # Mitigate supply chain attacks
 minimumReleaseAge: 720 # 12 hours
