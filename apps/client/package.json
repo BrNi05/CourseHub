@@ -17,7 +17,7 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "@unocss/preset-wind3": "^66.6.7",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.9.1",
