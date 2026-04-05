@@ -56,3 +56,8 @@ trivy-image-report.txt
 
 # AI Agents generated
 .codex
+
+# Python database backup app
+apps/database-backup/.venv/
+apps/database-backup/.pytest_cache/
+apps/database-backup/**/__pycache__/

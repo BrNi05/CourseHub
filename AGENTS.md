@@ -35,15 +35,16 @@
 
 CourseHub is a `pnpm` monorepo:
 
-- `apps/backend`: NestJS API, Prisma, auth, admin/ops endpoints, static asset serving
-- `apps/client`: Vue 3 SPA with TypeScript and UnoCSS
-- `packages/sdk`: generated TypeScript SDK from backend OpenAPI
-- `docs`: project documentation
-- `hosting`: deployment and infrastructure helpers
-- `eslint-rules`: custom repository lint rules
-- `legal`: GDPR, LIA and Terms documents
-- `dev-tools`: local maintenance scripts
-- `openapi.json`: generated backend OpenAPI spec at repo root
+- `apps/backend`: NestJS API, Prisma, auth, admin/ops endpoints, static asset serving.
+- `apps/client`: Vue 3 SPA with TypeScript and UnoCSS.
+- `apps/database-backup`: standalone Python CLI for pulling remote database backups locally.
+- `packages/sdk`: generated TypeScript SDK from backend OpenAPI.
+- `docs`: project documentation.
+- `hosting`: deployment and infrastructure helpers.
+- `eslint-rules`: custom repository lint rules.
+- `legal`: GDPR, LIA and Terms documents.
+- `dev-tools`: local maintenance scripts.
+- `openapi.json`: generated backend OpenAPI spec at repo root.
 
 The repo is API-first in practice:
 
@@ -61,6 +62,7 @@ The repo is API-first in practice:
 - Client routing lives in `apps/client/src/router`.
 - Client state uses the local `stores` tree; do not introduce a new state library without explicit need.
 - The backend serves the SPA and static assets; the top-level `bundle:static` flow copies client output into the backend.
+- Ignore the local backup helper under `apps/database-backup`. It is a dev helper tool and is not releant to the production code.
 
 ## Security Requirements
 
