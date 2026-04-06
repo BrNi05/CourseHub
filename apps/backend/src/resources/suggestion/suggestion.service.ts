@@ -31,6 +31,11 @@ export class SuggestionService {
     return await this.prisma.suggestedCourse.findMany();
   }
 
+  // For metrics, not used in the API
+  async count(): Promise<number> {
+    return await this.prisma.suggestedCourse.count();
+  }
+
   async suggest(
     userId: string,
     createSuggestionDto: CreateSuggestionDto

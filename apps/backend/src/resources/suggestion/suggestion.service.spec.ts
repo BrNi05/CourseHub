@@ -13,6 +13,7 @@ describe('SuggestionService', () => {
   beforeEach(() => {
     prisma = {
       suggestedCourse: {
+        count: vi.fn(),
         findMany: vi.fn(),
         findUniqueOrThrow: vi.fn(),
         create: vi.fn(),
@@ -64,6 +65,17 @@ describe('SuggestionService', () => {
 
       expect(result).toEqual(suggestions);
       expect(prisma.suggestedCourse.findMany).toHaveBeenCalled();
+    });
+  });
+
+  describe('count', () => {
+    it('should return the number of suggested courses', async () => {
+      prisma.suggestedCourse.count.mockResolvedValue(7);
+
+      const result = await service.count();
+
+      expect(result).toBe(7);
+      expect(prisma.suggestedCourse.count).toHaveBeenCalled();
     });
   });
 

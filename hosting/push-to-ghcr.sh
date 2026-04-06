@@ -18,6 +18,7 @@ fi
 OWNER="brni05"
 IMAGE_NAME="coursehub-backend"
 TAG=$(jq -r '.version' ../apps/backend/package.json)
+BUILDER_NAME="coursehub-multiarch"
 
 VERSION_IMAGE="ghcr.io/$OWNER/$IMAGE_NAME:$TAG"
 LATEST_IMAGE="ghcr.io/$OWNER/$IMAGE_NAME:latest"
@@ -43,12 +44,24 @@ echo "Building the project..."
 pnpm run build:all
 echo
 
-docker build -t backend:latest ..
+# Prepare Docker buildx builder for multi-arch builds
+echo "Preparing Docker buildx builder..."
+if ! docker buildx inspect "$BUILDER_NAME" >/dev/null 2>&1; then
+  docker buildx create --use --name "$BUILDER_NAME"
+else
+  docker buildx use "$BUILDER_NAME"
+fi
 
-docker tag backend:latest "$VERSION_IMAGE"
-docker tag backend:latest "$LATEST_IMAGE"
+docker buildx inspect --bootstrap
+echo
 
-docker push "$VERSION_IMAGE"
-docker push "$LATEST_IMAGE"
+echo -e "Building multi-arch image for linux/amd64 and linux/arm64...\n"
+
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t "$VERSION_IMAGE" \
+  -t "$LATEST_IMAGE" \
+  --push \
+  ..
 
 echo -e "\nImages pushed to GHCR."

@@ -239,6 +239,24 @@ describe('ClientService', () => {
     expect(result[1]).toEqual(report2);
   });
 
+  it('should count only json error reports without reading file contents', async () => {
+    const entries = [
+      { isFile: () => true, name: 'report-1.json' },
+      { isFile: () => false, name: 'nested-dir' },
+      { isFile: () => true, name: 'notes.txt' },
+      { isFile: () => true, name: 'report-2.json' },
+    ];
+
+    (fs.readdir as any).mockResolvedValue(entries);
+
+    const result = await service.countErrorReports();
+
+    expect(fs.readdir).toHaveBeenCalledTimes(1);
+    expect(fs.readdir).toHaveBeenCalledWith(expect.any(String), { withFileTypes: true });
+    expect(fs.readFile).not.toHaveBeenCalled();
+    expect(result).toBe(2);
+  });
+
   it('should delete an error report file', async () => {
     await service.deleteErrorReport('test.json');
 
