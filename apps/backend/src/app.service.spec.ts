@@ -7,6 +7,8 @@ import { HealthCheckDto } from './resources/healthcheck/health-check.response.dt
 describe('AppService', () => {
   let service: AppService;
   let mockLogger: any;
+  let clientService: any;
+  let suggestionService: any;
 
   beforeEach(() => {
     const scopedLogger = {
@@ -20,7 +22,15 @@ describe('AppService', () => {
       forContext: vi.fn().mockReturnValue(scopedLogger),
     };
 
-    service = new AppService(mockLogger);
+    clientService = {
+      listErrorReports: vi.fn().mockResolvedValue([]),
+    };
+
+    suggestionService = {
+      findAll: vi.fn().mockResolvedValue([]),
+    };
+
+    service = new AppService(clientService, suggestionService, mockLogger);
   });
 
   it('should be defined', () => {
@@ -40,8 +50,20 @@ describe('AppService', () => {
     const metrics = await service.getMetrics();
 
     expect(metrics).toContain('coursehub_backend_process_cpu_user_seconds_total');
+    expect(metrics).toContain('coursehub_backend_error_reports');
+    expect(metrics).toContain('coursehub_backend_suggestions');
     expect(metrics).not.toContain('coursehub_backend_system_load_percent');
     expect(metrics).not.toContain('coursehub_backend_build_info');
+  });
+
+  it('should refresh custom metrics from the current data sources', async () => {
+    clientService.listErrorReports.mockResolvedValue([{ id: 'e1' }, { id: 'e2' }]);
+    suggestionService.findAll.mockResolvedValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
+
+    const metrics = await service.getMetrics();
+
+    expect(metrics).toContain('coursehub_backend_error_reports 2');
+    expect(metrics).toContain('coursehub_backend_suggestions 3');
   });
 
   it('getMetricsContentType should match the Prometheus registry content type', () => {

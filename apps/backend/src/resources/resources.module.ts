@@ -24,6 +24,7 @@ import { DatabaseBackupModule } from './database-backup/database-backup.module.j
     NewsModule,
     DatabaseBackupModule,
   ],
+  exports: [SuggestionModule, ClientModule], // Consumed by AppModule (AppService) for metrics
   controllers: [],
 })
 export class ResourcesModule {}
