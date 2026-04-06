@@ -3,31 +3,54 @@ import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as os from 'node:os';
-import { Registry, collectDefaultMetrics } from 'prom-client';
+import { Gauge, Registry, collectDefaultMetrics } from 'prom-client';
 
 import { HealthCheckDto } from './resources/healthcheck/health-check.response.dto.js';
 
 import { ContextualLogger, LoggerService } from './logger/logger.service.js';
+import { ClientService } from './resources/client/client.service.js';
+import { SuggestionService } from './resources/suggestion/suggestion.service.js';
 
 @Injectable()
 export class AppService {
+  private readonly metricsRegistry: Registry;
+  private readonly errorReportsGauge: Gauge<string>;
+  private readonly suggestionsGauge: Gauge<string>;
+
+  private readonly logger: ContextualLogger;
+
   private readonly packageVersion: string;
   private readonly cores: number;
-  private readonly logger: ContextualLogger;
-  private readonly metricsRegistry: Registry;
 
-  constructor(logger: LoggerService) {
+  constructor(
+    private readonly clientService: ClientService,
+    private readonly suggestionService: SuggestionService,
+    logger: LoggerService
+  ) {
     this.logger = logger.forContext(AppService.name);
 
     const packageJsonPath = join(process.cwd(), 'package.json');
     const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
     this.packageVersion = packageJson.version || 'unknown';
     this.cores = os.cpus().length;
+
     this.metricsRegistry = new Registry();
 
     collectDefaultMetrics({
       prefix: 'coursehub_backend_',
       register: this.metricsRegistry,
+    });
+
+    this.errorReportsGauge = new Gauge({
+      name: 'coursehub_backend_error_reports',
+      help: 'Current number of stored client error reports.',
+      registers: [this.metricsRegistry],
+    });
+
+    this.suggestionsGauge = new Gauge({
+      name: 'coursehub_backend_suggestions',
+      help: 'Current number of pending course suggestions.',
+      registers: [this.metricsRegistry],
     });
   }
 
@@ -52,12 +75,23 @@ export class AppService {
     );
   }
 
-  getMetrics(): Promise<string> {
+  async getMetrics(): Promise<string> {
+    await this.refreshCustomMetrics();
     return this.metricsRegistry.metrics();
   }
 
   getMetricsContentType(): string {
     return this.metricsRegistry.contentType;
+  }
+
+  private async refreshCustomMetrics(): Promise<void> {
+    const [errorReports, suggestions] = await Promise.all([
+      this.clientService.listErrorReports(),
+      this.suggestionService.findAll(),
+    ]);
+
+    this.errorReportsGauge.set(errorReports.length);
+    this.suggestionsGauge.set(suggestions.length);
   }
 
   // Heuristics to interpret system load
