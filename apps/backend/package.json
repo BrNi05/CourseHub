@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/backend",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Backend server for CourseHub",
   "author": "BrNi05",
   "license": "Apache-2.0",
