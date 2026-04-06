@@ -83,6 +83,13 @@
       "problemMatcher": []
     },
     {
+      "label": "Update CourseHub Version",
+      "type": "shell",
+      "command": "pnpm update:version",
+      "detail": "Update the CourseHub version across the project",
+      "problemMatcher": []
+    },
+    {
         "label": "Clear All",
         "type": "shell",
         "command": "pnpm clear:all",

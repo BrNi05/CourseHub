@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/coursehub",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Egyetemi tárgyak, egyszerűen.",
   "scripts": {
     "lint:all": "eslint . --ext .ts,.js,.vue --cache --max-warnings=0",
@@ -13,6 +13,7 @@
     "clear:all": "pnpm -r exec rimraf node_modules .build build .turbo .eslintcache openapi.json && rm -rf node_modules",
     "update:node": "node ./dev-tools/node-updater.mjs",
     "update:pnpm": "node ./dev-tools/pnpm-updater.mjs",
+    "update:version": "node ./dev-tools/version-bumper.mjs",
     "update:deps": "pnpm -r update && pnpm dedupe",
     "safe": "git config core.hooksPath .husky",
     "unsafe": "git config --unset core.hooksPath"
