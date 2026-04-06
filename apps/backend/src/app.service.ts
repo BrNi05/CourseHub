@@ -86,12 +86,12 @@ export class AppService {
 
   private async refreshCustomMetrics(): Promise<void> {
     const [errorReports, suggestions] = await Promise.all([
-      this.clientService.listErrorReports(),
-      this.suggestionService.findAll(),
+      this.clientService.countErrorReports(),
+      this.suggestionService.count(),
     ]);
 
-    this.errorReportsGauge.set(errorReports.length);
-    this.suggestionsGauge.set(suggestions.length);
+    this.errorReportsGauge.set(errorReports);
+    this.suggestionsGauge.set(suggestions);
   }
 
   // Heuristics to interpret system load

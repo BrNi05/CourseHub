@@ -23,11 +23,11 @@ describe('AppService', () => {
     };
 
     clientService = {
-      listErrorReports: vi.fn().mockResolvedValue([]),
+      countErrorReports: vi.fn().mockResolvedValue(0),
     };
 
     suggestionService = {
-      findAll: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
     };
 
     service = new AppService(clientService, suggestionService, mockLogger);
@@ -57,13 +57,20 @@ describe('AppService', () => {
   });
 
   it('should refresh custom metrics from the current data sources', async () => {
-    clientService.listErrorReports.mockResolvedValue([{ id: 'e1' }, { id: 'e2' }]);
-    suggestionService.findAll.mockResolvedValue([{ id: 's1' }, { id: 's2' }, { id: 's3' }]);
+    clientService.countErrorReports.mockResolvedValue(2);
+    suggestionService.count.mockResolvedValue(3);
 
     const metrics = await service.getMetrics();
 
     expect(metrics).toContain('coursehub_backend_error_reports 2');
     expect(metrics).toContain('coursehub_backend_suggestions 3');
+  });
+
+  it('should use count-only queries when refreshing custom metrics', async () => {
+    await service.getMetrics();
+
+    expect(clientService.countErrorReports).toHaveBeenCalledTimes(1);
+    expect(suggestionService.count).toHaveBeenCalledTimes(1);
   });
 
   it('getMetricsContentType should match the Prometheus registry content type', () => {

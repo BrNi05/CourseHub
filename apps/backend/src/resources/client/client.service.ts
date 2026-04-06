@@ -137,6 +137,12 @@ export class ClientService implements OnModuleInit {
     return reports;
   }
 
+  // For metrics, not used in the API
+  async countErrorReports(): Promise<number> {
+    const entries = await fs.readdir(this.reportsDir, { withFileTypes: true });
+    return entries.filter((entry) => entry.isFile() && entry.name.endsWith('.json')).length;
+  }
+
   async deleteErrorReport(fileName: string): Promise<void> {
     const filePath = this.resolveReportFilePath(fileName);
 
