@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import logging
 from pathlib import Path
 
 from .backup import (
@@ -22,6 +23,7 @@ from .scheduler import is_backup_due, local_now, next_nominal_run
 from .state import StateStore
 
 
+# Build the argument parser with subcommands for each action
 def build_parser() -> argparse.ArgumentParser:
   parser = argparse.ArgumentParser(description='CourseHub database backup helper.')
   subparsers = parser.add_subparsers(dest='command', required=True)
@@ -47,9 +49,11 @@ def build_parser() -> argparse.ArgumentParser:
 
   subparsers.add_parser('install-agent', help='Install or update the LaunchAgent.')
   subparsers.add_parser('uninstall-agent', help='Remove the LaunchAgent.')
+
   return parser
 
 
+# Main entry point for the CLI
 def main(argv: list[str] | None = None) -> int:
   parser = build_parser()
   args = parser.parse_args(argv)
@@ -62,24 +66,34 @@ def main(argv: list[str] | None = None) -> int:
 
   try:
     command = args.command
+
     if command == 'status':
       return _status(paths, config_store, state_store)
+
     if command == 'clone':
       return _run_backup(backup_client, reason='manual')
+
     if command == 'scheduled-run':
       return _scheduled_run(backup_client, config_store, state_store, logger)
+
     if command == 'set-cookie':
       return _set_cookie(config_store, args.value)
+
     if command == 'clear-cookie':
       return _clear_cookie(config_store)
+
     if command == 'set-schedule':
       return _set_schedule(paths, config_store, args.hour, args.minute)
+
     if command == 'logs':
       return _show_logs(paths.log_path, args.lines)
+
     if command == 'install-agent':
       return _install_agent(paths, config_store)
+
     if command == 'uninstall-agent':
       return _uninstall_agent(paths)
+
   except (ConfigurationError, AuthenticationError, AlreadyRunningError, RuntimeError, ValueError) as error:
     print(f'Error: {error}')
     return 1
@@ -95,7 +109,7 @@ def _status(paths, config_store: ConfigStore, state_store: StateStore) -> int:
   due_now = is_backup_due(now, config, state)
   next_run = next_nominal_run(now, config)
 
-  print(f'Endpoint: {config.endpoint}')
+  print(f'\nEndpoint: {config.endpoint}')
   print(f'Cookie: {config.masked_cookie()}')
   print(f'Schedule: {config.schedule_hour:02d}:{config.schedule_minute:02d} local time')
   print(f'Backups: {paths.backup_dir}')
@@ -114,7 +128,7 @@ def _status(paths, config_store: ConfigStore, state_store: StateStore) -> int:
 
   try:
     agent_status = get_launch_agent_status(paths)
-    print(f'LaunchAgent installed: {"yes" if agent_status.installed else "no"}')
+    print(f'\nLaunchAgent installed: {"yes" if agent_status.installed else "no"}')
     print(f'LaunchAgent loaded: {"yes" if agent_status.loaded else "no"}')
   except RuntimeError as error:
     print(f'LaunchAgent status: unavailable ({error})')
@@ -124,24 +138,19 @@ def _status(paths, config_store: ConfigStore, state_store: StateStore) -> int:
 
 def _run_backup(backup_client: BackupClient, reason: str) -> int:
   result = backup_client.run_now(reason)
-  print(f'Backup saved to {result.file_path}')
+  print(f'\nBackup saved to {result.file_path}')
   print(f'Bytes written: {result.bytes_written}')
   print(f'Completed at: {result.completed_at.strftime("%Y-%m-%d %H:%M:%S %Z")}')
   return 0
 
 
-def _scheduled_run(
-  backup_client: BackupClient,
-  config_store: ConfigStore,
-  state_store: StateStore,
-  logger,
-) -> int:
+def _scheduled_run(backup_client: BackupClient, config_store: ConfigStore, state_store: StateStore, logger: logging.Logger) -> int:
   config = config_store.load()
   state = state_store.load()
   now = local_now()
 
   if not is_backup_due(now, config, state):
-    logger.info('Scheduled invocation skipped because no backup is due at %s.', now.isoformat())
+    logger.info('\nScheduled invocation skipped because no backup is due at %s.', now.isoformat())
     return 0
 
   return _run_backup(backup_client, reason='scheduled')
@@ -155,7 +164,8 @@ def _set_cookie(config_store: ConfigStore, value: str) -> int:
 
   config.cookie_value = cookie_value
   config_store.save(config)
-  print('Cookie saved.')
+
+  print('\nCookie saved.')
   return 0
 
 
@@ -163,7 +173,8 @@ def _clear_cookie(config_store: ConfigStore) -> int:
   config = config_store.load()
   config.cookie_value = None
   config_store.save(config)
-  print('Cookie cleared.')
+
+  print('\nCookie cleared.')
   return 0
 
 
@@ -172,7 +183,7 @@ def _set_schedule(paths, config_store: ConfigStore, hour: int, minute: int) -> i
   config.schedule_hour = hour
   config.schedule_minute = minute
   config_store.save(config)
-  print(f'Schedule updated to {hour:02d}:{minute:02d}.')
+  print(f'\nSchedule updated to {hour:02d}:{minute:02d}.')
 
   try:
     if paths.launch_agent_path.exists():
@@ -185,14 +196,13 @@ def _set_schedule(paths, config_store: ConfigStore, hour: int, minute: int) -> i
 
 
 def _show_logs(log_path: Path, lines: int) -> int:
-  if lines <= 0:
-    raise ValueError('--lines must be positive.')
   if not log_path.exists():
     print('No log file exists yet.')
     return 0
 
   with log_path.open('r', encoding='utf-8') as handle:
     content = handle.readlines()
+    print() # spacer
 
   for line in content[-lines:]:
     print(line.rstrip())
@@ -202,13 +212,13 @@ def _show_logs(log_path: Path, lines: int) -> int:
 def _install_agent(paths, config_store: ConfigStore) -> int:
   config = config_store.load()
   installed_path = install_launch_agent(paths, config)
-  print(f'LaunchAgent installed at {installed_path}')
+  print(f'\nLaunchAgent installed at {installed_path}')
   return 0
 
 
 def _uninstall_agent(paths) -> int:
   uninstall_launch_agent(paths)
-  print('LaunchAgent removed.')
+  print('\nLaunchAgent removed.')
   return 0
 
 

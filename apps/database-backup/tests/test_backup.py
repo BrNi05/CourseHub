@@ -61,12 +61,15 @@ class BackupClientTests(unittest.TestCase):
     result = backup_client.run_now('manual')
 
     self.assertTrue(result.file_path.exists())
-    self.assertEqual(result.file_path.name, 'backup.dump')
+    self.assertRegex(
+      result.file_path.name,
+      r'^coursehub-db-export-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.dump$',
+    )
     self.assertEqual(result.file_path.read_bytes(), b'database-backup-bytes')
 
     state = self.state_store.load()
     self.assertEqual(state.last_status, 'success')
-    self.assertEqual(state.last_file, 'backup.dump')
+    self.assertEqual(state.last_file, result.file_path.name)
     self.assertEqual(state.last_bytes, len(b'database-backup-bytes'))
     self.assertEqual(state.last_reason, 'manual')
 

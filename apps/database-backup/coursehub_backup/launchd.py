@@ -11,17 +11,20 @@ from .config import ServiceConfig
 from .paths import LAUNCH_AGENT_LABEL, ServicePaths, ensure_runtime_dirs
 
 
+# Represents the status of the LaunchAgent
 @dataclass
 class LaunchAgentStatus:
   installed: bool
   loaded: bool
 
 
+# Only macOS supports LaunchAgents (so the app as well)
 def ensure_macos() -> None:
   if sys.platform != 'darwin':
     raise RuntimeError('LaunchAgent management is only supported on macOS.')
 
 
+# Build the content for the plist file
 def build_plist_data(paths: ServicePaths, config: ServiceConfig) -> dict[str, object]:
   ensure_runtime_dirs(paths)
   return {
@@ -46,6 +49,7 @@ def build_plist_data(paths: ServicePaths, config: ServiceConfig) -> dict[str, ob
   }
 
 
+# Install the LaunchAgent by writing the plist file and loading it with launchctl
 def install_launch_agent(paths: ServicePaths, config: ServiceConfig) -> Path:
   ensure_macos()
   ensure_runtime_dirs(paths)
@@ -55,12 +59,16 @@ def install_launch_agent(paths: ServicePaths, config: ServiceConfig) -> Path:
     plistlib.dump(build_plist_data(paths, config), handle)
 
   gui_domain = f'gui/{os.getuid()}'
+
+  # Unload any existing LaunchAgent
   subprocess.run(
     ['launchctl', 'bootout', gui_domain, str(paths.launch_agent_path)],
     check=False,
     capture_output=True,
     text=True,
   )
+
+  # Load the new LaunchAgent
   subprocess.run(
     ['launchctl', 'bootstrap', gui_domain, str(paths.launch_agent_path)],
     check=True,
@@ -71,10 +79,13 @@ def install_launch_agent(paths: ServicePaths, config: ServiceConfig) -> Path:
   return paths.launch_agent_path
 
 
+# Uninstall the LaunchAgent by unloading it and removing the plist file
 def uninstall_launch_agent(paths: ServicePaths) -> None:
   ensure_macos()
+
   gui_domain = f'gui/{os.getuid()}'
   if paths.launch_agent_path.exists():
+    # Unload the LaunchAgent
     subprocess.run(
       ['launchctl', 'bootout', gui_domain, str(paths.launch_agent_path)],
       check=False,
@@ -84,10 +95,13 @@ def uninstall_launch_agent(paths: ServicePaths) -> None:
     paths.launch_agent_path.unlink(missing_ok=True)
 
 
+# Returns the status of the LaunchAgent (whether it's installed and loaded)
 def get_launch_agent_status(paths: ServicePaths) -> LaunchAgentStatus:
   ensure_macos()
+
   installed = paths.launch_agent_path.exists()
   gui_label = f'gui/{os.getuid()}/{LAUNCH_AGENT_LABEL}'
+
   result = subprocess.run(
     ['launchctl', 'print', gui_label],
     check=False,

@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-APP_SUPPORT_NAME = 'CourseHubDatabaseBackup'
 LAUNCH_AGENT_LABEL = 'hu.coursehub.database-backup'
 
 
+# Represents the various file paths used by the app
 @dataclass(frozen=True)
 class ServicePaths:
   project_root: Path
@@ -22,9 +22,10 @@ class ServicePaths:
   lock_path: Path
 
 
+# Returns the default file paths for the app
 def default_paths() -> ServicePaths:
   project_root = Path(__file__).resolve().parents[1]
-  app_support_dir = Path.home() / 'Library' / 'Application Support' / APP_SUPPORT_NAME
+  app_support_dir = Path.home() / 'Library' / 'Application Support' / 'CourseHubDatabaseBackup'
   launch_agents_dir = Path.home() / 'Library' / 'LaunchAgents'
 
   return ServicePaths(
@@ -42,6 +43,7 @@ def default_paths() -> ServicePaths:
   )
 
 
+# Ensures that the necessary runtime directories exist
 def ensure_runtime_dirs(paths: ServicePaths) -> None:
   paths.app_support_dir.mkdir(parents=True, exist_ok=True)
   paths.backup_dir.mkdir(parents=True, exist_ok=True)
