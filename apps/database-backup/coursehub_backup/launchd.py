@@ -1,3 +1,13 @@
+"""
+macOS LaunchAgent management layer for the backup service.
+
+This module is responsible for:
+- generating LaunchAgent plist configuration
+- installing/uninstalling the agent via launchctl
+- querying agent status
+- enforcing macOS-only execution constraints
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,101 +21,152 @@ from .config import ServiceConfig
 from .paths import LAUNCH_AGENT_LABEL, ServicePaths, ensure_runtime_dirs
 
 
-# Represents the status of the LaunchAgent
 @dataclass
 class LaunchAgentStatus:
-  installed: bool
-  loaded: bool
+    """
+    Represents the installation and runtime status of a macOS LaunchAgent.
+
+    Attributes:
+        installed (bool): Whether the plist file exists on disk.
+        loaded (bool): Whether the agent is currently loaded in launchd.
+    """
+    installed: bool
+    loaded: bool
 
 
-# Only macOS supports LaunchAgents (so the app as well)
 def ensure_macos() -> None:
-  if sys.platform != 'darwin':
-    raise RuntimeError('LaunchAgent management is only supported on macOS.')
+    """
+    Ensure the current runtime environment is macOS.
+
+    Raises:
+        RuntimeError: If the platform is not macOS (darwin).
+    """
+    if sys.platform != 'darwin':
+        raise RuntimeError('LaunchAgent management is only supported on macOS.')
 
 
-# Build the content for the plist file
 def build_plist_data(paths: ServicePaths, config: ServiceConfig) -> dict[str, object]:
-  ensure_runtime_dirs(paths)
-  return {
-    'Label': LAUNCH_AGENT_LABEL,
-    'ProgramArguments': [
-      sys.executable,
-      str(paths.project_root / 'main.py'),
-      'scheduled-run',
-    ],
-    'WorkingDirectory': str(paths.project_root),
-    'RunAtLoad': True,
-    'StartCalendarInterval': {
-      'Hour': config.schedule_hour,
-      'Minute': config.schedule_minute,
-    },
-    'ProcessType': 'Background',
-    'StandardOutPath': str(paths.launchd_stdout_path),
-    'StandardErrorPath': str(paths.launchd_stderr_path),
-    'EnvironmentVariables': {
-      'PYTHONUNBUFFERED': '1',
-    },
-  }
+    """
+    Build the LaunchAgent plist configuration dictionary.
+
+    Args:
+        paths (ServicePaths): Application filesystem paths.
+        config (ServiceConfig): Scheduling configuration.
+
+    Returns:
+        dict[str, object]: Plist-compatible LaunchAgent configuration.
+    """
+    ensure_runtime_dirs(paths)
+
+    return {
+      'Label': LAUNCH_AGENT_LABEL,
+      'ProgramArguments': [
+        sys.executable,
+        str(paths.project_root / 'main.py'),
+        'scheduled-run',
+      ],
+      'WorkingDirectory': str(paths.project_root),
+      'RunAtLoad': True,
+      'StartCalendarInterval': {
+        'Hour': config.schedule_hour,
+        'Minute': config.schedule_minute,
+      },
+      'ProcessType': 'Background',
+      'StandardOutPath': str(paths.launchd_stdout_path),
+      'StandardErrorPath': str(paths.launchd_stderr_path),
+      'EnvironmentVariables': {
+        'PYTHONUNBUFFERED': '1',
+      },
+    }
 
 
-# Install the LaunchAgent by writing the plist file and loading it with launchctl
 def install_launch_agent(paths: ServicePaths, config: ServiceConfig) -> Path:
-  ensure_macos()
-  ensure_runtime_dirs(paths)
-  paths.launch_agent_path.parent.mkdir(parents=True, exist_ok=True)
+    """
+    Install and load the LaunchAgent.
 
-  with paths.launch_agent_path.open('wb') as handle:
-    plistlib.dump(build_plist_data(paths, config), handle)
+    This function:
+    - writes the plist file
+    - unloads any existing agent
+    - loads the new configuration via launchctl
 
-  gui_domain = f'gui/{os.getuid()}'
+    Args:
+        paths (ServicePaths): Application filesystem paths.
+        config (ServiceConfig): Scheduling configuration.
 
-  # Unload any existing LaunchAgent
-  subprocess.run(
-    ['launchctl', 'bootout', gui_domain, str(paths.launch_agent_path)],
-    check=False,
-    capture_output=True,
-    text=True,
-  )
+    Returns:
+        Path: Path to the installed LaunchAgent plist file.
+    """
+    ensure_macos()
+    ensure_runtime_dirs(paths)
+    paths.launch_agent_path.parent.mkdir(parents=True, exist_ok=True)
 
-  # Load the new LaunchAgent
-  subprocess.run(
-    ['launchctl', 'bootstrap', gui_domain, str(paths.launch_agent_path)],
-    check=True,
-    capture_output=True,
-    text=True,
-  )
+    with paths.launch_agent_path.open('wb') as handle:
+        plistlib.dump(build_plist_data(paths, config), handle)
 
-  return paths.launch_agent_path
+    gui_domain = f'gui/{os.getuid()}'
 
-
-# Uninstall the LaunchAgent by unloading it and removing the plist file
-def uninstall_launch_agent(paths: ServicePaths) -> None:
-  ensure_macos()
-
-  gui_domain = f'gui/{os.getuid()}'
-  if paths.launch_agent_path.exists():
-    # Unload the LaunchAgent
+    # Unload any existing LaunchAgent
     subprocess.run(
       ['launchctl', 'bootout', gui_domain, str(paths.launch_agent_path)],
       check=False,
       capture_output=True,
       text=True,
     )
-    paths.launch_agent_path.unlink(missing_ok=True)
+
+    # Load the new LaunchAgent
+    subprocess.run(
+      ['launchctl', 'bootstrap', gui_domain, str(paths.launch_agent_path)],
+      check=True,
+      capture_output=True,
+      text=True,
+    )
+
+    return paths.launch_agent_path
 
 
-# Returns the status of the LaunchAgent (whether it's installed and loaded)
+def uninstall_launch_agent(paths: ServicePaths) -> None:
+    """
+    Uninstall the LaunchAgent.
+
+    This function unloads the agent (if loaded) and removes the plist file.
+
+    Args:
+        paths (ServicePaths): Application filesystem paths.
+    """
+    ensure_macos()
+
+    gui_domain = f'gui/{os.getuid()}'
+    if paths.launch_agent_path.exists():
+        subprocess.run(
+          ['launchctl', 'bootout', gui_domain, str(paths.launch_agent_path)],
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+
+        paths.launch_agent_path.unlink(missing_ok=True)
+
+
 def get_launch_agent_status(paths: ServicePaths) -> LaunchAgentStatus:
-  ensure_macos()
+    """
+    Query LaunchAgent installation and runtime status.
 
-  installed = paths.launch_agent_path.exists()
-  gui_label = f'gui/{os.getuid()}/{LAUNCH_AGENT_LABEL}'
+    Args:
+        paths (ServicePaths): Application filesystem paths.
 
-  result = subprocess.run(
-    ['launchctl', 'print', gui_label],
-    check=False,
-    capture_output=True,
-    text=True,
-  )
-  return LaunchAgentStatus(installed=installed, loaded=result.returncode == 0)
+    Returns:
+        LaunchAgentStatus: Whether the agent is installed and currently loaded.
+    """
+    ensure_macos()
+
+    installed = paths.launch_agent_path.exists()
+    gui_label = f'gui/{os.getuid()}/{LAUNCH_AGENT_LABEL}'
+
+    result = subprocess.run(
+      ['launchctl', 'print', gui_label],
+      check=False,
+      capture_output=True,
+      text=True,
+    )
+
+    return LaunchAgentStatus(installed=installed, loaded=result.returncode == 0)
