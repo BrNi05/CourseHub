@@ -32,6 +32,7 @@ const app = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const editCourse = ref<Course>();
+const isEditPrefillLoading = ref(false);
 
 const form = reactive<SuggestionForm>({
   uniName: '',
@@ -55,6 +56,11 @@ const editCourseId = computed(() => {
 
 let editPrefillSequence = 0;
 
+// Shows a placeholder for the input fields while the prefill data is loading, otherwise shows the default placeholder
+function getPrefillPlaceholder(defaultPlaceholder: string) {
+  return editCourseId.value && isEditPrefillLoading.value ? 'Betöltés...' : defaultPlaceholder;
+}
+
 function resetForm() {
   form.uniName = '';
   form.uniAbbrevName = '';
@@ -75,8 +81,12 @@ async function prefillFromCourseId(courseId?: string) {
 
   resetForm();
   editCourse.value = undefined;
+  isEditPrefillLoading.value = Boolean(courseId);
 
-  if (!courseId) return;
+  if (!courseId) {
+    isEditPrefillLoading.value = false;
+    return;
+  }
 
   try {
     const courseResponse = await getCourseById({
@@ -121,8 +131,10 @@ async function prefillFromCourseId(courseId?: string) {
     const university = universityResponse.data;
     form.uniName = university.name;
     form.uniAbbrevName = university.abbrevName;
+    isEditPrefillLoading.value = false;
   } catch (error) {
     if (sequence !== editPrefillSequence) return;
+    isEditPrefillLoading.value = false;
     app.notify(
       'danger',
       'Nem sikerült betölteni a tárgy adatait',
@@ -178,6 +190,10 @@ async function submitForm() {
         Szerkesztés:
         <strong>{{ editCourse.name }} ({{ editCourse.code }})</strong>
       </div>
+      <div v-else-if="editCourseId && isEditPrefillLoading" class="helper-banner">
+        Szerkesztés:
+        <strong>Betöltés...</strong>
+      </div>
 
       <div class="form-grid">
         <label class="field">
@@ -188,7 +204,7 @@ async function submitForm() {
             name="uniName"
             required
             type="text"
-            placeholder="Budapesti Műszaki és Gazdaságtudományi Egyetem"
+            :placeholder="getPrefillPlaceholder('Budapesti Műszaki és Gazdaságtudományi Egyetem')"
           />
         </label>
 
@@ -200,7 +216,7 @@ async function submitForm() {
             name="uniAbbrevName"
             required
             type="text"
-            placeholder="BME"
+            :placeholder="getPrefillPlaceholder('BME')"
           />
         </label>
 
@@ -212,7 +228,7 @@ async function submitForm() {
             name="facultyName"
             required
             type="text"
-            placeholder="Villamosmérnöki és Informatikai Kar"
+            :placeholder="getPrefillPlaceholder('Villamosmérnöki és Informatikai Kar')"
           />
         </label>
 
@@ -224,7 +240,7 @@ async function submitForm() {
             name="facultyAbbrevName"
             required
             type="text"
-            placeholder="VIK"
+            :placeholder="getPrefillPlaceholder('VIK')"
           />
         </label>
 
@@ -236,7 +252,7 @@ async function submitForm() {
             name="courseName"
             required
             type="text"
-            placeholder="Programozás alapjai I."
+            :placeholder="getPrefillPlaceholder('Programozás alapjai I.')"
           />
         </label>
 
@@ -248,7 +264,7 @@ async function submitForm() {
             name="courseCode"
             required
             type="text"
-            placeholder="BMEVIEEAA00"
+            :placeholder="getPrefillPlaceholder('BMEVIEEAA00')"
           />
         </label>
 
@@ -259,7 +275,7 @@ async function submitForm() {
             autocomplete="off"
             name="coursePageUrl"
             type="url"
-            placeholder="https://infoc.eet.bme.hu/"
+            :placeholder="getPrefillPlaceholder('https://infoc.eet.bme.hu/')"
           />
         </label>
 
@@ -270,7 +286,9 @@ async function submitForm() {
             autocomplete="off"
             name="courseTadUrl"
             type="url"
-            placeholder="https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00/"
+            :placeholder="
+              getPrefillPlaceholder('https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00/')
+            "
           />
         </label>
 
@@ -281,7 +299,7 @@ async function submitForm() {
             autocomplete="off"
             name="courseMoodleUrl"
             type="url"
-            placeholder="https://edu.vik.bme.hu/course/view.php?id=..."
+            :placeholder="getPrefillPlaceholder('https://edu.vik.bme.hu/course/view.php?id=...')"
           />
         </label>
 
@@ -292,7 +310,7 @@ async function submitForm() {
             autocomplete="off"
             name="courseSubmissionUrl"
             type="url"
-            placeholder="https://fecske.db.bme.hu/#/student"
+            :placeholder="getPrefillPlaceholder('https://fecske.db.bme.hu/#/student')"
           />
         </label>
 
@@ -303,7 +321,11 @@ async function submitForm() {
             autocomplete="off"
             name="courseTeamsUrl"
             type="url"
-            placeholder="https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=..."
+            :placeholder="
+              getPrefillPlaceholder(
+                'https://teams.microsoft.com/l/team/...thread.tacv2/conversations?groupId=...&tenantId=...'
+              )
+            "
           />
         </label>
 
@@ -314,7 +336,7 @@ async function submitForm() {
             autocomplete="off"
             name="courseExtraUrl"
             type="url"
-            placeholder="https://example.com/extra"
+            :placeholder="getPrefillPlaceholder('https://example.com/extra')"
           />
         </label>
       </div>
