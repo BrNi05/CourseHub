@@ -3,8 +3,13 @@
 .github
 .husky
 .vscode
+.codex
+.VSCodeCounter
 dev-tools
 hosting
+docs
+legal
+apps/database-backup
 node_modules
 .eslintcache
 .gitattributes
@@ -13,11 +18,15 @@ LICENSE
 openapitools.json
 openapi.json
 README.md
-SECUIRTY.md
+SECURITY.md
+docker-compose.yaml
+CourseHub-Backend.log
+trivy-image-report.txt
 
 # Build artifacts and other generated files
 **/.turbo
 **/build
+**/dist
 **/tsconfig.build.tsbuildinfo
 tsconfig.tsbuildinfo
 **/apps/*/prisma/generated/
@@ -38,7 +47,12 @@ npm-debug.log*
 */.test.ts
 */.test.tsx
 */.spec.tsx
+apps/backend/db-backups
+apps/backend/error-reports
 
 # Extensions
 *.tgz
 *.sh
+
+# Python specific
+**/.venv

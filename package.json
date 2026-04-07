@@ -9,7 +9,7 @@
     "refresh:sdk": "pnpm --filter ./apps/backend api:gen && pnpm --filter ./packages/sdk gen:sdk",
     "bundle:static": "node ./dev-tools/copy-client-to-backend.mjs",
     "docker:build": "docker build -t coursehub -f Dockerfile .",
-    "scan:image": "trivy image --scanners vuln,secret --vuln-type library --severity HIGH,CRITICAL --ignore-unfixed -o trivy-image-report.txt coursehub:latest && code -r trivy-image-report.txt",
+    "scan:image": "trivy image --scanners vuln,secret --pkg-types library --severity HIGH,CRITICAL --ignore-unfixed -o trivy-image-report.txt coursehub:latest && code -r trivy-image-report.txt",
     "clear:all": "pnpm -r exec rimraf node_modules .build build .turbo .eslintcache openapi.json && rm -rf node_modules",
     "update:node": "node ./dev-tools/node-updater.mjs",
     "update:pnpm": "node ./dev-tools/pnpm-updater.mjs",
@@ -36,7 +36,7 @@
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "rimraf": "^6.1.3",
-    "turbo": "^2.9.3",
+    "turbo": "^2.9.4",
     "typescript": "^6.0.2",
     "vue-eslint-parser": "^10.4.0"
   }

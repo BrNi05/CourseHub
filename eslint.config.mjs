@@ -127,6 +127,7 @@ export default defineConfig([
       'apps/backend/public/**',
       'apps/backend/openapi.generate.ts',
       'apps/client/dist/**',
+      'apps/database-backup/**',
     ],
   },
 
