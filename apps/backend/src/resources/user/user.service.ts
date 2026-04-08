@@ -44,7 +44,7 @@ export class UserService {
 
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id },
-      include: { pinnedCourses: true },
+      include: { pinnedCourses: { orderBy: { name: 'asc' } } },
     });
 
     await this.cacheManager.set(this.getUserCacheKey(id), user, ONE_MONTH_CACHE_TTL);
@@ -61,7 +61,7 @@ export class UserService {
           ? { set: dto.pinnedCourses.map((courseId) => ({ id: courseId })) }
           : undefined,
       },
-      include: { pinnedCourses: true },
+      include: { pinnedCourses: { orderBy: { name: 'asc' } } },
     });
 
     await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, ONE_MONTH_CACHE_TTL);

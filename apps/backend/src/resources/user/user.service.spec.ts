@@ -88,7 +88,7 @@ describe('UserService', () => {
       expect(result).toEqual(mockUser);
       expect(prismaMock.user.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: 'user1' },
-        include: { pinnedCourses: true },
+        include: { pinnedCourses: { orderBy: { name: 'asc' } } },
       });
       expect(cacheMock.set).toHaveBeenCalledWith('user_user1', mockUser, ONE_MONTH_CACHE_TTL);
     });
@@ -110,7 +110,7 @@ describe('UserService', () => {
           isAdmin: true,
           pinnedCourses: { set: [{ id: 'course1' }] },
         },
-        include: { pinnedCourses: true },
+        include: { pinnedCourses: { orderBy: { name: 'asc' } } },
       });
       expect(cacheMock.del).not.toHaveBeenCalled();
       expect(cacheMock.set).toHaveBeenCalledWith('user_user1', updatedUser, ONE_MONTH_CACHE_TTL);
