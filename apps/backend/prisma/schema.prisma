@@ -2,7 +2,7 @@
 
 // Generate the Prisma Client: pnpm prisma generate
 // To create the tables: pnpm prisma migrate dev --name ...
-//! Pord migrations are done by hand!!!
+//! Prod migrations are done by hand!!!
 
 generator client {
   provider = "prisma-client"
@@ -17,9 +17,7 @@ datasource db {
 
 // University
 // Assume name is not unique (yet it is)
-// Assume eduIdAffiliationId can change (yet it shouldn't really) so it is not a good candidate for primary key, but it is unique
 // A university has many faculties and users
-// Based on the EduID system, a user can be only mapped to a university and not a faculty
 model University {
   id                 String    @id @default(uuid())
   createdAt          DateTime  @default(now())
@@ -45,7 +43,8 @@ model Faculty {
   universityId String
   university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
 
-  courses      Course[]
+  courses      Course[] // A faculty can have multiple courses
+  packages     CoursePackage[] // A faculty can have multiple course packages
 
   @@unique([name, universityId]) // A faculty name is unique within a university
   @@unique([abbrevName, universityId]) // A faculty abbrev name is unique within a university
@@ -56,24 +55,26 @@ model Faculty {
 // Name and code are not necessarily unique
 // A course belongs to a faculty and can be pinned by many users
 model Course {
-  id                  String   @id @default(uuid())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @default(now()) @updatedAt
+  id                  String          @id @default(uuid())
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @default(now()) @updatedAt
 
   name                String
-  code                String   @unique
+  code                String          @unique // Course code is globally unique
 
   facultyId           String
-  faculty             Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  faculty             Faculty         @relation(fields: [facultyId], references: [id], onDelete: Cascade)
 
-  pinnedBy            User[]   @relation("UserPinnedCourses")
+  pinnedBy            User[]          @relation("UserPinnedCourses")
 
-  coursePageUrl       String   @default("") // official (lecturer) page
-  courseTadUrl        String   @default("") // TAD (uni) page
-  courseMoodleUrl     String   @default("") // Moodle page
-  courseSubmissionUrl String   @default("") // For homework, etc submission
-  courseTeamsUrl      String   @default("") // Microsoft Teams page
-  courseExtraUrl      String   @default("") // Additional course page (Wiki, Github)
+  coursePageUrl       String          @default("") // official (lecturer) page
+  courseTadUrl        String          @default("") // TAD (uni) page
+  courseMoodleUrl     String          @default("") // Moodle page
+  courseSubmissionUrl String          @default("") // For homework, etc submission
+  courseTeamsUrl      String          @default("") // Microsoft Teams page
+  courseExtraUrl      String          @default("") // Additional course page (Wiki, Github)
+
+  packages            CoursePackage[] @relation("PackageCourses") // A course can be in multiple packages
 
   // CourseHub assumes course codes are unique, globally. This is made sure like so:
   // Course code at BME: BMEVIIIAB12 --> BMEVIIIAB12
@@ -112,8 +113,8 @@ model SuggestedCourse {
 }
 
 // User
-// A user belongs to a university (EduID scope) and can pin many courses
-// A user is authenticated with EduID, and inside CourseHub with JWT
+// A user can pin many courses
+// A user is authenticated with Google OAuth2
 model User {
   id            String     @id @default(uuid())
   createdAt     DateTime   @default(now())
@@ -125,11 +126,39 @@ model User {
   // Possible other roles in the future (like contributor (reduced rights) or so)
   isAdmin       Boolean    @default(false)
 
-  pinnedCourses Course[]   @relation("UserPinnedCourses")
+  pinnedCourses Course[]   @relation("UserPinnedCourses") // A user can pin multiple courses
+  ownedPackages CoursePackage[] // A user can own multiple course packages
 
   clientPings   ClientPing[]
 }
 
+// CoursePackage
+// A collection of courses, created by a user, that can be shared with others via a link
+model CoursePackage {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  name        String
+  description String   @default("")
+
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade) // owned by a user
+
+  facultyId   String
+  faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade) // belongs to a faculty (and a university)
+
+  isPermanent Boolean  @default(false)
+  lastUsedAt  DateTime @default(now())
+
+  courses     Course[] @relation("PackageCourses")
+
+  @@index([ownerId]) // Fast lookup when filtering packages by ownerId (show my endpoint)
+  @@index([facultyId]) // Fast lookup when filtering packages by facultyId (search endpoint)
+  @@index([isPermanent, lastUsedAt]) // Fast lookup of non-permanent packages sorted by last used date for cleanup
+}
+
+// ClientPing
 // Daily ping from the client to track usage statistics
 model ClientPing {
   id        String   @id @default(uuid())
@@ -148,6 +177,7 @@ model ClientPing {
   @@index([platform]) // Fast lookup of pings by platform for statistics
 }
 
+// ClientPlatform
 // Separate desktop releases for better usage statistics and error reporting
 enum ClientPlatform {
   windows

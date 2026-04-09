@@ -4,9 +4,9 @@
 
 **Szolgáltatás:** CourseHub
 
-**Hatályba lép:** 2026.03.31. (második verzió)
+**Hatályba lép:** 2026.04.10. (harmadik verzió)
 
-**Utolsó felülvizsgálat:** 2026.03.30.
+**Utolsó felülvizsgálat:** 2026.04.09.
 
 ## 1. A dokumentum célja
 
@@ -40,13 +40,15 @@ Az értékelés a következő forrásokra támaszkodik:
 
 Jelen LIA az alábbi, a CourseHub adatkezelési tájékoztatójában is jogos érdekre alapított műveletekre terjed ki:
 
-1. Rendszerdiagnosztika és statisztika ("ping")
+1. Rendszerdiagnosztika és statisztika ("ping").
 
-2. Biztonsági naplózás
+2. Biztonsági naplózás.
 
-3. Cloudflare alapú peremvédelem és forgalomvédelmi intézkedések
+3. Cloudflare alapú peremvédelem és forgalomvédelmi intézkedések.
 
-4. OAuth2 bejelentkezési folyamat védelme ideiglenes állapot-sütivel
+4. OAuth2 bejelentkezési folyamat védelme ideiglenes állapot-sütivel.
+
+5. Bejelentkezett felhasználók által létrehozott kurzuscsomagok kereshetővé és hozzáférhetővé tétele más bejelentkezett felhasználók számára.
 
 ## 4. Általános körülmények és közös garanciák
 
@@ -68,6 +70,8 @@ Az erőegyensúlytalanság a jelen kontextusban alacsony:
 
 - A jelen LIA tárgyát képező adatkezelések nem reklámcélú profilalkotást, hanem működtetési és biztonsági célokat szolgálnak.
 
+- A kurzuscsomagok kereshetősége esetén az adatkezelés nem reklámcélú, hanem korlátozott közösségi funkciót szolgál a Szolgáltatáson belül.
+
 ### 4.2. Ésszerű Érintetti elvárások alapja
 
 - Az Adatkezelő az adatkezelésről kifejezett tájékoztatást ad.
@@ -82,9 +86,9 @@ Az erőegyensúlytalanság a jelen kontextusban alacsony:
 
 Az egyes adatkezeléseknél közös, az érdekmérlegelés szempontjából releváns körülmények:
 
-- A CourseHub kizárólag a Szolgáltatás biztonságának fenntartása és fejlesztése érdekében gyűjt és tárol adatokat jogos érdekek mentén.
+- A CourseHub a jogos érdeken alapuló adatkezeléseket a Szolgáltatás biztonságának, stabilitásának és korlátozott közösségi funkcióinak fenntartása érdekében végzi.
 
-- Az adatok túlnyomó többsége technikai vagy fiókhasználathoz kapcsolódó adat.
+- Az adatok jelentős része technikai vagy fiókhasználathoz kapcsolódó adat, míg a kurzuscsomagok kereshetősége esetén a felhasználó által létrehozott tartalom korlátozott körű hozzáférhetővé tétele történik.
 
 - A CourseHub nem kezel különleges adatokat a jelen LIA hatálya alá tartozó célokból.
 
@@ -94,7 +98,7 @@ Az egyes adatkezeléseknél közös, az érdekmérlegelés szempontjából relev
 
 ### 4.4. A megőrzési idő indokolása
 
-A jelen LIA hatálya alá tartozó, legfeljebb 1 éves megőrzési idő általános indokai:
+A jelen LIA hatálya alá tartozó (technikai jellegű), legfeljebb 1 éves megőrzési idejű adatkezelések általános indokai:
 
 - Lehetővé teszi a később felismert incidensek és visszaélések utólagos kivizsgálását.
 
@@ -105,6 +109,8 @@ A jelen LIA hatálya alá tartozó, legfeljebb 1 éves megőrzési idő általá
 - Rövidebb megőrzési idő csökkenthetné az incidenskezelési képességet, illetve a statisztikák használhatóságát.
 
 - Hosszabb megőrzési idő jelenleg nem tűnik szükségesnek a kitűzött célokhoz.
+
+A kurzuscsomagok kereshetősége ettől eltérő logika szerint működik: a megőrzési idő a főszabály szerint addig tart, amíg az Érintett a csomagot nem törli, illetve a felhasználói fiókja meg nem szűnik, mert a funkció rendeltetése a tartós, közösségen belüli újrafelhasználhatóság.
 
 ## 5. Érdekmérlegelés adatkezelésenként
 
@@ -347,6 +353,62 @@ Garanciák:
 - Átlátható tájékoztatás az adatkezelési tájékoztatóban.
 
 **Következtetés:** az Adatkezelő hitelesítési és fiókvédelmi érdeke erős, míg az Érintettek oldalán jelentkező többletbeavatkozás minimális és arányos. A jogos érdek jogalap alkalmazása indokolt.
+
+### 5.5. Bejelentkezett felhasználók által létrehozott kurzuscsomagok kereshetővé és hozzáférhetővé tétele
+
+**Kezelt adatok:** a kurzuscsomag neve, opcionális leírása, a csomaghoz rendelt kar és kurzusok listája, a csomag létrehozásához és kezeléséhez szükséges belső tulajdonosi kapcsolat, valamint a funkció működtetéséhez szükséges időbélyegek.
+
+**Cél:** a bejelentkezett felhasználók számára olyan, mások által összeállított kurzuscsomagok elérhetővé tétele, amelyek újrafelhasználhatók (felvehetők), kereshetők és a szolgáltatás közösségi értékét növelik.
+
+**Megőrzési idő:** a csomag felhasználó általi törléséig vagy a felhasználói fiók megszűnéséig.
+
+#### 5.5.1. Célteszt
+
+Az Adatkezelő jogos érdeke, hogy:
+
+- A Szolgáltatást a pusztán egyéni preferenciatároláson túl közösségi hasznossággal bíró funkcióval bővítse.
+
+- A meglévő kurzusadatbázisra építve többletértéket nyújtson anélkül, hogy a funkciót nyilvánosan, anonim látogatók felé tenné közzé.
+
+Ez az érdek valós, jelenidejű, jogszerű és kellően konkrét. Ugyanakkor nem a Szolgáltatás legszűkebb értelemben vett alapfunkciója, ezért a szerződés teljesítésének jogalapja e mások felé történő hozzáférhetővé tételre önmagában nem elégséges.
+
+#### 5.5.2. Szükségességi teszt
+
+Az adatkezelés szükséges, mert:
+
+- A funkció rendeltetése éppen az, hogy a felhasználó által létrehozott kurzuscsomagok más bejelentkezett felhasználók számára is megtalálhatók legyenek.
+
+- Ha a csomagok kizárólag privát módon lennének tárolva, azzal a közösségi használhatóság és kereshetőség célja nem valósulna meg.
+
+- A hozzáférhetőség korlátozott: a csomagok nem anonim nyilvánosság számára, hanem hitelesített felhasználói körben érhetők el.
+
+- Az adatkör a célhoz képest szűk, és nincs szükség különleges adatok kezelésére.
+
+Kevésbé invazív alternatíva lehetne a teljesen privát csomagkezelés vagy egy későbbi opt-in publikálás, ezek azonban eltérő termékdöntést jelentenének, és nem valósítanák meg a jelenlegi funkcióhoz tartozó közösségi kereshetőséget. A jelenlegi megoldás ezért a választott célhoz viszonyítva szükségesnek tekinthető.
+
+#### 5.5.3. Mérlegelési teszt
+
+Az Érintettekre gyakorolt hatás korlátozott, de nem elhanyagolható:
+
+- A csomag neve, leírása és kurzuslistája közvetve utalhat az Érintett egyetemére, karára, tanulmányi irányára vagy érdeklődési körére. Az Érintett csak a belső ID-ja által azonosított.
+
+- A kereshetőség nem teljesen váratlan, mert a funkció jellegéből következik, de erről az Érintetteket kifejezetten tájékoztatni kell.
+
+- A hozzáférhetőség a bejelentkezett felhasználók körére korlátozódik, anonim külső nyilvánosság felé nem történik közzététel.
+
+Garanciák:
+
+- Adattakarékosság: nincs szükség a csomagtulajdonos közvetlen azonosító adatainak (pl. email cím) publikus megjelenítésére.
+
+- Hozzáférés-korlátozás: csak hitelesített felhasználók érhetik el a csomagokat.
+
+- Kontroll az Érintett oldalán: a csomag bármikor módosítható vagy törölhető.
+
+- Átlátható tájékoztatás az adatkezelési tájékoztatóban.
+
+- Tiltakozási jog biztosítása a GDPR 21. cikke alapján.
+
+**Következtetés:** a közösségi kurzuscsomag-funkcióhoz fűződő jogos érdek fennáll, és megfelelő garanciák mellett elsőbbséget élvez az Érintettek korlátozott, kezelhető mértékű érdeksérelmével szemben. A GDPR 6. cikk (1) bekezdés f) pontja erre a szűk célra alkalmazható.
 
 ## 6. Összesített mérlegelési következtetés
 
