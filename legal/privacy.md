@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.03.31. (második verzió)
+**Hatályba lép:** 2026.04.10. (harmadik verzió)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -79,6 +79,30 @@ A CourseHub a bejelentkezett állapot fenntartásához és a Google OAuth2 bejel
 - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
 
 - **Megőrzési idő:** A felhasználói fiók törléséig.
+
+### Felhasználói kurzuscsomagok
+
+A CourseHub lehetővé teszi, hogy a bejelentkezett felhasználó több kurzusból saját kurzuscsomagokat állítson össze. A funkció sajátossága, hogy a létrehozott csomagok a bejelentkezett felhasználók számára kereshetők és használhatók. A létrehozó felhasználó természetesen törölheti és módosíthatja a saját csomagjait.
+
+- **Kezelt adatok:** a csomag neve, opcionális leírása, a kiválasztott kar azonosítója, a csomaghoz kapcsolt kurzusok listája, az utolsó használat időpontja, valamint a csomagot létrehozó felhasználó belső azonosítója.
+
+- **1. Saját kurzuscsomag létrehozása, tárolása, módosítása és felhasználása**
+
+  - **Cél:** a szolgáltatás személyre szabása, publikus kurzuscsomagok létrehozása és kezelése.
+
+  - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
+
+  - **Megőrzési idő:** a felhasználói fiók törléséig. A fiók törlésekor a felhasználóhoz tartozó kurzuscsomagok is törlődnek.
+
+- **2. Kurzuscsomagok kereshetővé és hozzáférhetővé tétele más bejelentkezett felhasználók számára**
+
+  - **Cél:** a szolgáltatás bővítése közösségi, megosztható kurzusösszeállításokkal. Ez nem a CourseHub szűken vett alapfunkciója, hanem egy kiegészítő, közösségi funkció.
+
+  - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
+
+  - **Megőrzési idő:** a csomag felhasználó általi törléséig vagy a felhasználói fiók törléséig.
+
+  - **Megjegyzés:** _Felhívjuk az Érintettek figyelmét, hogy a kurzuscsomag neve, leírása és a benne szereplő kurzusok közvetett módon utalhatnak az Érintett egyetemére, karára, tanulmányi területére vagy érdeklődési körére. A csomag nevében és leírásában szükségtelen személyes adat megadása tilos és kerülendő (adatminimalizáció). A jogos érdeken alapuló kereshetőség ellen az Érintett tiltakozhat, illetve a csomag törlésével vagy módosításával megszüntetheti a hozzáférhetőséget._
 
 ### Rendszerdiagnosztika és Statisztika ("Ping")
 

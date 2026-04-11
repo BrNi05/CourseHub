@@ -26,6 +26,8 @@ CourseHub centralizes this fragmented information into a single, consistent inte
 
 - Manage a personalized set of pinned courses
 
+- Create reusable course packages from multiple courses
+
 - Contribute to improving the dataset through suggestions
 
 The goal is not to replace existing university systems, but to unify access to them.
@@ -130,6 +132,14 @@ CourseHub uses PostgreSQL through Prisma. The schema is intentionally normalized
 
   - NOTE: although the User table implies that only Google OAuth is possible to be used, new auth methods can be introduced since only email address is required from the IDP.
 
+- `CoursePackage`
+
+  - Owned by a user and scoped to a faculty (and university implicitly).
+
+  - Stores a reusable named collection of courses through a many-to-many relation.
+
+  - Tracks `lastUsedAt` for usage-based lifecycle decisions and supports an admin-controlled `isPermanent` flag for packages that should be exempt from future cleanup policies.
+
 - `ClientPing`
 
   - Daily usage tracking per user, platform, and normalized UTC day.
@@ -150,6 +160,8 @@ CourseHub uses PostgreSQL through Prisma. The schema is intentionally normalized
 
 - Course codes are treated as globally unique by application policy. The university abbreviation is prefixed during normalization.
 
+- `CoursePackage` intentionally does not enforce that all linked courses belong to the same faculty. The selected faculty acts as metadata and a search boundary rather than a relational constraint on package contents.
+
 ### Data Retention
 
 Several cleanup jobs are already part of the design. This is due to the GDPR regulation, performance and storage limitations.
@@ -161,6 +173,8 @@ Several cleanup jobs are already part of the design. This is due to the GDPR reg
 - Inactive users may be deleted after long inactivity.
 
 - Logs, error reports, and backups each have independent retention behavior.
+
+- Course packages are deleted together with the owning user account via cascade delete. The schema already stores `lastUsedAt` and `isPermanent` so non-permanent package cleanup can be introduced later without another data-model change.
 
 The codebase already treats retention and cleanup as part of normal system behavior. The DB is affected by these processes, but does not control retention policies.
 
@@ -202,9 +216,19 @@ The backend is a NestJS application that combines API endpoints, static asset se
 
 - News
 
+- Course-package
+
 - Database-backup
 
 Authentication lives in its own `auth` module with Passport strategies and authorization guards.
+
+### Authentication And Authorization
+
+Controller methods consume authenticated context through Nest parameter decorators such as `@AuthUserId()` and `@AuthUser()`, not through `@Req()` plus transport-specific `express.Request` typing.
+
+Authorization for protected resources are expressed through composed decorators and guards, for example owner-or-admin checks on route params, so access control stays at the controller boundary instead of being threaded through service method signatures.
+
+This keeps services focused on domain behavior and reduces transport coupling.
 
 ### Bootstrapping and HTTP Pipeline
 
@@ -258,7 +282,7 @@ Current role model:
 
 - **Public endpoints:** course search, news reads, health, version checks, etc.
 
-- **Authenticated user endpoints:** session inspection, personal pinned-course sync, suggestions, client ping, error reports.
+- **Authenticated user endpoints:** session inspection, personal pinned-course sync, personal/shared course-package access, suggestions, client ping, error reports.
 
 - **Admin endpoints:** content management, logs, stats, backups, user list, accepting suggestions, cache resets
 
@@ -404,7 +428,9 @@ From a product perspective, the frontend is built around three main ideas:
 
 2. Pin and manage a personal set of courses.
 
-3. Improve the dataset through suggestions.
+3. Save and reuse (enroll for) multi-course packages.
+
+4. Improve the dataset (courses, university faculties) through suggestions.
 
 The problem this app solves is simple, and so is the solution.
 

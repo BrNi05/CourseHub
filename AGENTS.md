@@ -91,6 +91,8 @@ The repo is API-first in practice:
 
 - Keep controllers thin and business logic in services.
 - Follow existing NestJS patterns: DTOs, decorators, guards, interceptors, filters, and serializer-based responses.
+- Prefer Nest auth parameter decorators such as `@AuthUserId()` and `@AuthUser()` over controller-level `@Req()` usage for authenticated user access.
+- Prefer authorization guards/decorator composition at the controller boundary over passing transport-layer auth objects through service APIs.
 - All new non-trivial endpoint inputs should go through DTOs with validation decorators.
 - Do not import Prisma directly in `*.service.ts` files; repo lint rules explicitly ban this. Follow the established `PrismaService` pattern.
 - Maintain throttling on endpoints. New mutation or admin endpoints should be reviewed for throttling needs.
