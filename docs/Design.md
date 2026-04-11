@@ -222,6 +222,14 @@ The backend is a NestJS application that combines API endpoints, static asset se
 
 Authentication lives in its own `auth` module with Passport strategies and authorization guards.
 
+### Authentication And Authorization
+
+Controller methods consume authenticated context through Nest parameter decorators such as `@AuthUserId()` and `@AuthUser()`, not through `@Req()` plus transport-specific `express.Request` typing.
+
+Authorization for protected resources are expressed through composed decorators and guards, for example owner-or-admin checks on route params, so access control stays at the controller boundary instead of being threaded through service method signatures.
+
+This keeps services focused on domain behavior and reduces transport coupling.
+
 ### Bootstrapping and HTTP Pipeline
 
 The backend startup sequence in `apps/backend/src/main.ts` defines the request pipeline:
