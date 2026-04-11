@@ -12,7 +12,7 @@
   "dependencies": {
     "@coursehub/sdk": "workspace:*",
     "@fontsource-variable/open-sans": "^5.2.7",
-    "axios": "^1.14.0",
+    "axios": "^1.15.0",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4"
   },
