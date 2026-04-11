@@ -17,12 +17,12 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
+    "@types/node": "^25.6.0",
     "@unocss/preset-wind3": "^66.6.7",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/tsconfig": "^0.9.1",
     "globals": "^17.4.0",
-    "prettier": "^3.8.1",
+    "prettier": "^3.8.2",
     "typescript": "~6.0.2",
     "unocss": "^66.6.7",
     "vite": "^8.0.7",
