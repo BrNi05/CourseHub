@@ -138,7 +138,7 @@ CourseHub uses PostgreSQL through Prisma. The schema is intentionally normalized
 
   - Stores a reusable named collection of courses through a many-to-many relation.
 
-  - Tracks `lastUsedAt` for usage-based lifecycle decisions and supports an admin-controlled `isPermanent` flag for packages that should be exempt from future cleanup policies.
+  - Tracks `lastUsedAt` for usage-based lifecycle decisions and supports an admin-controlled `isPermanent` flag for packages that are exempt from inactivity-based cleanup policies.
 
 - `ClientPing`
 
@@ -174,7 +174,7 @@ Several cleanup jobs are already part of the design. This is due to the GDPR reg
 
 - Logs, error reports, and backups each have independent retention behavior.
 
-- Course packages are deleted together with the owning user account via cascade delete. The schema already stores `lastUsedAt` and `isPermanent` so non-permanent package cleanup can be introduced later without another data-model change.
+- Course packages are deleted together with the owning user account via cascade delete. Non-permanent packages are also deleted automatically after 12 months without use, based on `lastUsedAt`.
 
 The codebase already treats retention and cleanup as part of normal system behavior. The DB is affected by these processes, but does not control retention policies.
 
