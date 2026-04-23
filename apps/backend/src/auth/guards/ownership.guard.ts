@@ -1,8 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import type { Request } from 'express';
 
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
-import type { IAuthenticatedUser } from '../interfaces.js';
+import type { RequestWithAuthenticatedUserAndIdParam } from '../interfaces.js';
 
 @Injectable()
 export class UserOwnershipGuard implements CanActivate {
@@ -13,7 +12,7 @@ export class UserOwnershipGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request & { user?: IAuthenticatedUser }>();
+    const request = context.switchToHttp().getRequest<RequestWithAuthenticatedUserAndIdParam>();
     const resourceUserId = request.params.id; // GET /users/:id
     const user = request.user;
 

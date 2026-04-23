@@ -11,3 +11,16 @@ export interface IAuthenticatedUser {
   googleEmail: string;
   isAdmin: boolean;
 }
+
+// Request with authenticated user
+export type RequestWithAuthenticatedUser = {
+  user?: IAuthenticatedUser;
+};
+
+// Request with authenticated user and optional id param
+// Used for type safety in auth flow
+export type RequestWithAuthenticatedUserAndIdParam = RequestWithAuthenticatedUser & {
+  params: {
+    id?: string;
+  };
+};

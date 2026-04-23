@@ -446,7 +446,7 @@ async function main() {
   };
 
   const adminUser = await createUser(
-    'google-uid-admin',
+    'google-uid-admin', // will have to be overwritten with the real Google UID
     'szocsbarnabas8@gmail.com',
     ['BMEVIAUAB00', 'BMEVITMAB04', 'BMEVIMIAV17'],
     true
