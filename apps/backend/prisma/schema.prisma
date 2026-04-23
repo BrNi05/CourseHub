@@ -2,7 +2,7 @@
 
 // Generate the Prisma Client: pnpm prisma generate
 // To create the tables: pnpm prisma migrate dev --name ...
-//! Prod migrations are done by hand!!!
+//! Prod migrations are done by hand: pnpm prisma migrate deploy
 
 generator client {
   provider = "prisma-client"

@@ -19,271 +19,520 @@ try {
 }
 
 async function main() {
-  const universities = [
-    { name: 'Budapest University of Technology and Economics', abbrevName: 'BME' },
-    { name: 'Eötvös Loránd University', abbrevName: 'ELTE' },
-    { name: 'University of Szeged', abbrevName: 'SZTE' },
+  // Clean up all tables to prevent conflicts with existing data
+  await prisma.user.deleteMany({});
+  await prisma.course.deleteMany({});
+  await prisma.faculty.deleteMany({});
+  await prisma.university.deleteMany({});
+  await prisma.coursePackage.deleteMany({});
+  await prisma.clientPing.deleteMany({});
+
+  // Seed univerities and faculties
+  const universitiesData = [
+    { name: 'Állatorvostudományi Egyetem', abbrevName: 'ÁTE', faculties: [] },
+    { name: 'Budapesti Corvinus Egyetem', abbrevName: 'CORVINUS', faculties: [] },
+    { name: 'Budapesti Gazdasági Egyetem', abbrevName: 'BGE', faculties: [] },
+    {
+      name: 'Budapesti Műszaki és Gazdaságtudományi Egyetem',
+      abbrevName: 'BME',
+      faculties: [
+        { name: 'Villamosmérnöki és Informatikai Kar', abbrevName: 'VIK' },
+        { name: 'Gazdaság- és Társadalomtudományi Kar', abbrevName: 'GTK' },
+        { name: 'Természettudományi Kar', abbrevName: 'TTK' },
+      ],
+    },
+    { name: 'Debreceni Egyetem', abbrevName: 'DE', faculties: [] },
+    { name: 'Dunaújvárosi Egyetem', abbrevName: 'DUE', faculties: [] },
+    { name: 'Eötvös Lóránd Tudományegyetem', abbrevName: 'ELTE', faculties: [] },
+    { name: 'Károli Gáspár Református Egyetem', abbrevName: 'KRE', faculties: [] },
+    { name: 'Magyar Agrár- és Élettudományi Egyetem', abbrevName: 'MATE', faculties: [] },
+    { name: 'Milton Friedman Egyetem', abbrevName: 'MILTON', faculties: [] },
+    { name: 'Miskolci Egyetem', abbrevName: 'ME', faculties: [] },
+    { name: 'Moholy-Nagy Művészeti Egyetem', abbrevName: 'MOME', faculties: [] },
+    { name: 'Nemzeti Közszolgálati Egyetem', abbrevName: 'NKE', faculties: [] },
+    { name: 'Neumann János Egyetem', abbrevName: 'NJE', faculties: [] },
+    { name: 'Óbudai Egyetem', abbrevName: 'ÓE', faculties: [] },
+    { name: 'Pannon Egyetem', abbrevName: 'PE', faculties: [] },
+    { name: 'Pázmány Péter Katolikus Egyetem', abbrevName: 'PPKE', faculties: [] },
+    { name: 'Pécsi Tudományegyetem', abbrevName: 'PTE', faculties: [] },
+    { name: 'Semmelweis Egyetem', abbrevName: 'SE', faculties: [] },
+    { name: 'Széchenyi István Egyetem', abbrevName: 'SZE', faculties: [] },
+    { name: 'Szegedi Tudományegyetem', abbrevName: 'SZTE', faculties: [] },
   ];
 
-  const universityRecord: Record<string, string> = {};
-  for (const uni of universities) {
+  const facultyRecord: Record<string, string> = {}; // facultyName -> facultyId
+
+  for (const uni of universitiesData) {
     const createdUni = await prisma.university.upsert({
       where: { name: uni.name },
-      update: {},
-      create: uni,
+      update: { abbrevName: uni.abbrevName },
+      create: { name: uni.name, abbrevName: uni.abbrevName },
     });
-    universityRecord[uni.name] = createdUni.id;
+
+    for (const fac of uni.faculties) {
+      const createdFaculty = await prisma.faculty.upsert({
+        where: { name_universityId: { name: fac.name, universityId: createdUni.id } },
+        update: { abbrevName: fac.abbrevName },
+        create: {
+          name: fac.name,
+          abbrevName: fac.abbrevName,
+          university: { connect: { id: createdUni.id } },
+        },
+      });
+      facultyRecord[fac.name] = createdFaculty.id;
+    }
   }
 
-  const faculties = [
+  // Seed courses
+  const coursesData = [
+    // GTK
     {
-      name: 'Faculty of Electrical Engineering and Informatics',
-      universityName: 'Budapest University of Technology and Economics',
-      abbrevName: 'VIK',
+      facultyName: 'Gazdaság- és Társadalomtudományi Kar',
+      name: 'Menedzsment és vállalkozásgazdaságtan',
+      code: 'BMEGT20A001',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/GT20A001/',
+      courseMoodleUrl: 'https://edu.gtk.bme.hu/course/view.php?id=11277',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Menedzsment_%C3%A9s_v%C3%A1llalkoz%C3%A1sgazdas%C3%A1gtan',
     },
     {
-      name: 'Faculty of Mechanical Engineering',
-      universityName: 'Budapest University of Technology and Economics',
-      abbrevName: 'GPK',
+      facultyName: 'Gazdaság- és Társadalomtudományi Kar',
+      name: 'Jogi alapismeretek',
+      code: 'BMEGT55A405',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/GT55A405/',
+      courseMoodleUrl: 'https://edu.gtk.bme.hu/course/view.php?id=11671',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Jogi_alapismeretek',
     },
-    { name: 'Faculty of Science', universityName: 'Eötvös Loránd University', abbrevName: 'TTK' },
+    // TTK
     {
-      name: 'Faculty of Humanities',
-      universityName: 'Eötvös Loránd University',
-      abbrevName: 'BTK',
+      facultyName: 'Természettudományi Kar',
+      name: 'Analízis 1 informatikusoknak',
+      code: 'BMETEMIBSVANL1-00',
+      coursePageUrl: 'https://math.bme.hu/~tasnadi/merninf_anal_1/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/TEMIBSVANL1-00/',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Anal%C3%ADzis_I.',
     },
-    { name: 'Faculty of Medicine', universityName: 'University of Szeged', abbrevName: 'ÁOK' },
     {
-      name: 'Faculty of Law and Political Sciences',
-      universityName: 'University of Szeged',
-      abbrevName: 'ÁJK',
+      facultyName: 'Természettudományi Kar',
+      name: 'Fizika alapismeretek',
+      code: 'BMETE11AX52',
+      coursePageUrl:
+        'https://fizipedia.bme.hu/index.php/Fizika_alapismeretek_-_M%C3%A9rn%C3%B6k_informatikus_alapszak',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/TE11AX52/',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Fizikai_alapismeretek',
+    },
+    {
+      facultyName: 'Természettudományi Kar',
+      name: 'Analízis 2 informatikusoknak',
+      code: 'BMETE90AX57',
+      coursePageUrl: 'https://math.bme.hu/~tasnadi/merninf_anal_2/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/TE90AX57/',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Anal%C3%ADzis_II.',
+    },
+    {
+      facultyName: 'Természettudományi Kar',
+      name: 'Fizika i',
+      code: 'BMETE11AX53',
+      coursePageUrl:
+        'https://fizipedia.bme.hu/index.php/Fizika_i_-_M%C3%A9rn%C3%B6k_informatikus_alapszak',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/TE11AX53/',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl:
+        'https://fizipedia.bme.hu/index.php/Fizika_i_-_M%C3%A9rn%C3%B6k_informatikus_alapszak',
+    },
+    // VIK
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Szoftvertechnikák',
+      code: 'BMEVIAUAB00',
+      coursePageUrl: 'https://bmeviauab00.github.io/szoftvertechnikak/2024/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIAUAB00',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=15527',
+      courseSubmissionUrl: '',
+      courseTeamsUrl:
+        'https://teams.microsoft.com/l/team/19%3Aiczgx62g0X6I7FYJ-p94XObEQYOn8hPjD_yIetaNzG81%40thread.tacv2/conversations?groupId=d30ec343-fe0b-44fc-b226-9f18e6992b4b&tenantId=6a3548ab-7570-4271-91a8-58da006970299',
+      courseExtraUrl: 'https://vik.wiki/Szoftvertechnik%C3%A1k',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Bevezetés a számításelméletbe 1',
+      code: 'BMEVISZAA06',
+      coursePageUrl: 'https://cs.bme.hu/bsz1/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VISZAA06',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Bevezet%C3%A9s_a_sz%C3%A1m%C3%ADt%C3%A1selm%C3%A9letbe_I.',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'A programozás alapjai 1',
+      code: 'BMEVIEEAA00',
+      coursePageUrl: 'https://infoc.eet.bme.hu/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIEEAA00',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/A_programoz%C3%A1s_alapjai_I.',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Villamos alapismeretek',
+      code: 'BMEVIETAA00',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIETAA00',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Villamos_alapismeretek',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Digitális technika',
+      code: 'BMEVIMIAA03',
+      coursePageUrl: 'https://www.mit.bme.hu/targyak/VIMIAA03',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIMIAA03',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Digit%C3%A1lis_technika',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Bevezetés a számításelméletbe 2',
+      code: 'BMEVISZAA04',
+      coursePageUrl: 'https://cs.bme.hu/bsz2/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VISZAA04',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Bevezet%C3%A9s_a_sz%C3%A1m%C3%ADt%C3%A1selm%C3%A9letbe_II.',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Algoritmuselmélet',
+      code: 'BMEVISZAA08',
+      coursePageUrl: 'https://www.cs.bme.hu/algel/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VISZAA08',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Algoritmuselm%C3%A9let',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Számítógép-architektúrák',
+      code: 'BMEVIHIAA03',
+      coursePageUrl: 'https://www.hit.bme.hu/~ghorvath/szgarch/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIHIAA03',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Sz%C3%A1m%C3%ADt%C3%B3g%C3%A9p_architekt%C3%BAr%C3%A1k',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Valószínűségszámítás és statisztika',
+      code: 'BMEVISZAB04',
+      coursePageUrl: 'https://www.cs.bme.hu/valszam/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VISZAB04',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl:
+        'https://vik.wiki/Val%C3%B3sz%C3%ADn%C5%B1s%C3%A9gsz%C3%A1m%C3%ADt%C3%A1s_%C3%A9s_statisztika',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Kódolástechnika',
+      code: 'BMEVIHIAB04',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIHIAB04',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/K%C3%B3dol%C3%A1stechnika',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Szoftvertechnológia',
+      code: 'BMEVIMIAB04',
+      coursePageUrl: 'https://www.mit.bme.hu/targyak/VIMIAB04',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIMIAB04',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: '',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Szoftvertechnol%C3%B3gia',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'A programozás alapjai 2',
+      code: 'BMEVIIIAA03',
+      coursePageUrl: 'https://infocpp.iit.bme.hu/',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIIIAA03',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: 'https://jporta.iit.bme.hu/home/',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/A_programoz%C3%A1s_alapjai_II.',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'A programozás alapjai 3',
+      code: 'BMEVIIIAB00',
+      coursePageUrl: 'https://www.iit.bme.hu/targyak/BMEVIIIAB00',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIIIAB00',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: 'https://jporta.iit.bme.hu/home/',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/A_programoz%C3%A1s_alapjai_III.',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Operációs rendszerek',
+      code: 'BMEVIMIAB03',
+      coursePageUrl: 'https://www.mit.bme.hu/targyak/VIMIAB03',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIMIAB03',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: 'https://hf.mit.bme.hu/hallgato',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Oper%C3%A1ci%C3%B3s_rendszerek',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Számítógépes grafika',
+      code: 'BMEVIIIAB12',
+      coursePageUrl: 'https://cg.iit.bme.hu/portal/szamitogepes-grafika',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIIIAB12',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=15953',
+      courseSubmissionUrl: 'https://jporta.iit.bme.hu/home/',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Szoftver_projekt_laborat%C3%B3rium',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Kommunikációs hálózatok',
+      code: 'BMEVITMAB06',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VITMAB06',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=16133',
+      courseSubmissionUrl: 'https://edu.vik.bme.hu/course/section.php?id=235921',
+      courseTeamsUrl:
+        'https://teams.microsoft.com/l/team/19%3AkgRKnTInexVzVMoLtXq3Y27YB3y5lnZpI-RnOm8BPcs1%40thread.tacv2/conversations?groupId=cc009d19-69e4-4994-8e98-212befeb3e62&tenantId=6a3548ab-7570-4271-91a8-58da00697029',
+      courseExtraUrl: 'https://vik.wiki/Kommunik%C3%A1ci%C3%B3s_h%C3%A1l%C3%B3zatok',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Szoftver projekt laboratórium',
+      code: 'BMEVIIIAB11',
+      coursePageUrl: 'https://www.iit.bme.hu/oktatas/tanszeki_targyak/BMEVIIIAB02',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIIIAB11',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=15959',
+      courseSubmissionUrl: 'https://devil.iit.bme.hu:9181/hercules/start',
+      courseTeamsUrl:
+        'https://teams.microsoft.com/l/team/19%3A70wNZ11H1EYqZ2UgaG-ddekfDp_hlGhcbg4pLEYIuqo1%40thread.tacv2/conversations?groupId=f7d53815-1041-431e-b44d-66b3d4f9aff4&tenantId=6a3548ab-7570-4271-91a8-58da00697029',
+      courseExtraUrl: 'https://vik.wiki/Szoftver_projekt_laborat%C3%B3rium',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Adatbázisok',
+      code: 'BMEVITMAB04',
+      coursePageUrl: 'https://www.db.bme.hu/adatbazisok',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VITMAB04',
+      courseMoodleUrl: '',
+      courseSubmissionUrl: 'https://fecske.db.bme.hu/#/student',
+      courseTeamsUrl: '',
+      courseExtraUrl: 'https://vik.wiki/Adatb%C3%A1zisok',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Blockchain technológiák és alkalmazások',
+      code: 'BMEVIMIAV17',
+      coursePageUrl: '',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIMIAV17/',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=15982',
+      courseSubmissionUrl: '',
+      courseTeamsUrl:
+        'https://teams.microsoft.com/l/team/19%3AR9jEpp75TgxozRTwmpZWMHeuEXbi4g5OF4wqbfT8QwY1%40thread.tacv2/conversations?groupId=828aec23-6433-4431-bd7c-d4b663e67b75&tenantId=6a3548ab-7570-4271-91a8-58da00697029',
+      courseExtraUrl:
+        'https://vik.wiki/Blockchain_technol%C3%B3gi%C3%A1k_%C3%A9s_alkalmaz%C3%A1sok',
+    },
+    {
+      facultyName: 'Villamosmérnöki és Informatikai Kar',
+      name: 'Felhő alapú szoftverfejlesztés',
+      code: 'BMEVIAUAV24',
+      coursePageUrl: 'https://www.aut.bme.hu/Course/felho',
+      courseTadUrl: 'https://portal.vik.bme.hu/kepzes/targyak/VIAUAV24',
+      courseMoodleUrl: 'https://edu.vik.bme.hu/course/view.php?id=15442',
+      courseSubmissionUrl: '',
+      courseTeamsUrl:
+        'https://teams.microsoft.com/l/team/19%3AKf4GVhdvC4Et_QDg_ginAy3i5SMzMD2PM13oXCfcASI1%40thread.tacv2/conversations?groupId=9b6cd92c-b1ec-468c-82ee-67b9b102a7be&tenantId=6a3548ab-7570-4271-91a8-58da00697029',
+      courseExtraUrl: 'https://github.com/bmeaut/cloud/blob/master/hf.md',
     },
   ];
 
-  const facultyRecord: Record<string, string> = {};
+  const courseRecord: Record<string, string> = {}; // courseCode -> courseId
 
-  for (const f of faculties) {
-    const uniId = universityRecord[f.universityName];
-
-    const createdFaculty = await prisma.faculty.upsert({
-      where: { name_universityId: { name: f.name, universityId: uniId } },
-      update: {},
-      create: {
-        name: f.name,
-        abbrevName: f.abbrevName,
-        university: { connect: { id: uniId } },
-      },
-    });
-
-    facultyRecord[f.name] = createdFaculty.id;
-  }
-
-  const courses = [
-    {
-      name: 'Introduction to Computer Engineering',
-      code: 'CE101',
-      facultyName: 'Faculty of Electrical Engineering and Informatics',
-      urls: {
-        coursePageUrl: 'https://bme.hu/ce101',
-        courseTadUrl: 'https://tad.bme.hu/CE101',
-        courseMoodleUrl: 'https://moodle.bme.hu/course/view.php?id=101',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/ce101',
-        courseExtraUrl: 'https://github.com/bme-ce101',
-      },
-    },
-    {
-      name: 'Digital Systems',
-      code: 'EE102',
-      facultyName: 'Faculty of Electrical Engineering and Informatics',
-      urls: {
-        coursePageUrl: '',
-        courseTadUrl: 'https://tad.bme.hu/EE102',
-        courseMoodleUrl: '',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/ee102',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Statics',
-      code: 'ME101',
-      facultyName: 'Faculty of Mechanical Engineering',
-      urls: {
-        coursePageUrl: 'https://mech.uni/ME101',
-        courseTadUrl: '',
-        courseMoodleUrl: 'https://moodle.uni/ME101',
-        courseTeamsUrl: '',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Thermodynamics',
-      code: 'ME102',
-      facultyName: 'Faculty of Mechanical Engineering',
-      urls: {
-        coursePageUrl: '',
-        courseTadUrl: 'https://tad.uni/ME102',
-        courseMoodleUrl: '',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/me102',
-        courseExtraUrl: 'https://wiki.uni/ME102',
-      },
-    },
-    {
-      name: 'Linear Algebra',
-      code: 'MA101',
-      facultyName: 'Faculty of Science',
-      urls: {
-        coursePageUrl: 'https://math.uni/MA101',
-        courseTadUrl: '',
-        courseMoodleUrl: 'https://moodle.uni/MA101',
-        courseTeamsUrl: '',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Introduction to Physics',
-      code: 'PH101',
-      facultyName: 'Faculty of Science',
-      urls: {
-        coursePageUrl: '',
-        courseTadUrl: '',
-        courseMoodleUrl: '',
-        courseTeamsUrl: '',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Philosophy 101',
-      code: 'HU101',
-      facultyName: 'Faculty of Humanities',
-      urls: {
-        coursePageUrl: 'https://hum.uni/hu101?query=philosophy',
-        courseTadUrl: 'https://tad.hum.uni/hu101',
-        courseMoodleUrl: 'https://moodle.hum.uni/hu101',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/hu101',
-        courseExtraUrl: 'https://wiki.hum.uni/hu101#section',
-      },
-    },
-    {
-      name: 'History of Literature',
-      code: 'HU102',
-      facultyName: 'Faculty of Humanities',
-      urls: {
-        coursePageUrl: '',
-        courseTadUrl: '',
-        courseMoodleUrl: '',
-        courseTeamsUrl: '',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Anatomy',
-      code: 'MED101',
-      facultyName: 'Faculty of Medicine',
-      urls: {
-        coursePageUrl: 'https://med.uni/MED101',
-        courseTadUrl: '',
-        courseMoodleUrl: 'https://moodle.med/MED101',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/med101',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'Physiology',
-      code: 'MED102',
-      facultyName: 'Faculty of Medicine',
-      urls: {
-        coursePageUrl: 'https://med.uni/MED102',
-        courseTadUrl: 'https://tad.med/MED102',
-        courseMoodleUrl: '',
-        courseTeamsUrl: '',
-        courseExtraUrl: 'https://github.com/med102',
-      },
-    },
-    {
-      name: 'Constitutional Law',
-      code: 'LAW101',
-      facultyName: 'Faculty of Law and Political Sciences',
-      urls: {
-        coursePageUrl: '',
-        courseTadUrl: '',
-        courseMoodleUrl: '',
-        courseTeamsUrl: '',
-        courseExtraUrl: '',
-      },
-    },
-    {
-      name: 'International Relations',
-      code: 'LAW102',
-      facultyName: 'Faculty of Law and Political Sciences',
-      urls: {
-        coursePageUrl: 'https://law.uni/LAW102',
-        courseTadUrl: '',
-        courseMoodleUrl: 'https://moodle.law.uni/LAW102',
-        courseTeamsUrl: 'https://teams.microsoft.com/l/team/law102',
-        courseExtraUrl: '',
-      },
-    },
-  ];
-
-  const courseRecord: Record<string, string> = {};
-
-  for (const c of courses) {
+  for (const c of coursesData) {
     const facultyId = facultyRecord[c.facultyName];
+    if (!facultyId) continue;
 
     const createdCourse = await prisma.course.upsert({
       where: { code: c.code },
-      update: {},
+      update: {
+        name: c.name,
+        coursePageUrl: c.coursePageUrl,
+        courseTadUrl: c.courseTadUrl,
+        courseMoodleUrl: c.courseMoodleUrl,
+        courseSubmissionUrl: c.courseSubmissionUrl,
+        courseTeamsUrl: c.courseTeamsUrl,
+        courseExtraUrl: c.courseExtraUrl,
+      },
       create: {
         name: c.name,
         code: c.code,
         faculty: { connect: { id: facultyId } },
-        coursePageUrl: c.urls.coursePageUrl ?? '',
-        courseTadUrl: c.urls.courseTadUrl ?? '',
-        courseMoodleUrl: c.urls.courseMoodleUrl ?? '',
-        courseTeamsUrl: c.urls.courseTeamsUrl ?? '',
-        courseExtraUrl: c.urls.courseExtraUrl ?? '',
+        coursePageUrl: c.coursePageUrl,
+        courseTadUrl: c.courseTadUrl,
+        courseMoodleUrl: c.courseMoodleUrl,
+        courseSubmissionUrl: c.courseSubmissionUrl,
+        courseTeamsUrl: c.courseTeamsUrl,
+        courseExtraUrl: c.courseExtraUrl,
       },
     });
 
     courseRecord[c.code] = createdCourse.id;
   }
 
+  // Seed users
   const createUser = async (
     googleId: string,
     googleEmail: string,
     pinnedCourseCodes: string[] = [],
     isAdmin = false
   ) => {
-    const pinnedConnect = pinnedCourseCodes.map((code) => ({ id: courseRecord[code] }));
+    const validCodes = pinnedCourseCodes.filter((code) => courseRecord[code]);
+    const pinnedConnect = validCodes.map((code) => ({ id: courseRecord[code] }));
 
-    await prisma.user.create({
-      data: {
+    return prisma.user.upsert({
+      where: { googleId },
+      update: {
+        googleEmail,
+        isAdmin,
+        pinnedCourses: { connect: pinnedConnect },
+      },
+      create: {
         googleId,
         googleEmail,
-        pinnedCourses: { connect: pinnedConnect },
         isAdmin,
+        pinnedCourses: { connect: pinnedConnect },
       },
     });
   };
 
-  // Example users
-  await createUser('google-uid-1', 'user1@example.com', ['CE101', 'EE102']);
-  await createUser('google-uid-2', 'user2@example.com', ['ME101']);
-  await createUser('google-uid-3', 'user3@example.com');
+  const adminUser = await createUser(
+    'google-uid-admin',
+    'szocsbarnabas8@gmail.com',
+    ['BMEVIAUAB00', 'BMEVITMAB04', 'BMEVIMIAV17'],
+    true
+  );
+  const user1 = await createUser('google-uid-1', 'john.doe@gmail.com', [
+    'BMEVIEEAA00',
+    'BMETEMIBSVANL1-00',
+  ]);
+  await createUser('google-uid-2', 'jane.smith@outlook.com', ['BMEGT20A001']);
+  await createUser('google-uid-3', 'kovacs.istvan@freemail.hu', ['BMEVISZAA06', 'BMEVIMIAA03']);
+  await createUser('google-uid-4', 'toth.gabor@yahoo.com');
+  await createUser('google-uid-5', 'nemeth.anna@gmail.com', ['BMETE11AX52', 'BMETE90AX57']);
+  await createUser('google-uid-6', 'horvath.peter@protonmail.com');
 
-  await createUser('google-uid-4', 'user4@example.com', ['MA101', 'PH101', 'HU101']);
-  await createUser('google-uid-5', 'user5@example.com', ['HU102']);
-
-  await createUser('google-uid-6', 'user6@example.com', ['MED101', 'MED102', 'LAW101'], true); // admin user
-  await createUser('google-uid-7', 'user7@example.com');
-
-  // Pings
-  const users = await prisma.user.findMany({
-    select: { id: true },
+  // Seed course packages
+  await prisma.coursePackage.create({
+    data: {
+      name: 'BME VIK Mérnökinformatikus 1. Félév',
+      description: 'Alapozó tárgyak az első félévre.',
+      isPermanent: true,
+      owner: { connect: { id: adminUser.id } },
+      faculty: { connect: { id: facultyRecord['Villamosmérnöki és Informatikai Kar'] } },
+      courses: {
+        connect: [
+          { id: courseRecord['BMEVIEEAA00'] },
+          { id: courseRecord['BMEVISZAA06'] },
+          { id: courseRecord['BMEVIETAA00'] },
+          { id: courseRecord['BMETEMIBSVANL1-00'] },
+          { id: courseRecord['BMETE11AX52'] },
+        ],
+      },
+    },
   });
 
-  const platforms: ClientPlatform[] = ['windows', 'linux', 'macos', 'android', 'ios'];
+  await prisma.coursePackage.create({
+    data: {
+      name: 'BME VIK Szoftverfejlesztés',
+      description: 'Szoftveres irányultságú tárgyak gyűjteménye.',
+      isPermanent: false,
+      owner: { connect: { id: user1.id } },
+      faculty: { connect: { id: facultyRecord['Villamosmérnöki és Informatikai Kar'] } },
+      courses: {
+        connect: [
+          { id: courseRecord['BMEVIAUAB00'] },
+          { id: courseRecord['BMEVIMIAB04'] },
+          { id: courseRecord['BMEVIAUAV24'] },
+          { id: courseRecord['BMEVIIIAB11'] },
+        ],
+      },
+    },
+  });
 
+  // Seed suggested courses
+  await prisma.suggestedCourse.upsert({
+    where: { courseCode: 'OE-NIK-SZ1' },
+    update: {},
+    create: {
+      userEmail: 'kovacs.istvan@freemail.hu',
+      uniName: 'Óbudai Egyetem',
+      uniAbbrevName: 'ÓE',
+      facultyName: 'Neumann János Informatikai Kar',
+      facultyAbbrevName: 'NIK',
+      courseName: 'Szoftverfejlesztés',
+      courseCode: 'OE-NIK-SZ1',
+      coursePageUrl: 'https://nik.uni-obuda.hu/szoftverfejlesztes',
+    },
+  });
+
+  await prisma.suggestedCourse.upsert({
+    where: { courseCode: 'ELTE-IK-PROG1' },
+    update: {},
+    create: {
+      userEmail: 'nemeth.anna@gmail.com',
+      uniName: 'Eötvös Lóránd Tudományegyetem',
+      uniAbbrevName: 'ELTE',
+      facultyName: 'Informatikai Kar',
+      facultyAbbrevName: 'IK',
+      courseName: 'Programozási alapismeretek',
+      courseCode: 'ELTE-IK-PROG1',
+      courseTadUrl: 'https://elte.hu/ik/prog1',
+    },
+  });
+
+  // Seed client pings
+  const users = await prisma.user.findMany({ select: { id: true } });
+  const platforms: ClientPlatform[] = ['windows', 'linux', 'macos', 'android', 'ios'];
   const today = new Date();
   const daysBack = 60;
 
@@ -300,9 +549,7 @@ async function main() {
     );
 
     for (const user of users) {
-      // Random chance user was active that day
       if (Math.random() < 0.6) {
-        // Random number of platforms used that day (1–2)
         const shuffled = [...platforms].sort(() => 0.5 - Math.random());
         const usedPlatforms = shuffled.slice(0, Math.ceil(Math.random() * 2));
 
@@ -322,7 +569,9 @@ async function main() {
   for (let i = 0; i < pingsToInsert.length; i += batchSize) {
     await prisma.clientPing.createMany({
       data: pingsToInsert.slice(i, i + batchSize),
-      skipDuplicates: true,
+      skipDuplicates: true, // Prevents unique constraint failure on rerun
     });
   }
+
+  console.log('Database seeding completed successfully.');
 }
