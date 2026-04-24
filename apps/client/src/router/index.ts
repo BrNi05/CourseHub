@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import ErrorReportPage from '@/pages/ErrorReportPage.vue';
 import ManagePage from '@/pages/ManagePage.vue';
+import PackagesPage from '@/pages/PackagesPage.vue';
 import SearchPage from '@/pages/SearchPage.vue';
 import SuggestPage from '@/pages/SuggestPage.vue';
 
@@ -28,6 +29,18 @@ const router = createRouter({
         description:
           'Keress nyilvános egyetemi kurzusokat egyetem, név vagy kód szerint, és jelöld azokat, amiket felvettél.',
         canonicalPath: '/search',
+        robots: 'noindex',
+      },
+    },
+    {
+      path: '/packages',
+      name: 'packages',
+      component: PackagesPage,
+      meta: {
+        title: 'Csomagjaim',
+        description: 'Tárgycsomagok létrehozása, keresése és felvétele.',
+        canonicalPath: '/packages',
+        robots: 'noindex',
       },
     },
     {
@@ -39,6 +52,7 @@ const router = createRouter({
         description:
           'Javasolj új tárgyat, hibás link javítását vagy adatkorrekciót, hogy a CourseHub naprakész és pontos maradjon.',
         canonicalPath: '/suggest',
+        robots: 'noindex',
       },
     },
     {
@@ -49,6 +63,7 @@ const router = createRouter({
         title: 'Hibajelentés',
         description: 'Jelentsd a CourseHub hibás működését vagy felhasználói felületi problémáit.',
         canonicalPath: '/error-report',
+        robots: 'noindex',
       },
     },
     {

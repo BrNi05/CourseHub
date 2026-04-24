@@ -3,5 +3,6 @@ User-agent: *
 Disallow: /api/
 Disallow: /swagger/
 Disallow: /error-report
+Disallow: /packages
 
 Sitemap: https://coursehub.hu/sitemap.xml
