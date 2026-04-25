@@ -14,7 +14,7 @@
     "@fontsource-variable/open-sans": "^5.2.7",
     "axios": "^1.15.0",
     "qrcode.vue": "^3.8.1",
-    "vue": "^3.5.32",
+    "vue": "^3.5.33",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
