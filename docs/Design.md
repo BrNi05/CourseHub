@@ -378,11 +378,13 @@ The frontend is a Vue3 SPA written in TypeScript and styled with UnoCSS plus app
 
 ### Routing and Pages
 
-The router contains four main pages:
+The router contains five main pages:
 
 - `/`: manage pinned courses.
 
 - `/search`: search and add courses.
+
+- `/packages`: create, search, share, and enroll for multi-course packages.
 
 - `/suggest`: submit a new course or propose corrections.
 
@@ -407,6 +409,10 @@ Bootstrap behavior includes:
 - Showing notifications around login and restore behavior.
 
 - Emitting client usage ping after successful authenticated initialization.
+
+- Replaying a previously saved internal route intent after login, then deleting that intent immediately after the redirect attempt.
+
+Shared package links use a small routing manager that persists only same-origin CourseHub routes. This allows a user to open a package enrollment link while logged out, complete Google OAuth, and then resume the intended `/packages?...` flow without enabling open redirects.
 
 ### Frontend API Consumption
 
@@ -459,6 +465,8 @@ Security is a first-class design concern in the current backend. Existing contro
 - JWT secret length enforcement.
 
 - Cookie-based auth instead of storing tokens in localStorage.
+
+- Frontend post-login route continuation is constrained to validated same-origin CourseHub routes, and stored route intents are treated as one-time navigation hints rather than general redirect targets.
 
 - Narrow CORS configuration.
 
