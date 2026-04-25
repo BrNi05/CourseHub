@@ -175,13 +175,24 @@ export async function searchCourses(): Promise<void> {
 }
 
 export async function addCourse(course: Course): Promise<void> {
-  replaceSelectedCourses([...coursesState.selectedCourses, course]);
+  await addCourses([course]);
+}
+
+export async function addCourses(courses: Course[]): Promise<number> {
+  const previousCount = coursesState.selectedCourses.length;
+  replaceSelectedCourses([...coursesState.selectedCourses, ...courses]);
+
+  const addedCount = coursesState.selectedCourses.length - previousCount;
 
   await syncPinnedCourses(
     coursesState.selectedCourses.map((entry) => String(entry.id)),
-    'Tárgy felvéve',
-    `A(z) ${course.name} tárgyat inenntől láthatod a főoldalon.`
+    'Tárgyak felvéve',
+    addedCount > 0
+      ? `${addedCount} tárgy hozzáadva a felvett tárgyaidhoz.`
+      : 'A kiválasztott tárgyak már mind felvetted.'
   );
+
+  return addedCount;
 }
 
 export async function removeCourse(courseId: string): Promise<void> {

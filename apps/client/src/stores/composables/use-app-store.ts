@@ -12,6 +12,7 @@ import {
 import { contentState } from '../modules/content.store';
 import {
   addCourse,
+  addCourses,
   clearSelectedCourses,
   coursesState,
   removeCourse,
@@ -83,6 +84,7 @@ export function useAppStore() {
     state,
     initialize,
     addCourse,
+    addCourses,
     removeCourse,
     loadUniversities,
     searchCourses,
