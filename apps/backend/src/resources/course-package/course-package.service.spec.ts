@@ -105,6 +105,7 @@ describe('CoursePackageService', () => {
       },
       include: { courses: true, faculty: true },
       orderBy: { name: 'asc' },
+      take: 30,
     });
     expect(result).toEqual([{ id: 'package-1' }]);
   });

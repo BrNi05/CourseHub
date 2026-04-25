@@ -26,7 +26,6 @@ import { CreateCoursePackageDto } from './dto/create-course-package.dto.js';
 import { UpdateCoursePackageDto } from './dto/update-course-package.dto.js';
 import { SearchCoursePackageDto } from './dto/search-course-package.dto.js';
 import { SetCoursePackagePermanentDto } from './dto/set-course-package-permanent.dto.js';
-import { UseCoursePackageResponseDto } from './dto/use-course-package-response.dto.js';
 import { RequiresCoursePackageOwnership } from '../../decorators/auth/requires-course-package-ownership.decorator.js';
 
 @Controller('course-packages')
@@ -149,22 +148,18 @@ export class CoursePackageController {
   }
 
   @Post(':id/use')
-  @RequiresCoursePackageOwnership()
-  @Serialize(UseCoursePackageResponseDto)
+  @RequiresAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'USER AUTH',
     description: 'Mark a course package as used',
   })
   @ApiOkResponse({
-    type: UseCoursePackageResponseDto,
     description: 'Usage timestamp updated',
   })
   @DatabaseOperation()
-  @Throttable(60, 100)
-  async markAsUsed(@Param('id') id: string): Promise<{ success: true }> {
+  @Throttable(60, 1000)
+  async markAsUsed(@Param('id') id: string): Promise<void> {
     await this.coursePackageService.markAsUsed(id);
-
-    return { success: true };
   }
 }

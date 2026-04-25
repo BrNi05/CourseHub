@@ -126,12 +126,12 @@ describe('CoursePackageController', () => {
     expect(serviceMock.remove).toHaveBeenCalledWith(coursePackage.id);
   });
 
-  it('marks a package as used and returns success', async () => {
+  it('marks a package as used', async () => {
     (serviceMock.markAsUsed as any).mockResolvedValue(undefined);
 
     const result = await controller.markAsUsed(coursePackage.id);
 
     expect(serviceMock.markAsUsed).toHaveBeenCalledWith(coursePackage.id);
-    expect(result).toEqual({ success: true });
+    expect(result).toBeUndefined();
   });
 });

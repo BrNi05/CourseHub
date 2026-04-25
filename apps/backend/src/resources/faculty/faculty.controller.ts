@@ -13,6 +13,7 @@ import { DatabaseOperation } from '../../decorators/responses/database-operation
 import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
+import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
 
 @Controller('faculties')
 @Serialize(Faculty)
@@ -20,7 +21,7 @@ export class FacultyController {
   constructor(private readonly facultyService: FacultyService) {}
 
   @Get()
-  @Admin()
+  @RequiresAuth()
   @ApiOperation({
     summary: 'ADMIN',
     description:
@@ -32,7 +33,7 @@ export class FacultyController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 20000)
   async getAll(@Query() query: GetFacultiesQueryDto) {
     return this.facultyService.getAllByUniversity(query.universityId);
   }

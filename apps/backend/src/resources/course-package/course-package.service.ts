@@ -85,6 +85,7 @@ export class CoursePackageService {
       },
       include: coursePackageInclude,
       orderBy: { name: 'asc' },
+      take: 30, // A good search should always return less than 30 results
     });
 
     this.queryCache.set(cacheKey, result);
