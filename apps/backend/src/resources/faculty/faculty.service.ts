@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager/dist/index.js';
 
 import { PrismaService } from '../../prisma/prisma.service.js';
 
@@ -11,16 +12,26 @@ import { FacultyWithoutCoursesDto } from './dto/faculty-response-nocourse.dto.js
 @Injectable()
 export class FacultyService {
   constructor(
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2
   ) {}
 
   async getAllByUniversity(universityId: string): Promise<FacultyWithoutCoursesDto[]> {
-    return await this.prisma.faculty.findMany({
+    const cacheKey = `faculties_by_university_${universityId}`;
+    const cached = await this.cacheManager.get<FacultyWithoutCoursesDto[]>(cacheKey);
+    if (cached) return cached;
+
+    const faculties = await this.prisma.faculty.findMany({
       where: { universityId },
       include: { courses: false },
       orderBy: { name: 'asc' },
     });
+
+    // Assuming faculties basically never change, TTL can be longer
+    await this.cacheManager.set(cacheKey, faculties, 86400000); // 1 day cache
+
+    return faculties;
   }
 
   async getOne(id: string): Promise<FacultyWithoutCoursesDto> {

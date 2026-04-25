@@ -1,17 +1,26 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { RouterView } from 'vue-router';
+import { RouterView, useRouter } from 'vue-router';
 
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
 import ToastStack from './components/ToastStack.vue';
 
+import { redirectToRememberedRoute } from '@/router/routing-manager';
 import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
+const router = useRouter();
 
 onMounted(() => {
-  void app.initialize();
+  void (async () => {
+    await app.initialize();
+
+    // If the user is not authenticated, do not redirect
+    // as route manager is intended to redirect authenticated users
+    if (!app.isAuthenticated()) return;
+    await redirectToRememberedRoute(router);
+  })();
 });
 </script>
 

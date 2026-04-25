@@ -9,6 +9,10 @@ describe('FacultyService', () => {
   let service: FacultyService;
   let prisma: PrismaService;
   let eventEmitter: any;
+  let cacheManager: {
+    get: ReturnType<typeof vi.fn>;
+    set: ReturnType<typeof vi.fn>;
+  };
 
   const mockFindMany = vi.fn();
   const mockFindUniqueOrThrow = vi.fn();
@@ -16,6 +20,8 @@ describe('FacultyService', () => {
   const mockUpdate = vi.fn();
   const mockDelete = vi.fn();
   const mockEmitAsync = vi.fn();
+  const mockCacheGet = vi.fn();
+  const mockCacheSet = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,29 +37,52 @@ describe('FacultyService', () => {
     } as unknown as PrismaService;
 
     eventEmitter = { emitAsync: mockEmitAsync };
+    cacheManager = {
+      get: mockCacheGet,
+      set: mockCacheSet,
+    };
 
-    service = new FacultyService(prisma, eventEmitter);
+    service = new FacultyService(cacheManager as any, prisma, eventEmitter);
   });
 
   describe('getAllByUniversity', () => {
     it('should return faculties without courses for a university', async () => {
       const mockData = [{ id: 'f1', name: 'Faculty A', universityId: 'u1' }];
+      mockCacheGet.mockResolvedValue(undefined);
       mockFindMany.mockResolvedValue(mockData);
 
       const result = await service.getAllByUniversity('u1');
 
+      expect(mockCacheGet).toHaveBeenCalledWith('faculties_by_university_u1');
       expect(mockFindMany).toHaveBeenCalledWith({
         where: { universityId: 'u1' },
         include: { courses: false },
         orderBy: { name: 'asc' },
       });
+      expect(mockCacheSet).toHaveBeenCalledWith('faculties_by_university_u1', mockData, 86400000);
       expect(result).toEqual(mockData);
     });
 
     it('should return empty array if no faculties exist', async () => {
+      mockCacheGet.mockResolvedValue(undefined);
       mockFindMany.mockResolvedValue([]);
+
       const result = await service.getAllByUniversity('u2');
+
+      expect(mockCacheSet).toHaveBeenCalledWith('faculties_by_university_u2', [], 86400000);
       expect(result).toEqual([]);
+    });
+
+    it('should return cached faculties without querying prisma', async () => {
+      const cachedData = [{ id: 'f3', name: 'Faculty C', universityId: 'u3' }];
+      mockCacheGet.mockResolvedValue(cachedData);
+
+      const result = await service.getAllByUniversity('u3');
+
+      expect(mockCacheGet).toHaveBeenCalledWith('faculties_by_university_u3');
+      expect(mockFindMany).not.toHaveBeenCalled();
+      expect(mockCacheSet).not.toHaveBeenCalled();
+      expect(result).toEqual(cachedData);
     });
   });
 
@@ -97,6 +126,7 @@ describe('FacultyService', () => {
       const result = await service.create(dto);
 
       expect(mockCreate).toHaveBeenCalledWith({ data: dto });
+      expect(mockEmitAsync).toHaveBeenCalledWith('faculty.created');
       expect(result).toEqual(mockResult);
     });
   });
@@ -115,6 +145,7 @@ describe('FacultyService', () => {
         data: dto,
         include: { courses: true },
       });
+      expect(mockEmitAsync).toHaveBeenCalledWith('faculty.updated');
       expect(result).toEqual(mockResult);
     });
 

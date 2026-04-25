@@ -138,7 +138,7 @@ CourseHub uses PostgreSQL through Prisma. The schema is intentionally normalized
 
   - Stores a reusable named collection of courses through a many-to-many relation.
 
-  - Tracks `lastUsedAt` for usage-based lifecycle decisions and supports an admin-controlled `isPermanent` flag for packages that should be exempt from future cleanup policies.
+  - Tracks `lastUsedAt` for usage-based lifecycle decisions and supports an admin-controlled `isPermanent` flag for packages that are exempt from inactivity-based cleanup policies.
 
 - `ClientPing`
 
@@ -174,7 +174,7 @@ Several cleanup jobs are already part of the design. This is due to the GDPR reg
 
 - Logs, error reports, and backups each have independent retention behavior.
 
-- Course packages are deleted together with the owning user account via cascade delete. The schema already stores `lastUsedAt` and `isPermanent` so non-permanent package cleanup can be introduced later without another data-model change.
+- Course packages are deleted together with the owning user account via cascade delete. Non-permanent packages are also deleted automatically after 12 months without use, based on `lastUsedAt`.
 
 The codebase already treats retention and cleanup as part of normal system behavior. The DB is affected by these processes, but does not control retention policies.
 
@@ -378,11 +378,13 @@ The frontend is a Vue3 SPA written in TypeScript and styled with UnoCSS plus app
 
 ### Routing and Pages
 
-The router contains four main pages:
+The router contains five main pages:
 
 - `/`: manage pinned courses.
 
 - `/search`: search and add courses.
+
+- `/packages`: create, search, share, and enroll for multi-course packages.
 
 - `/suggest`: submit a new course or propose corrections.
 
@@ -407,6 +409,10 @@ Bootstrap behavior includes:
 - Showing notifications around login and restore behavior.
 
 - Emitting client usage ping after successful authenticated initialization.
+
+- Replaying a previously saved internal route intent after login, then deleting that intent immediately after the redirect attempt.
+
+Shared package links use a small routing manager that persists only same-origin CourseHub routes. This allows a user to open a package enrollment link while logged out, complete Google OAuth, and then resume the intended `/packages?...` flow without enabling open redirects.
 
 ### Frontend API Consumption
 
@@ -459,6 +465,8 @@ Security is a first-class design concern in the current backend. Existing contro
 - JWT secret length enforcement.
 
 - Cookie-based auth instead of storing tokens in localStorage.
+
+- Frontend post-login route continuation is constrained to validated same-origin CourseHub routes, and stored route intents are treated as one-time navigation hints rather than general redirect targets.
 
 - Narrow CORS configuration.
 

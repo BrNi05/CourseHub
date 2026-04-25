@@ -11,6 +11,7 @@ const isMobileMenuOpen = ref(false);
 const navigation = computed(() => {
   return [
     { name: 'courses', label: 'Tárgyaim', to: '/' },
+    { name: 'packages', label: 'Csomagjaim', to: '/packages' },
     { name: 'search', label: 'Tárgyak keresése', to: '/search' },
     { name: 'suggest', label: 'Tárgy hozzáadása', to: '/suggest' },
   ];
@@ -249,7 +250,7 @@ watch(
   padding-top: 1rem;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1280px) {
   .header {
     padding: 1.6rem 2rem 0;
   }

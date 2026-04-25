@@ -10,6 +10,7 @@ import { ClientModule } from './client/client.module.js';
 import { LogsModule } from './logs/logs.module.js';
 import { NewsModule } from './news/news.module.js';
 import { DatabaseBackupModule } from './database-backup/database-backup.module.js';
+import { CoursePackageModule } from './course-package/course-package.module.js';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { DatabaseBackupModule } from './database-backup/database-backup.module.j
     LogsModule,
     NewsModule,
     DatabaseBackupModule,
+    CoursePackageModule,
   ],
   exports: [SuggestionModule, ClientModule], // Consumed by AppModule (AppService) for metrics
   controllers: [],

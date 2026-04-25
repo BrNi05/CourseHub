@@ -1,9 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
-import type { Request } from 'express';
 
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
-import type { IAuthenticatedUser } from '../interfaces.js';
+import type { RequestWithAuthenticatedUser } from '../interfaces.js';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -14,7 +13,7 @@ export class AdminGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest<Request & { user?: IAuthenticatedUser }>();
+    const request = context.switchToHttp().getRequest<RequestWithAuthenticatedUser>();
 
     // undefined user or not admin
     // request.user is populated by the JwtStrategy.validate() method

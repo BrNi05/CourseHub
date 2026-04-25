@@ -60,7 +60,10 @@ The repo is API-first in practice:
 - Backend generated Prisma client import path is local: `./generated/client/client.js`, not `@prisma/client`.
 - Client API defaults live in `apps/client/src/api/api.ts` and currently enforce `baseURL: '/api'`, `withCredentials: true`, and `throwOnError: true`.
 - Client routing lives in `apps/client/src/router`.
+- Shared post-login route resumption is handled in `apps/client/src/router/routing-manager.ts`. Reuse it instead of adding ad hoc redirect storage logic.
 - Client state uses the local `stores` tree; do not introduce a new state library without explicit need.
+- Course package frontend wrappers live in `apps/client/src/api/course-packages.api.ts` and `apps/client/src/api/faculties.api.ts`.
+- Shared package enrollment intent is preserved across login only for validated same-origin internal CourseHub routes, and the saved intent must be deleted immediately after it is consumed.
 - The backend serves the SPA and static assets; the top-level `bundle:static` flow copies client output into the backend.
 - Ignore the local backup helper under `apps/database-backup`. It is a dev helper tool and is not releant to the production code.
 
@@ -111,6 +114,7 @@ The repo is API-first in practice:
 - Prefer existing API wrappers, store modules, and shared utilities over ad hoc fetch or axios usage.
 - Prefer the generated SDK plus `apiOptions()` over raw HTTP calls when consuming backend endpoints.
 - Keep auth/session behavior aligned with the backend’s cookie-based model.
+- If a flow must survive login or reload, prefer the existing routing manager/local storage helpers over introducing page-local redirect persistence.
 - Avoid introducing security regressions through unsafe HTML rendering, looser URL handling, or storing sensitive server data in browser storage.
 - Keep changes consistent with the current Vue 3 + TypeScript structure.
 - If changing behavior that depends on backend responses, confirm the SDK and API contract still match.
