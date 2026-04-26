@@ -32,6 +32,7 @@ export class FacultyController {
     isArray: true,
     description: 'Success',
   })
+  @Header('Cache-Control', 'private, max-age=14400') // 4 hours
   @DatabaseOperation()
   @Throttable(60, 20000)
   async getAll(@Query() query: GetFacultiesQueryDto) {
