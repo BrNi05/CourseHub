@@ -727,6 +727,8 @@ onMounted(() => {
 
 .search-panel > :last-child {
   margin: 0.32rem 0;
+  min-width: 7.5rem;
+  justify-content: center;
 }
 
 .field {
@@ -788,6 +790,7 @@ onMounted(() => {
 
   .search-panel > :last-child {
     margin: 0;
+    min-width: 7.5rem;
   }
 
   .search-panel + .package-grid {
