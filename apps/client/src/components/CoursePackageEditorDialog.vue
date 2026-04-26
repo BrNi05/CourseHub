@@ -359,7 +359,7 @@ watch(
 }
 
 .editor__validation {
-  color: #fecaca;
+  color: #ef4444;
   line-height: 1.45;
 }
 

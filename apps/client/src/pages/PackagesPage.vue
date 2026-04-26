@@ -217,7 +217,7 @@ async function savePackage(payload: CreateCoursePackageDto) {
     app.notify(
       'success',
       isEditing ? 'Csomag frissítve' : 'Csomag létrehozva',
-      `A(z) ${savedPackage.name} csomag mentése sikeres volt.`
+      `A(z) ${savedPackage.name} csomag létrehozva.`
     );
   } catch (error) {
     app.notify(
@@ -251,7 +251,7 @@ async function confirmDeletePackage() {
     app.notify(
       'success',
       'Csomag törölve',
-      `A(z) ${packageToDelete.value.name} csomag törölve lett.`
+      `A(z) ${packageToDelete.value.name} csomagot töröltük.`
     );
     packageToDelete.value = null;
   } catch (error) {
@@ -600,8 +600,8 @@ onMounted(() => {
       :busy="deletingPackageId.length > 0"
       :description="
         packageToDelete
-          ? `A(z) ${packageToDelete.name} csomag végleg törlődik.`
-          : 'A csomag végleg törlődni fog.'
+          ? `A(z) ${packageToDelete.name} csomagot végleg töröljük.`
+          : 'A csomagot végleg töröljük.'
       "
       :model-value="packageToDelete !== null"
       cancel-label="Mégse"
