@@ -644,8 +644,6 @@ onMounted(() => {
   gap: 1.6rem;
 }
 
-.packages-page__hero,
-.packages-page__hero-copy,
 .packages-page__gate,
 .packages-panel,
 .packages-panel__empty,
@@ -655,8 +653,18 @@ onMounted(() => {
 }
 
 .packages-page__hero {
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
   padding-top: 1.2rem;
+}
+
+.packages-page__hero-copy {
+  display: grid;
+  gap: 0.9rem;
+  flex: 1 1 450px;
 }
 
 .packages-page h1,
@@ -678,7 +686,7 @@ onMounted(() => {
 
 .packages-page__hero-actions {
   display: flex;
-  justify-content: flex-start;
+  flex: 0 0 auto;
 }
 
 .packages-page__gate,
@@ -715,6 +723,10 @@ onMounted(() => {
 
 .search-panel {
   align-items: end;
+}
+
+.search-panel > :last-child {
+  margin: 0.32rem 0;
 }
 
 .field {
@@ -763,7 +775,7 @@ onMounted(() => {
 
 @media (min-width: 960px) {
   .packages-page__hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    flex-wrap: nowrap;
   }
 
   .packages-page__hero-actions {
@@ -772,6 +784,14 @@ onMounted(() => {
 
   .search-panel {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .search-panel > :last-child {
+    margin: 0;
+  }
+
+  .search-panel + .package-grid {
+    margin-top: 0.3rem;
   }
 }
 </style>
