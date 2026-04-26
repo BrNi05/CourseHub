@@ -124,8 +124,6 @@ const emit = defineEmits<{
   border-radius: 999px;
   color: var(--text-primary);
   cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 700;
   font: inherit;
   justify-self: end;
   min-height: 2rem;
