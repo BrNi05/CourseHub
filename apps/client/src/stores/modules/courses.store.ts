@@ -187,9 +187,7 @@ export async function addCourses(courses: Course[]): Promise<number> {
   await syncPinnedCourses(
     coursesState.selectedCourses.map((entry) => String(entry.id)),
     'Tárgyak felvéve',
-    addedCount > 0
-      ? `${addedCount} tárgy hozzáadva a felvett tárgyaidhoz.`
-      : 'A kiválasztott tárgyak már mind felvetted.'
+    `Felvettél ${addedCount} tárgyat.`
   );
 
   return addedCount;

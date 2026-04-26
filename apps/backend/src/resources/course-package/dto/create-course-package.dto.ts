@@ -1,42 +1,38 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import {
-  ArrayNotEmpty,
-  ArrayUnique,
-  IsArray,
-  IsOptional,
-  IsString,
-  IsUUID,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { ApiProperty } from '@nestjs/swagger';
+import { ArrayNotEmpty, ArrayUnique, IsArray, IsUUID } from 'class-validator';
+
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class CreateCoursePackageDto {
-  @ApiProperty({
-    example: 'Spring semester core subjects',
-    description: 'Display name of the course package',
-  })
-  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
-  @IsString({ message: 'name must be a string' })
-  @MinLength(1, { message: 'name must not be empty' })
-  @MaxLength(128, { message: 'name must be at most 128 characters long' })
+  @IsValidString(
+    'csomag nevének',
+    'BME VIK Mernokfino 1. felev',
+    'Display name of the course package',
+    6,
+    64,
+    true,
+    ({ value }) => (typeof value === 'string' ? value.trim() : value)
+  )
   name!: string;
 
-  @ApiPropertyOptional({
-    example: 'My go-to setup for the first semester.',
-    description: 'Optional description of the package',
-  })
-  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
-  @IsOptional()
-  @IsString({ message: 'description must be a string' })
-  @MaxLength(1000, { message: 'description must be at most 1000 characters long' })
+  @IsValidString(
+    'leírás',
+    'My go-to setup for the first semester.',
+    'Optional description of the package',
+    0,
+    256,
+    false,
+    ({ value }) => (typeof value === 'string' ? value.trim() : value)
+  )
   description?: string;
 
-  @ApiProperty({
-    example: 'uuid-of-faculty',
-    description: 'Faculty that owns the package',
-  })
-  @IsUUID('4', { message: 'facultyId must be a valid UUID' })
+  @IsUUIDCustom(
+    'facultyId must be a valid UUID',
+    'uuid-of-faculty',
+    'Faculty that owns the package'
+  )
   facultyId!: string;
 
   @ApiProperty({

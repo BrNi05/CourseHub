@@ -1,15 +1,20 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { IsUUID, IsOptional } from 'class-validator';
 
-export function IsUUIDCustom(message: string, example: string, description: string) {
+export function IsUUIDCustom(
+  message: string,
+  example: string,
+  description: string,
+  required = true
+) {
   return applyDecorators(
-    IsUUID('4', {
-      message,
-    }),
+    ...(required ? [] : [IsOptional()]),
+    IsUUID('4', { message }),
     ApiProperty({
       example,
       description,
+      required,
     })
   );
 }

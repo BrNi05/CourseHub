@@ -217,14 +217,10 @@ async function savePackage(payload: CreateCoursePackageDto) {
     app.notify(
       'success',
       isEditing ? 'Csomag frissítve' : 'Csomag létrehozva',
-      `A(z) ${savedPackage.name} csomag mentése sikeres volt.`
+      `A(z) ${savedPackage.name} csomag létrehozva.`
     );
-  } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült menteni a csomagot',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+  } catch {
+    // TODO: cant use toast here
   } finally {
     saving.value = false;
   }
@@ -251,7 +247,7 @@ async function confirmDeletePackage() {
     app.notify(
       'success',
       'Csomag törölve',
-      `A(z) ${packageToDelete.value.name} csomag törölve lett.`
+      `A(z) ${packageToDelete.value.name} csomagot töröltük.`
     );
     packageToDelete.value = null;
   } catch (error) {
@@ -600,8 +596,8 @@ onMounted(() => {
       :busy="deletingPackageId.length > 0"
       :description="
         packageToDelete
-          ? `A(z) ${packageToDelete.name} csomag végleg törlődik.`
-          : 'A csomag végleg törlődni fog.'
+          ? `A(z) ${packageToDelete.name} csomagot végleg töröljük.`
+          : 'A csomagot végleg töröljük.'
       "
       :model-value="packageToDelete !== null"
       cancel-label="Mégse"
@@ -644,8 +640,6 @@ onMounted(() => {
   gap: 1.6rem;
 }
 
-.packages-page__hero,
-.packages-page__hero-copy,
 .packages-page__gate,
 .packages-panel,
 .packages-panel__empty,
@@ -655,8 +649,18 @@ onMounted(() => {
 }
 
 .packages-page__hero {
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
   padding-top: 1.2rem;
+}
+
+.packages-page__hero-copy {
+  display: grid;
+  gap: 0.9rem;
+  flex: 1 1 450px;
 }
 
 .packages-page h1,
@@ -678,7 +682,7 @@ onMounted(() => {
 
 .packages-page__hero-actions {
   display: flex;
-  justify-content: flex-start;
+  flex: 0 0 auto;
 }
 
 .packages-page__gate,
@@ -715,6 +719,12 @@ onMounted(() => {
 
 .search-panel {
   align-items: end;
+}
+
+.search-panel > :last-child {
+  margin: 0.32rem 0;
+  min-width: 7.5rem;
+  justify-content: center;
 }
 
 .field {
@@ -763,7 +773,7 @@ onMounted(() => {
 
 @media (min-width: 960px) {
   .packages-page__hero {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    flex-wrap: nowrap;
   }
 
   .packages-page__hero-actions {
@@ -772,6 +782,15 @@ onMounted(() => {
 
   .search-panel {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .search-panel > :last-child {
+    margin: 0;
+    min-width: 7.5rem;
+  }
+
+  .search-panel + .package-grid {
+    margin-top: 0.3rem;
   }
 }
 </style>
