@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
   border-radius: 1.6rem 1.6rem 1.1rem 1.1rem;
   box-shadow: 0 28px 60px rgba(2, 6, 23, 0.48);
   display: grid;
-  gap: 0.85rem;
+  gap: 0.5rem;
   inset: auto;
   margin: 0;
   max-height: min(100%, calc(100dvh - 2rem));
@@ -129,7 +129,7 @@ onBeforeUnmount(() => {
 .dialog__copy {
   display: grid;
   flex: 1 1 auto;
-  gap: 2.2rem;
+  gap: 0.9rem;
   min-width: 0;
 }
 
@@ -148,24 +148,24 @@ onBeforeUnmount(() => {
   font-size: 1.18rem;
   line-height: 1.2;
   overflow-wrap: anywhere;
-  padding: 0.75rem 0.85rem;
+  padding: 0.65rem 0.85rem;
   width: 100%;
 }
 
 .dialog__copy p {
   color: var(--text-muted);
   line-height: 1.55;
-  padding: 0 0.65rem;
+  padding: 0 0.45rem;
 }
 
 .dialog__body {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .dialog__footer {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.4rem;
 }
 
 .dialog-fade-enter-active,
