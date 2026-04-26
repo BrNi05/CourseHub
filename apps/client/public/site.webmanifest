@@ -3,12 +3,16 @@
   "short_name": "CourseHub",
   "description": "Egyetemi tárgyak, egyszerűen.",
   "id": "/",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "https://coursehub.hu/",
+  "scope": "https://coursehub.hu/",
   "lang": "hu",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#060816",
   "theme_color": "#0a1021",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "icons": [
     {
       "src": "/logo-192.png",
