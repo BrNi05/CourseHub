@@ -138,7 +138,13 @@ watch(
     <form class="editor" @submit.prevent="submit">
       <label class="field">
         <span>Csomag neve</span>
-        <input v-model="form.name" maxlength="120" required type="text" />
+        <input
+          v-model="form.name"
+          maxlength="120"
+          required
+          type="text"
+          placeholder="BME VIK Mérnökinfo 1. félév"
+        />
       </label>
 
       <label class="field">
@@ -146,7 +152,7 @@ watch(
         <textarea
           v-model="form.description"
           maxlength="600"
-          placeholder="Pl. 1. féléves kötelezők vagy közös baráti mintacsomag."
+          placeholder="BSc képzés"
           rows="3"
         ></textarea>
       </label>
