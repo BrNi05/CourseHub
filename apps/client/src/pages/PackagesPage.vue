@@ -381,13 +381,12 @@ watch(
 );
 
 watch(
-  sessionUserId,
-  (userId) => {
-    if (!appInitialized.value || !userId) {
+  () => [appInitialized.value, sessionUserId.value] as const,
+  ([initialized, userId]) => {
+    if (!initialized || !userId) {
       myPackages.value = [];
       return;
     }
-
     void loadMine();
   },
   { immediate: true }
