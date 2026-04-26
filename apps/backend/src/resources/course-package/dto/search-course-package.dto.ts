@@ -1,35 +1,36 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
+import { IsValidString } from '../../../decorators/validators/string.dto.js';
 
 export class SearchCoursePackageDto {
-  @ApiPropertyOptional({
-    example: 'uuid-of-university',
-    description: 'Filter packages by university ID',
-  })
-  @IsOptional()
-  @IsUUID('4', { message: 'universityId must be a valid UUID' })
+  @IsUUIDCustom(
+    'universityId must be a valid UUID',
+    'uuid-of-university',
+    'Filter packages by university ID',
+    false
+  )
   universityId?: string;
 
-  @ApiPropertyOptional({
-    example: 'uuid-of-faculty',
-    description: 'Filter packages by faculty ID',
-  })
-  @IsOptional()
-  @IsUUID('4', { message: 'facultyId must be a valid UUID' })
+  @IsUUIDCustom(
+    'facultyId must be a valid UUID',
+    'uuid-of-faculty',
+    'Filter packages by faculty ID',
+    false
+  )
   facultyId?: string;
 
-  @ApiPropertyOptional({
-    example: 'spring',
-    description: 'Case-insensitive partial match against the package name',
-  })
-  @Transform(({ value }: { value: unknown }) => {
-    if (typeof value !== 'string') return value;
-    const trimmed = value.trim();
-    return trimmed === '' ? undefined : trimmed;
-  })
-  @IsOptional()
-  @IsString({ message: 'A keresési kifejezés csak szöveg lehet.' })
-  @MaxLength(128, { message: 'A keresési kifejezés legfeljebb 128 karakter hosszú lehet.' })
+  @IsValidString(
+    'Keresési kifejezés',
+    'Adatb',
+    'Case-insensitive partial match against the package name',
+    1,
+    128,
+    false,
+    ({ value }) => {
+      if (typeof value !== 'string') return value;
+      const trimmed = value.trim();
+      return trimmed === '' ? undefined : trimmed;
+    }
+  )
   nameQuery?: string;
 }
