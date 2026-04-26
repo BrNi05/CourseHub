@@ -219,12 +219,8 @@ async function savePackage(payload: CreateCoursePackageDto) {
       isEditing ? 'Csomag frissítve' : 'Csomag létrehozva',
       `A(z) ${savedPackage.name} csomag létrehozva.`
     );
-  } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült menteni a csomagot',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+  } catch {
+    // TODO: cant use toast here
   } finally {
     saving.value = false;
   }
