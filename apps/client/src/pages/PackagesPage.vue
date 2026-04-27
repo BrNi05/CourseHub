@@ -305,6 +305,7 @@ async function confirmUsePackage() {
   try {
     await app.addCourses(packageToUse.value.courses ?? []);
     await closeUseDialog();
+    await router.push('/');
   } catch (error) {
     app.notify(
       'danger',
