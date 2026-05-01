@@ -2,7 +2,7 @@ packages:
   - "."
   - apps/*
   - packages/*
-minimumReleaseAge: 720 # 12 hours
+minimumReleaseAge: 1080 # 18 hours
 
 onlyBuiltDependencies:
   - prisma
@@ -11,8 +11,6 @@ onlyBuiltDependencies:
   - esbuild
   #- '@scarf/scarf' - logging and analytics
   #- '@nestjs/core' - funding notice
-
-  # Mitigate supply chain attacks
 
 overrides:
   '@hono/node-server@<1.19.13': '>=1.19.13'
