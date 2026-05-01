@@ -45,3 +45,21 @@ export function getClientPlatform(): ClientPlatform {
 
   return cachedPlatform;
 }
+
+export function isMobileClientPlatform(): boolean {
+  const platform = getClientPlatform();
+  return platform === 'android' || platform === 'ios';
+}
+
+export function isPWA(): boolean {
+  const isStandaloneDisplayMode =
+    globalThis.matchMedia?.('(display-mode: standalone)').matches ||
+    globalThis.matchMedia?.('(display-mode: fullscreen)').matches ||
+    globalThis.matchMedia?.('(display-mode: minimal-ui)').matches;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isIOSStandalone = (globalThis.navigator as any)?.standalone === true;
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return isStandaloneDisplayMode || isIOSStandalone;
+}
