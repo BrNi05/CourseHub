@@ -1,7 +1,7 @@
 {
   "name": "@coursehub/client",
   "private": true,
-  "version": "1.5.4",
+  "version": "1.5.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,7 @@
     "@coursehub/sdk": "workspace:*",
     "@fontsource-variable/open-sans": "^5.2.7",
     "axios": "^1.15.2",
-    "qrcode.vue": "^3.8.1",
+    "qrcode.vue": "^3.9.0",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6"
   },
