@@ -516,7 +516,14 @@ onMounted(() => {
           </BaseButton>
         </form>
 
-        <div v-if="searchResults.length > 0" class="package-grid">
+        <div
+          v-if="searchResults.length > 0"
+          class="package-grid"
+          :class="{
+            'package-grid--single': searchResults.length === 1,
+            'package-grid--double': searchResults.length === 2,
+          }"
+        >
           <CoursePackageCard
             v-for="packageItem in searchResults"
             :key="packageItem.id"
@@ -560,7 +567,14 @@ onMounted(() => {
           <p>A csomagok lekérése folyamatban van.</p>
         </div>
 
-        <div v-else-if="myPackages.length > 0" class="package-grid">
+        <div
+          v-else-if="myPackages.length > 0"
+          class="package-grid"
+          :class="{
+            'package-grid--single': myPackages.length === 1,
+            'package-grid--double': myPackages.length === 2,
+          }"
+        >
           <CoursePackageCard
             v-for="packageItem in myPackages"
             :key="packageItem.id"
@@ -759,7 +773,7 @@ onMounted(() => {
 .package-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .confirm-package {
@@ -798,6 +812,28 @@ onMounted(() => {
 
   .search-panel + .package-grid {
     margin-top: 0.3rem;
+  }
+
+  .package-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .package-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1260px) {
+  .package-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .package-grid--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .package-grid--double {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
