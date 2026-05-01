@@ -4,6 +4,7 @@ import { RouterView, useRouter } from 'vue-router';
 
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
+import PwaInstallPromptDialog from './components/PwaInstallPromptDialog.vue';
 import ToastStack from './components/ToastStack.vue';
 
 import { redirectToRememberedRoute } from '@/router/routing-manager';
@@ -36,6 +37,8 @@ onMounted(() => {
     </main>
 
     <AppFooter />
+
+    <PwaInstallPromptDialog />
 
     <ToastStack :notices="app.state.notices" @dismiss="app.dismissNotice" />
   </div>
