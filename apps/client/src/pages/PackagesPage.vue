@@ -22,6 +22,7 @@ import { appLifecycleState } from '@/stores/app-bootstrap';
 import { useAppStore } from '@/stores/composables/use-app-store';
 import { authState } from '@/stores/modules/auth.store';
 import { coursesState } from '@/stores/modules/courses.store';
+import { getErrorMessage } from '@/stores/shared/errors';
 
 import type {
   Course,
@@ -43,6 +44,7 @@ const saving = ref(false);
 const usingPackageId = ref('');
 const deletingPackageId = ref('');
 const editorOpen = ref(false);
+const editorErrorMessage = ref('');
 const packageToEdit = ref<CoursePackage | null>(null);
 const packageToShare = ref<CoursePackage | null>(null);
 const packageToDelete = ref<CoursePackage | null>(null);
@@ -185,16 +187,19 @@ async function loadSearchFaculties(universityId: string) {
 
 function openCreateDialog() {
   packageToEdit.value = null;
+  editorErrorMessage.value = '';
   editorOpen.value = true;
 }
 
 function openEditDialog(packageItem: CoursePackage) {
   packageToEdit.value = packageItem;
+  editorErrorMessage.value = '';
   editorOpen.value = true;
 }
 
 async function savePackage(payload: CreateCoursePackageDto) {
   saving.value = true;
+  editorErrorMessage.value = '';
   const isEditing = Boolean(packageToEdit.value);
 
   try {
@@ -219,8 +224,9 @@ async function savePackage(payload: CreateCoursePackageDto) {
       isEditing ? 'Csomag frissítve' : 'Csomag létrehozva',
       `A(z) ${savedPackage.name} csomag létrehozva.`
     );
-  } catch {
-    // TODO: cant use toast here
+  } catch (error) {
+    const [firstMessage] = getErrorMessage(error).split('\n\n');
+    editorErrorMessage.value = firstMessage || 'A csomag mentése sikertelen.';
   } finally {
     saving.value = false;
   }
@@ -582,6 +588,7 @@ onMounted(() => {
       v-model="editorOpen"
       :available-courses="editorCourses"
       :busy="saving"
+      :error-message="editorErrorMessage"
       :package-item="packageToEdit"
       @submit="savePackage"
     />

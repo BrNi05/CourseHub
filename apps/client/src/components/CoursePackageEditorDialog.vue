@@ -14,10 +14,12 @@ const props = withDefaults(
     packageItem?: CoursePackage | null;
     availableCourses: Course[];
     busy?: boolean;
+    errorMessage?: string;
   }>(),
   {
     packageItem: null,
     busy: false,
+    errorMessage: '',
   }
 );
 
@@ -34,6 +36,7 @@ const form = reactive({
 });
 
 const validationMessage = ref('');
+const issueMessage = computed(() => validationMessage.value || props.errorMessage);
 
 const dedupedAvailableCourses = computed(() => {
   const entries = new Map<string, Course>();
@@ -216,16 +219,18 @@ watch(
         </p>
       </div>
 
-      <p v-if="validationMessage" class="editor__validation">{{ validationMessage }}</p>
-
       <div class="editor__actions">
-        <BaseButton :disabled="props.busy" kind="ghost" @click="emit('update:modelValue', false)">
-          Mégse
-        </BaseButton>
+        <p v-if="issueMessage" class="editor__validation" role="alert">{{ issueMessage }}</p>
 
-        <BaseButton :disabled="props.busy" kind="primary" type="submit">
-          {{ props.busy ? 'Mentés...' : props.packageItem ? 'Mentés' : 'Létrehozás' }}
-        </BaseButton>
+        <div class="editor__button-group">
+          <BaseButton :disabled="props.busy" kind="ghost" @click="emit('update:modelValue', false)">
+            Mégse
+          </BaseButton>
+
+          <BaseButton :disabled="props.busy" kind="primary" type="submit">
+            {{ props.busy ? 'Mentés...' : props.packageItem ? 'Mentés' : 'Létrehozás' }}
+          </BaseButton>
+        </div>
       </div>
     </form>
   </BaseDialog>
@@ -366,13 +371,48 @@ watch(
 
 .editor__validation {
   color: #ef4444;
+  flex: 0 1 18rem;
   line-height: 1.45;
+  margin-left: 0.6rem;
+  margin-right: auto;
+  max-width: 18rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .editor__actions {
+  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   justify-content: flex-end;
+  min-width: 0;
+}
+
+.editor__button-group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 680px) {
+  .editor__actions {
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .editor__validation {
+    flex-basis: 100%;
+    max-width: 100%;
+    padding-block: 0.15rem;
+  }
+
+  .editor__button-group {
+    margin-left: auto;
+  }
 }
 </style>
