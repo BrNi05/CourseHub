@@ -26,6 +26,8 @@ CourseHub centralizes this fragmented information into a single, consistent inte
 
 - Manage a personalized set of pinned courses
 
+- Track credits, grades, completed courses, and multi-semester academic averages in a credit calculator
+
 - Create reusable course packages from multiple courses
 
 - Contribute to improving the dataset through suggestions
@@ -130,6 +132,8 @@ CourseHub uses PostgreSQL through Prisma. The schema is intentionally normalized
 
   - Stores pinned courses.
 
+  - Stores the optional credit calculator profile as JSON in `creditProfile`. This JSON intentionally copies course name, course code, and credit values instead of linking calculator entries to `Course` rows.
+
   - NOTE: although the User table implies that only Google OAuth is possible to be used, new auth methods can be introduced since only email address is required from the IDP.
 
 - `CoursePackage`
@@ -176,6 +180,8 @@ Several cleanup jobs are already part of the design. This is due to the GDPR reg
 
 - Course packages are deleted together with the owning user account via cascade delete. Non-permanent packages are also deleted automatically after 12 months without use, based on `lastUsedAt`.
 
+- Credit calculator server-side saves are stored on the owning `User` row and are deleted together with the user account. Local browser saves are stored in the SPA `localStorage` and are not controlled by backend retention jobs.
+
 The codebase already treats retention and cleanup as part of normal system behavior. The DB is affected by these processes, but does not control retention policies.
 
 Data retention also affects the Redis cache to avoid stale cache results and GDPR violations.
@@ -217,6 +223,8 @@ The backend is a NestJS application that combines API endpoints, static asset se
 - News
 
 - Course-package
+
+- Credits
 
 - Database-backup
 
