@@ -64,6 +64,8 @@ The repo is API-first in practice:
 - Client state uses the local `stores` tree; do not introduce a new state library without explicit need.
 - Course package frontend wrappers live in `apps/client/src/api/course-packages.api.ts` and `apps/client/src/api/faculties.api.ts`.
 - Shared package enrollment intent is preserved across login only for validated same-origin internal CourseHub routes, and the saved intent must be deleted immediately after it is consumed.
+- Credit calculator server-side saves live in `User.creditProfile` as JSON. The JSON copies course name, course code, and credit value; it must not link calculator entries to `Course` rows or course IDs.
+- Credit calculator local saves live in browser localStorage and are used for both anonymous and authenticated users.
 - The backend serves the SPA and static assets; the top-level `bundle:static` flow copies client output into the backend.
 - Ignore the local backup helper under `apps/database-backup`. It is a dev helper tool and is not releant to the production code.
 

@@ -6,7 +6,7 @@
 
 **Hatályba lép:** 2026.04.27. (negyedik verzió)
 
-**Utolsó felülvizsgálat:** 2026.04.24.
+**Utolsó felülvizsgálat:** 2026.05.03.
 
 ## 1. A dokumentum célja
 

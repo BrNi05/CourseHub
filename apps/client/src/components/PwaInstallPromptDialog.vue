@@ -7,7 +7,7 @@ import { isMobileClientPlatform, isPWA } from '@/utils/client-runtime';
 import BaseButton from './BaseButton.vue';
 import BaseDialog from './BaseDialog.vue';
 
-const PWA_INSTALL_PROMPT_CLOSED_KEY = 'coursehub.pwaInstallPromptClosed';
+const PWA_INSTALL_PROMPT_CLOSED_KEY = 'coursehub.web.pwaInstallPromptClosed';
 
 const route = useRoute();
 const isOpen = ref(false);

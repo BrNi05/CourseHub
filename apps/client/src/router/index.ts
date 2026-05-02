@@ -25,7 +25,7 @@ const router = createRouter({
       name: 'search',
       component: SearchPage,
       meta: {
-        title: 'Tárgyak keresése',
+        title: 'Keresés',
         description:
           'Keress nyilvános egyetemi kurzusokat egyetem, név vagy kód szerint, és jelöld azokat, amiket felvettél.',
         canonicalPath: '/search',
@@ -48,7 +48,7 @@ const router = createRouter({
       name: 'suggest',
       component: SuggestPage,
       meta: {
-        title: 'Tárgy hozzáadása',
+        title: 'Javaslat',
         description:
           'Javasolj új tárgyat, hibás link javítását vagy adatkorrekciót, hogy a CourseHub naprakész és pontos maradjon.',
         canonicalPath: '/suggest',

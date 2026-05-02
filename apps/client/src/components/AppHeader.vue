@@ -12,8 +12,8 @@ const navigation = computed(() => {
   return [
     { name: 'courses', label: 'Tárgyaim', to: '/' },
     { name: 'packages', label: 'Csomagjaim', to: '/packages' },
-    { name: 'search', label: 'Tárgyak keresése', to: '/search' },
-    { name: 'suggest', label: 'Tárgy hozzáadása', to: '/suggest' },
+    { name: 'search', label: 'Keresés', to: '/search' },
+    { name: 'suggest', label: 'Javaslat', to: '/suggest' },
   ];
 });
 

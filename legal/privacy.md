@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.04.27. (negyedik verzió)
+**Hatályba lép:** 2026.05.05. (ötödik verzió)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -79,6 +79,20 @@ A CourseHub a bejelentkezett állapot fenntartásához és a Google OAuth2 bejel
 - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
 
 - **Megőrzési idő:** A felhasználói fiók törléséig.
+
+### Kreditkalkulátor
+
+A CourseHub kreditkalkulátora bejelentkezés nélkül is használható, ilyenkor az adatok kizárólag a felhasználó böngészőjének helyi tárhelyében (`localStorage`) kerülnek mentésre. Bejelentkezett felhasználó a kalkulátor állapotát a szerverre is mentheti a profiljához kapcsolva.
+
+- **Kezelt adatok szerver mentés esetén:** a felvett féléveket, a felhasználó által rögzített vagy bemásolt tárgyneveket, tárgykódokat, kreditértékeket, jegyeket és a megszerzés jelölését tartalmazhatja.
+
+- **Cél:** a kalkuláció forrásadatainak megőrzése és elérhetővé tétele a bejelentkezett felhasználó profiljában.
+
+- **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
+
+- **Megőrzési idő:** a felhasználói fiók törléséig vagy a szerveroldali mentés felhasználó általi törléséig.
+
+- **Megjegyzés:** _A kreditkalkulátorban megadott tárgyak, jegyek és félév információk közvetett és közvetlen módon utalhatnak az Érintett tanulmányi előmenetelére, intézményére, karára vagy szakjára. A funkció használata önkéntes, szerveroldali mentés csak bejelentkezett felhasználó kifejezett mentési művelete után történik._
 
 ### Felhasználói kurzuscsomagok
 
@@ -176,7 +190,7 @@ A felhasználóknak lehetősége van a kliensen keresztül új kurzusok felvéte
 
 A GDPR 5. cikk (1) bekezdés c) pontjában rögzített adattakarékosság elve, valamint az e) pont szerinti korlátozott tárolhatóság elve alapján az Adatkezelő törekszik arra, hogy ne tároljon olyan személyes adatokat, amelyek a cél eléréséhez már nem szükségesek.
 
-- Törlési feltétel: Amennyiben az Érintett a fiókjában 12 hónapig (1 évig) nem végez aktív tevékenységet (ideértve a ping eseményeket, új kurzus rögzítését vagy meglévő kurzus-preferenciák módosítását), a rendszer a felhasználói profilt inaktívnak minősíti.
+- Törlési feltétel: Amennyiben az Érintett a fiókjában 12 hónapig (1 évig) nem végez aktív tevékenységet (ideértve a ping eseményeket, új kurzus rögzítését, meglévő kurzus-preferenciák módosítását vagy kreditkalkulátor szerveroldali mentést), a rendszer a felhasználói profilt inaktívnak minősíti.
 
 - A törlés folyamata: Az inaktivitási időszak leteltét követően a rendszer automatikusan és véglegesen törli a Felhasználóhoz kapcsolódó összes személyes adatot.
 

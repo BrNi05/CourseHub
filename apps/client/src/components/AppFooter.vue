@@ -19,15 +19,6 @@ const route = useRoute();
 
         <a
           class="footer__link"
-          href="https://github.com/BrNi05/CourseHub/blob/main/legal/privacy.md"
-          rel="noreferrer"
-          target="_blank"
-        >
-          Adatvédelmi Tájékoztató
-        </a>
-
-        <a
-          class="footer__link"
           href="https://github.com/BrNi05/CourseHub/blob/main/legal/tos.md"
           rel="noreferrer"
           target="_blank"
@@ -37,11 +28,11 @@ const route = useRoute();
 
         <a
           class="footer__link"
-          href="https://github.com/BrNi05/CourseHub"
+          href="https://github.com/BrNi05/CourseHub/blob/main/legal/privacy.md"
           rel="noreferrer"
           target="_blank"
         >
-          GitHub
+          Adatvédelmi Tájékoztató
         </a>
       </div>
     </div>
