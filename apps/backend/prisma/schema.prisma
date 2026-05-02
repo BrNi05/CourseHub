@@ -61,6 +61,7 @@ model Course {
 
   name                String
   code                String          @unique // Course code is globally unique
+  credits             Int             @default(0)
 
   facultyId           String
   faculty             Faculty         @relation(fields: [facultyId], references: [id], onDelete: Cascade)
@@ -103,6 +104,7 @@ model SuggestedCourse {
 
   courseName          String
   courseCode          String   @unique      // only one suggestion per course at a time
+  credits             Int      @default(0)
 
   coursePageUrl       String   @default("") // official (lecturer) page
   courseTadUrl        String   @default("") // TAD (uni) page
@@ -128,6 +130,8 @@ model User {
 
   pinnedCourses Course[]   @relation("UserPinnedCourses") // A user can pin multiple courses
   ownedPackages CoursePackage[] // A user can own multiple course packages
+
+  creditProfile Json       @default("{}") // JSON object to store user's credit calc selection
 
   clientPings   ClientPing[]
 }
