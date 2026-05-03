@@ -105,6 +105,7 @@ export class SuggestionService {
     const course = await this.courseService.upsert({
       name: suggestion.courseName,
       code: suggestion.courseCode,
+      credits: suggestion.credits,
       facultyId,
       coursePageUrl: suggestion.coursePageUrl,
       courseTadUrl: suggestion.courseTadUrl,

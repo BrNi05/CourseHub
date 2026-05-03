@@ -1,5 +1,6 @@
 import { IsValidString } from '../../../decorators/validators/string.dto.js';
 import { CourseLink, isMicrosoftTeamsUrl } from '../../../decorators/validators/course-link.dto.js';
+import { IntRange } from '../../../decorators/validators/int-custom.decorator.js';
 
 export class CreateSuggestionDto {
   @IsValidString(
@@ -25,6 +26,9 @@ export class CreateSuggestionDto {
 
   @IsValidString('kurzus kódjának', 'BMEVITMAB04', 'Course code', 6, 16)
   courseCode!: string;
+
+  @IntRange('credits', 0, 20, 5, 'Credit value of the course')
+  credits!: number;
 
   @CourseLink(
     'A tárgyoldal URL-je érvénytelen!',

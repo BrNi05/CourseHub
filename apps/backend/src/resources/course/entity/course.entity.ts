@@ -14,6 +14,9 @@ export class Course extends Timestamp {
   @ApiProperty({ example: 'BMEVITMAB04', description: 'Course code' })
   code!: string;
 
+  @ApiProperty({ example: 5, description: 'Credit value of the course' })
+  credits!: number;
+
   @ApiProperty({
     example: '95fda989-1535-4d60-8792-a700a83c4122',
     description: 'ID of the parent faculty',

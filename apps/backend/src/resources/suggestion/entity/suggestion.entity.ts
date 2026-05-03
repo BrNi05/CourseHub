@@ -41,6 +41,9 @@ export class SuggestedCourse extends Timestamp {
   @ApiProperty({ example: 'BMEVITMAB04', description: 'Course code' })
   courseCode!: string;
 
+  @ApiProperty({ example: 5, description: 'Credit value of the course' })
+  credits!: number;
+
   @ApiProperty({
     example: 'https://www.db.bme.hu/adatbazisok/BMEVITMAB04',
     description: "URL to the lecturer's course page, if available",

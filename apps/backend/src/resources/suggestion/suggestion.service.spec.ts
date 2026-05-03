@@ -84,6 +84,7 @@ describe('SuggestionService', () => {
       const dto = {
         courseName: 'Math',
         courseCode: 'BMECS101',
+        credits: 5,
         facultyName: 'Science',
         facultyAbbrevName: 'SCI',
         uniName: 'Budapest University',
@@ -118,12 +119,19 @@ describe('SuggestionService', () => {
         facultyAbbrevName: 'CS',
         courseName: 'Databases',
         courseCode: 'BMECS101',
+        credits: 5,
         courseSubmissionUrl: 'https://submit.bme.hu/BMECS101',
       };
 
       const createdUni = { id: 'u1' };
       const createdFaculty = { id: 'f1' };
-      const createdCourse = { id: 'c1', name: 'Databases', code: 'BMECS101', facultyId: 'f1' };
+      const createdCourse = {
+        id: 'c1',
+        name: 'Databases',
+        code: 'BMECS101',
+        credits: 5,
+        facultyId: 'f1',
+      };
 
       prisma.suggestedCourse.findUniqueOrThrow.mockResolvedValue(suggestion);
       prisma.university.findUnique.mockResolvedValue(null);
@@ -156,6 +164,7 @@ describe('SuggestionService', () => {
       expect(courseService.upsert).toHaveBeenCalledWith({
         name: suggestion.courseName,
         code: suggestion.courseCode,
+        credits: suggestion.credits,
         facultyId: createdFaculty.id,
         courseSubmissionUrl: suggestion.courseSubmissionUrl,
       });
@@ -172,12 +181,19 @@ describe('SuggestionService', () => {
         facultyAbbrevName: 'CS',
         courseName: 'Algorithms',
         courseCode: 'BMECS102',
+        credits: 6,
         courseSubmissionUrl: 'https://submit.bme.hu/BMECS102',
       };
 
       const existingUni = { id: 'u1' };
       const existingFaculty = { id: 'f1' };
-      const createdCourse = { id: 'c2', name: 'Algorithms', code: 'BMECS102', facultyId: 'f1' };
+      const createdCourse = {
+        id: 'c2',
+        name: 'Algorithms',
+        code: 'BMECS102',
+        credits: 6,
+        facultyId: 'f1',
+      };
 
       prisma.suggestedCourse.findUniqueOrThrow.mockResolvedValue(suggestion);
       prisma.university.findUnique.mockResolvedValue(existingUni);
@@ -192,6 +208,7 @@ describe('SuggestionService', () => {
       expect(courseService.upsert).toHaveBeenCalledWith({
         name: suggestion.courseName,
         code: suggestion.courseCode,
+        credits: suggestion.credits,
         facultyId: existingFaculty.id,
         courseSubmissionUrl: suggestion.courseSubmissionUrl,
       });
