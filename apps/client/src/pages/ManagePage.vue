@@ -1,10 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+
 import BaseButton from '@/components/BaseButton.vue';
 import CourseCard from '@/components/CourseCard.vue';
 
 import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
+
+const selectedCreditCount = computed<number>(() => {
+  const courses = app.state.selectedCourses as Array<{ credits?: unknown }>;
+
+  return courses.reduce<number>((total, course) => {
+    return total + getCourseCredits(course);
+  }, 0);
+});
+
+// Safely extract the credits from a course object
+function getCourseCredits(course: { credits?: unknown }): number {
+  const credits = Number(course.credits);
+  return Number.isFinite(credits) ? credits : 0;
+}
 </script>
 
 <template>
@@ -12,7 +28,10 @@ const app = useAppStore();
     <div class="page__intro">
       <div class="page__header">
         <h1>Felvett tárgyak</h1>
-        <span class="page__badge">{{ app.state.selectedCourses.length }} felvett tárgy</span>
+        <div class="page__badges">
+          <span class="page__badge">{{ app.state.selectedCourses.length }} felvett tárgy</span>
+          <span class="page__badge page__badge--credits">{{ selectedCreditCount }} kredit</span>
+        </div>
       </div>
     </div>
 
@@ -97,6 +116,12 @@ const app = useAppStore();
   line-height: 1.2;
 }
 
+.page__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
 .page__badge {
   background: rgba(59, 130, 246, 0.16);
   border-radius: 999px;
@@ -104,6 +129,11 @@ const app = useAppStore();
   display: inline-flex;
   padding: 0.65rem 0.9rem;
   font-weight: 600;
+}
+
+.page__badge--credits {
+  background: rgba(52, 211, 153, 0.14);
+  color: #d1fae5;
 }
 
 .course-grid {

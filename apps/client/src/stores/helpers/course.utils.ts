@@ -10,5 +10,10 @@ export function dedupeCourses(courses: Course[]) {
       seen.add(course.id);
       return true;
     })
+    .map((course) => ({
+      // Ensure credits is a number (default: 0)
+      ...course,
+      credits: Number.isFinite(Number(course.credits)) ? Number(course.credits) : 0,
+    }))
     .sort((left, right) => left.name.localeCompare(right.name, 'hu', { sensitivity: 'base' }));
 }

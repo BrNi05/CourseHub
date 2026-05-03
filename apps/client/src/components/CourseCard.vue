@@ -60,7 +60,9 @@ function handleLinkClick(event: MouseEvent, entry: CourseLink) {
   <article class="course-card">
     <div class="course-card__top">
       <div class="course-card__heading">
-        <span class="course-card__code">{{ props.course.code }}</span>
+        <span class="course-card__code"
+          >{{ props.course.code }} · {{ props.course.credits }} kredit</span
+        >
         <h3>{{ props.course.name }}</h3>
       </div>
     </div>
