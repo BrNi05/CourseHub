@@ -11,7 +11,7 @@ import { LogsModule } from './logs/logs.module.js';
 import { NewsModule } from './news/news.module.js';
 import { DatabaseBackupModule } from './database-backup/database-backup.module.js';
 import { CoursePackageModule } from './course-package/course-package.module.js';
-import { CreditsModule } from './credits/credits.module.js';
+import { AveragesModule } from './averages/averages.module.js';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { CreditsModule } from './credits/credits.module.js';
     NewsModule,
     DatabaseBackupModule,
     CoursePackageModule,
-    CreditsModule,
+    AveragesModule,
   ],
   exports: [SuggestionModule, ClientModule], // Consumed by AppModule (AppService) for metrics
   controllers: [],
