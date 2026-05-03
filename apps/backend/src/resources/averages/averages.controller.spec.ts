@@ -48,16 +48,6 @@ describe('AveragesController', () => {
     expect(result).toEqual(profile);
   });
 
-  it('creates the authenticated users credit profile from raw JSON', async () => {
-    const payload = { semesters: [{ id: 'semester-1' }] };
-    (serviceMock.saveMine as any).mockResolvedValue({ ...profile, data: payload });
-
-    const result = await controller.createOwnCredits(userId, payload);
-
-    expect(serviceMock.saveMine).toHaveBeenCalledWith(userId, payload);
-    expect(result.data).toEqual(payload);
-  });
-
   it('updates the authenticated users credit profile from raw JSON', async () => {
     const payload = { semesters: [{ id: 'semester-2' }] };
     (serviceMock.saveMine as any).mockResolvedValue({ ...profile, data: payload });

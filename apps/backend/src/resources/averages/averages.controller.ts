@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
-import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Put } from '@nestjs/common';
+import { ApiBody, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
 import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
@@ -41,23 +41,6 @@ export class AveragesController {
   @Throttable(60, 2)
   async findCreditsByUserId(@Param('id') id: string): Promise<AveragesCalculation> {
     return await this.averagesService.findByUserId(id);
-  }
-
-  @Post()
-  @RequiresAuth()
-  @ApiOperation({
-    summary: 'USER AUTH',
-    description: 'Create or replace the authenticated users saved average calculator JSON',
-  })
-  @ApiBody({ schema: CREDIT_PROFILE_BODY_SCHEMA })
-  @ApiCreatedResponse({ type: AveragesCalculation, description: 'Created' })
-  @DatabaseOperation()
-  @Throttable(60, 20000)
-  async createOwnCredits(
-    @AuthUserId() userId: string,
-    @Body() payload: unknown
-  ): Promise<AveragesCalculation> {
-    return await this.averagesService.saveMine(userId, payload);
   }
 
   @Put()
