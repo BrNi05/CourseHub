@@ -62,7 +62,14 @@ describe('UserService', () => {
 
       expect(result).toEqual([mockUser]);
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
-        include: { pinnedCourses: false },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          googleId: true,
+          googleEmail: true,
+          isAdmin: true,
+        },
       });
       expect(cacheMock.get).not.toHaveBeenCalled();
       expect(cacheMock.set).not.toHaveBeenCalled();
@@ -88,7 +95,15 @@ describe('UserService', () => {
       expect(result).toEqual(mockUser);
       expect(prismaMock.user.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: 'user1' },
-        include: { pinnedCourses: { orderBy: { name: 'asc' } } },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          googleId: true,
+          googleEmail: true,
+          isAdmin: true,
+          pinnedCourses: { orderBy: { name: 'asc' } },
+        },
       });
       expect(cacheMock.set).toHaveBeenCalledWith('user_user1', mockUser, ONE_MONTH_CACHE_TTL);
     });
@@ -110,7 +125,15 @@ describe('UserService', () => {
           isAdmin: true,
           pinnedCourses: { set: [{ id: 'course1' }] },
         },
-        include: { pinnedCourses: { orderBy: { name: 'asc' } } },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          googleId: true,
+          googleEmail: true,
+          isAdmin: true,
+          pinnedCourses: { orderBy: { name: 'asc' } },
+        },
       });
       expect(cacheMock.del).not.toHaveBeenCalled();
       expect(cacheMock.set).toHaveBeenCalledWith('user_user1', updatedUser, ONE_MONTH_CACHE_TTL);

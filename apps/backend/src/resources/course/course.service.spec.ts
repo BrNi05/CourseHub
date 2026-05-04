@@ -76,6 +76,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases',
         code: 'BMECS101',
+        credits: 5,
         facultyId: 'f1',
       };
 
@@ -100,6 +101,7 @@ describe('CourseService', () => {
         data: {
           name: dto.name,
           code: dto.code,
+          credits: dto.credits,
           facultyId: dto.facultyId,
           coursePageUrl: '',
           courseTadUrl: '',
@@ -123,6 +125,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases',
         code: 'CS101',
+        credits: 5,
         facultyId: 'f1',
       };
 
@@ -144,6 +147,7 @@ describe('CourseService', () => {
         data: {
           name: dto.name,
           code: 'BMECS101',
+          credits: dto.credits,
           facultyId: dto.facultyId,
           coursePageUrl: '',
           courseTadUrl: '',
@@ -161,6 +165,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases',
         code: 'CS101',
+        credits: 5,
         facultyId: 'missing-faculty',
       };
 
@@ -175,6 +180,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases',
         code: 'BMECS101',
+        credits: 5,
         facultyId: 'f1',
       };
 
@@ -219,6 +225,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases Updated',
         code: 'BMECS101',
+        credits: 5,
         facultyId: 'f1',
       };
 
@@ -263,6 +270,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Databases',
         code: 'CS101',
+        credits: 5,
         facultyId: 'f1',
       };
 
@@ -306,6 +314,7 @@ describe('CourseService', () => {
       const dto = {
         name: 'Advanced DB',
         code: 'BMECS102',
+        credits: 6,
       };
 
       const existingCourse = {
@@ -341,6 +350,7 @@ describe('CourseService', () => {
         data: {
           name: dto.name,
           code: dto.code,
+          credits: dto.credits,
           facultyId: existingCourse.facultyId,
           coursePageUrl: existingCourse.coursePageUrl,
           courseTadUrl: existingCourse.courseTadUrl,
@@ -396,6 +406,7 @@ describe('CourseService', () => {
         data: {
           name: undefined,
           code: undefined,
+          credits: undefined,
           facultyId: existingCourse.facultyId,
           coursePageUrl: '',
           courseTadUrl: existingCourse.courseTadUrl,
@@ -439,6 +450,7 @@ describe('CourseService', () => {
         data: {
           name: undefined,
           code: 'BMECS102',
+          credits: undefined,
           facultyId: 'f1',
           coursePageUrl: undefined,
           courseTadUrl: undefined,

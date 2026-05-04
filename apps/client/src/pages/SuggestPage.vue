@@ -20,6 +20,7 @@ type SuggestionForm = {
   facultyAbbrevName: string;
   courseName: string;
   courseCode: string;
+  credits: number;
   coursePageUrl: string;
   courseTadUrl: string;
   courseMoodleUrl: string;
@@ -41,6 +42,7 @@ const form = reactive<SuggestionForm>({
   facultyAbbrevName: '',
   courseName: '',
   courseCode: '',
+  credits: 0,
   coursePageUrl: '',
   courseTadUrl: '',
   courseMoodleUrl: '',
@@ -68,6 +70,7 @@ function resetForm() {
   form.facultyAbbrevName = '';
   form.courseName = '';
   form.courseCode = '';
+  form.credits = 0;
   form.coursePageUrl = '';
   form.courseTadUrl = '';
   form.courseMoodleUrl = '';
@@ -101,6 +104,7 @@ async function prefillFromCourseId(courseId?: string) {
     editCourse.value = course;
     form.courseName = course.name;
     form.courseCode = course.code;
+    form.credits = course.credits;
     form.coursePageUrl = course.coursePageUrl;
     form.courseTadUrl = course.courseTadUrl;
     form.courseMoodleUrl = course.courseMoodleUrl;
@@ -159,6 +163,7 @@ async function submitForm() {
     facultyAbbrevName: form.facultyAbbrevName.trim(),
     courseName: form.courseName.trim(),
     courseCode: form.courseCode.trim(),
+    credits: form.credits,
     coursePageUrl: form.coursePageUrl.trim(),
     courseTadUrl: form.courseTadUrl.trim(),
     courseMoodleUrl: form.courseMoodleUrl.trim(),
@@ -265,6 +270,20 @@ async function submitForm() {
             required
             type="text"
             :placeholder="getPrefillPlaceholder('BMEVIEEAA00')"
+          />
+        </label>
+
+        <label class="field">
+          <span>Kredit</span>
+          <input
+            v-model.number="form.credits"
+            autocomplete="off"
+            max="60"
+            min="0"
+            name="credits"
+            required
+            type="number"
+            :placeholder="getPrefillPlaceholder('5')"
           />
         </label>
 

@@ -1,6 +1,7 @@
 import { IsValidString } from '../../../decorators/validators/string.dto.js';
 import { IsUUIDCustom } from '../../../decorators/validators/uuid-custom.decorator.js';
 import { CourseLink, isMicrosoftTeamsUrl } from '../../../decorators/validators/course-link.dto.js';
+import { IntRange } from '../../../decorators/validators/int-custom.decorator.js';
 
 export class CreateCourseDto {
   @IsValidString('name', 'Databases', 'Name of the course', 6, 64)
@@ -8,6 +9,9 @@ export class CreateCourseDto {
 
   @IsValidString('code', 'BMEVITMAB04', 'Course code', 6, 16)
   code!: string;
+
+  @IntRange('credits', 0, 20, 5, 'Credit value of the course')
+  credits!: number;
 
   @IsUUIDCustom('facultyId must be a valid UUID', 'faculty-uuid', 'ID of the parent faculty')
   facultyId!: string;

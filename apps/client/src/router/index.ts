@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import ErrorReportPage from '@/pages/ErrorReportPage.vue';
+import AveragesPage from '@/pages/AveragesPage.vue';
 import ManagePage from '@/pages/ManagePage.vue';
 import PackagesPage from '@/pages/PackagesPage.vue';
 import SearchPage from '@/pages/SearchPage.vue';
@@ -41,6 +42,16 @@ const router = createRouter({
         description: 'Tárgycsomagok létrehozása, keresése és felvétele.',
         canonicalPath: '/packages',
         robots: 'noindex',
+      },
+    },
+    {
+      path: '/averages',
+      name: 'averages',
+      component: AveragesPage,
+      meta: {
+        title: 'Átlagok',
+        description: 'Kreditek, jegyek és átlagok követése.',
+        canonicalPath: '/averages',
       },
     },
     {

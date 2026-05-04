@@ -35,7 +35,16 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<UserResponseWithoutPinnedDto[]> {
-    return await this.prisma.user.findMany({ include: { pinnedCourses: false } });
+    return await this.prisma.user.findMany({
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        googleId: true,
+        googleEmail: true,
+        isAdmin: true,
+      },
+    });
   }
 
   async getUserById(id: string): Promise<User> {
@@ -44,7 +53,15 @@ export class UserService {
 
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id },
-      include: { pinnedCourses: { orderBy: { name: 'asc' } } },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        googleId: true,
+        googleEmail: true,
+        isAdmin: true,
+        pinnedCourses: { orderBy: { name: 'asc' } },
+      },
     });
 
     await this.cacheManager.set(this.getUserCacheKey(id), user, ONE_MONTH_CACHE_TTL);
@@ -61,7 +78,15 @@ export class UserService {
           ? { set: dto.pinnedCourses.map((courseId) => ({ id: courseId })) }
           : undefined,
       },
-      include: { pinnedCourses: { orderBy: { name: 'asc' } } },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        googleId: true,
+        googleEmail: true,
+        isAdmin: true,
+        pinnedCourses: { orderBy: { name: 'asc' } },
+      },
     });
 
     await this.cacheManager.set(this.getUserCacheKey(id), updatedUser, ONE_MONTH_CACHE_TTL);

@@ -79,6 +79,7 @@ export class CourseService {
       data: {
         name: dto.name,
         code: normalizedCode,
+        credits: dto.credits,
         facultyId: dto.facultyId,
         coursePageUrl: this.normalizeUrl(dto.coursePageUrl),
         courseTadUrl: this.normalizeUrl(dto.courseTadUrl),
@@ -130,6 +131,7 @@ export class CourseService {
       data: {
         name: dto.name,
         code: dto.code ? normalizedCode : undefined,
+        credits: dto.credits,
         facultyId,
         coursePageUrl: this.resolveUpdatedUrl(dto.coursePageUrl, existingCourse.coursePageUrl),
         courseTadUrl: this.resolveUpdatedUrl(dto.courseTadUrl, existingCourse.courseTadUrl),

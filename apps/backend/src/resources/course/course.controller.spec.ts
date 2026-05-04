@@ -33,6 +33,7 @@ describe('CourseController', () => {
           id: 'c1',
           name: 'Math',
           code: 'M101',
+          credits: 5,
           facultyId: 'f1',
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -53,6 +54,7 @@ describe('CourseController', () => {
         id: 'c1',
         name: 'Math',
         code: 'M101',
+        credits: 5,
         facultyId: 'f1',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -68,7 +70,7 @@ describe('CourseController', () => {
 
   describe('create', () => {
     it('should call service.create with DTO and return created course', async () => {
-      const dto: CreateCourseDto = { name: 'Math', code: 'M101', facultyId: 'f1' };
+      const dto: CreateCourseDto = { name: 'Math', code: 'M101', credits: 5, facultyId: 'f1' };
       const course: Course = { ...dto, id: 'c1', createdAt: new Date(), updatedAt: new Date() };
 
       (serviceMock.create as any).mockResolvedValue(course);
@@ -79,7 +81,7 @@ describe('CourseController', () => {
     });
 
     it('should propagate service exceptions', async () => {
-      const dto: CreateCourseDto = { name: 'Math', code: 'M101', facultyId: 'f1' };
+      const dto: CreateCourseDto = { name: 'Math', code: 'M101', credits: 5, facultyId: 'f1' };
       (serviceMock.create as any).mockRejectedValue(new ConflictException());
 
       await expect(controller.create(dto)).rejects.toBeInstanceOf(ConflictException);
@@ -93,6 +95,7 @@ describe('CourseController', () => {
         id: 'c1',
         name: 'Math',
         code: 'M102',
+        credits: 5,
         facultyId: 'f1',
         createdAt: new Date(),
         updatedAt: new Date(),
