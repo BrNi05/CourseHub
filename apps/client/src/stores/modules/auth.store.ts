@@ -13,6 +13,7 @@ import {
   logoutSession,
 } from '../../api/auth.api';
 import { pushNotice } from './notifications.store';
+import { clearPingRegistry } from './analytics.store';
 
 export const authState = reactive({
   session: {
@@ -100,6 +101,9 @@ export function loginWithGoogle(): void {
   globalThis.setTimeout(() => {
     authState.loginInFlight = false;
   }, 3000);
+
+  // Clear local ping registry on login as an other user might have logged in
+  clearPingRegistry();
 
   globalThis.location.assign('api/auth/google');
 }
