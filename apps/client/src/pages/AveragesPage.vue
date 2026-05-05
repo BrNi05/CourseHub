@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { isAxiosError } from 'axios';
-import { computed, onMounted, reactive, watch } from 'vue';
+import { computed, reactive, watch } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
-import { fetchOwnCreditProfile, saveOwnCreditProfile } from '@/api/credits.api';
+import {
+  deleteOwnCreditProfile,
+  fetchOwnCreditProfile,
+  saveOwnCreditProfile,
+} from '@/api/averages.api';
 import { rememberRouteIntent } from '@/router/routing-manager';
 import { useAppStore } from '@/stores/composables/use-app-store';
 
@@ -13,19 +17,12 @@ type CalculatorCourse = {
   code: string;
   credits: number;
   grade: number | null;
-  completed: boolean;
 };
 
 type Semester = {
   id: string;
   name: string;
   courses: CalculatorCourse[];
-};
-
-type SemesterDraft = {
-  name: string;
-  code: string;
-  credits: number;
 };
 
 type SelectedCourseOption = {
@@ -43,74 +40,95 @@ const CREDIT_CALCULATOR_STORAGE_KEY = 'coursehub.web.averages-calculator';
 const CREDITS_PER_SEMESTER = 30;
 
 const app = useAppStore();
+let serverProfileLoadedForUserId: string | null = null;
+const initialCalculatorData = hydrateAveragesCalculator();
 
 const state = reactive({
   loadedFromServer: false,
+  serverHasSavedProfile: false,
   loadingServer: false,
   savingServer: false,
-  data: hydrateAveragesCalculator(),
-  drafts: {} as Record<string, SemesterDraft>,
+  deletingServer: false,
+  selectedSemesterId: initialCalculatorData.semesters.at(-1)?.id ?? null,
+  data: initialCalculatorData,
 });
 
-// Returns all courses that are marked as completed and have a valid grade
-const completedCourses = computed(() => {
-  return state.data.semesters.flatMap((semester) =>
-    semester.courses.filter((course) => course.completed && course.grade !== null)
+const selectedSemester = computed(() => {
+  return (
+    state.data.semesters.find((semester) => semester.id === state.selectedSemesterId) ??
+    state.data.semesters.at(-1) ??
+    null
   );
 });
 
-// Returns the total number of attempted credits across all semesters
-const attemptedCredits = computed(() => {
-  return state.data.semesters.reduce((total, semester) => {
-    return (
-      total + semester.courses.reduce((sum, course) => sum + normalizeCredits(course.credits), 0)
-    );
-  }, 0);
+const selectedSemesterIndex = computed(() => {
+  if (!selectedSemester.value) return -1;
+  return state.data.semesters.findIndex((semester) => semester.id === selectedSemester.value?.id);
 });
 
-// Returns the total number of completed credits across all semesters
-const completedCredits = computed(() => {
-  return state.data.semesters.reduce((total, semester) => {
-    return (
-      total +
-      semester.courses.reduce((sum, course) => {
-        return course.completed ? sum + normalizeCredits(course.credits) : sum;
-      }, 0)
-    );
-  }, 0);
+const semestersUntilSelected = computed(() => {
+  if (selectedSemesterIndex.value < 0) return [];
+  return state.data.semesters.slice(0, selectedSemesterIndex.value + 1);
 });
 
-// Returns the latest semester based on the order in the array
-const latestSemester = computed(() => {
-  return state.data.semesters.at(-1) ?? null;
+const selectedSemesterCourses = computed(() => {
+  return selectedSemester.value?.courses ?? [];
+});
+
+const cumulativeCourses = computed(() => {
+  return semestersUntilSelected.value.flatMap((semester) => semester.courses);
+});
+
+const selectedGradedCourses = computed(() => {
+  return selectedSemesterCourses.value.filter(hasGrade);
+});
+
+const cumulativeGradedCourses = computed(() => {
+  return cumulativeCourses.value.filter(hasGrade);
+});
+
+const selectedAttemptedCredits = computed(() => {
+  return sumCredits(selectedSemesterCourses.value);
+});
+
+const selectedCompletedCredits = computed(() => {
+  return sumCredits(selectedGradedCourses.value);
+});
+
+const cumulativeAttemptedCredits = computed(() => {
+  return sumCredits(cumulativeCourses.value);
+});
+
+const selectedWeightedAverage = computed(() => {
+  return calculateWeightedAverage(selectedGradedCourses.value);
 });
 
 const cumulativeWeightedAverage = computed(() => {
-  return calculateWeightedAverage(completedCourses.value);
-});
-
-const latestWeightedAverage = computed(() => {
-  if (!latestSemester.value) return null;
-  return calculateWeightedAverage(
-    latestSemester.value.courses.filter((course) => course.completed && course.grade !== null)
-  );
+  return calculateWeightedAverage(cumulativeGradedCourses.value);
 });
 
 const creditIndex = computed(() => {
-  if (!latestSemester.value) return null;
-  return calculateCreditIndex(latestSemester.value.courses);
+  return calculateCreditIndex(selectedGradedCourses.value);
+});
+
+const correctedCreditIndex = computed(() => {
+  return calculateCorrectedCreditIndex(
+    creditIndex.value,
+    selectedCompletedCredits.value,
+    selectedAttemptedCredits.value
+  );
 });
 
 const cumulativeCorrectedCreditIndex = computed(() => {
-  const semesterCount = state.data.semesters.length;
-  if (semesterCount === 0 || attemptedCredits.value === 0) return null;
+  return calculateCorrectedCreditIndex(
+    calculateCumulativeCreditIndex(cumulativeGradedCourses.value),
+    sumCredits(cumulativeGradedCourses.value),
+    cumulativeAttemptedCredits.value
+  );
+});
 
-  const points = completedCourses.value.reduce((sum, course) => {
-    return sum + normalizeCredits(course.credits) * Number(course.grade);
-  }, 0);
-  const cumulativeIndex = points / (semesterCount * CREDITS_PER_SEMESTER);
-
-  return cumulativeIndex * (completedCredits.value / attemptedCredits.value);
+const canDeleteServerProfile = computed(() => {
+  return Boolean(app.state.session.userId) && state.serverHasSavedProfile;
 });
 
 // Returns a list of courses from the user's selected courses that can be added to semesters
@@ -138,9 +156,23 @@ watch(
   { deep: true }
 );
 
-onMounted(() => {
-  void loadServerProfile();
-});
+watch(
+  () => [app.state.initialized, app.state.session.userId] as const,
+  ([initialized, userId]) => {
+    if (!userId) {
+      serverProfileLoadedForUserId = null;
+      state.serverHasSavedProfile = false;
+      state.loadedFromServer = false;
+      return;
+    }
+
+    if (!initialized || state.loadingServer || serverProfileLoadedForUserId === userId) return;
+
+    serverProfileLoadedForUserId = userId;
+    void loadServerProfile();
+  },
+  { immediate: true }
+);
 
 function createId(prefix: string): string {
   if (globalThis.crypto?.randomUUID) return `${prefix}-${globalThis.crypto.randomUUID()}`;
@@ -178,7 +210,6 @@ function normalizeCourse(value: unknown): CalculatorCourse | null {
     code,
     credits: normalizeCredits(value.credits),
     grade: normalizeGrade(value.grade),
-    completed: value.completed === true,
   };
 }
 
@@ -229,7 +260,7 @@ function persistCreditCalculator(data: CreditCalculatorData): void {
 
 function replaceCalculatorData(data: CreditCalculatorData): void {
   state.data.semesters = data.semesters;
-  state.drafts = {};
+  state.selectedSemesterId = data.semesters.at(-1)?.id ?? null;
 }
 
 function addSemester(): void {
@@ -241,42 +272,23 @@ function addSemester(): void {
   };
 
   state.data.semesters.push(semester);
-  state.drafts[semester.id] = { name: '', code: '', credits: 0 };
+  state.selectedSemesterId = semester.id;
 }
 
 function removeSemester(semesterId: string): void {
+  const removedIndex = state.data.semesters.findIndex((semester) => semester.id === semesterId);
   state.data.semesters = state.data.semesters.filter((semester) => semester.id !== semesterId);
-  delete state.drafts[semesterId];
-}
+  renameSemesters();
 
-function getDraft(semesterId: string): SemesterDraft {
-  state.drafts[semesterId] ??= { name: '', code: '', credits: 0 };
-  return state.drafts[semesterId];
-}
+  if (state.selectedSemesterId !== semesterId) return;
 
-function addDraftCourse(semester: Semester): void {
-  const draft = getDraft(semester.id);
-  const name = draft.name.trim();
-  const code = draft.code.trim();
-
-  if (!name || !code) {
-    app.notify('info', 'Hiányzó tárgyadat', 'A tárgynév és a tárgykód kötelező.');
-    return;
-  }
-
-  semester.courses.push({
-    id: createId('course'),
-    name,
-    code,
-    credits: normalizeCredits(draft.credits),
-    grade: null,
-    completed: false,
-  });
-  state.drafts[semester.id] = { name: '', code: '', credits: 0 };
+  state.selectedSemesterId =
+    state.data.semesters[Math.min(Math.max(removedIndex, 0), state.data.semesters.length - 1)]
+      ?.id ?? null;
 }
 
 function addPinnedCourse(semester: Semester, courseId: string): void {
-  const course = selectedCourseOptions.value.find((entry) => entry.id === courseId);
+  const course = getAvailableCourseOptions(semester).find((entry) => entry.id === courseId);
   if (!course) return;
 
   semester.courses.push({
@@ -285,7 +297,17 @@ function addPinnedCourse(semester: Semester, courseId: string): void {
     code: course.code,
     credits: course.credits,
     grade: null,
-    completed: false,
+  });
+}
+
+function getAvailableCourseOptions(semester: Semester): SelectedCourseOption[] {
+  const selectedCodes = new Set(semester.courses.map((course) => course.code));
+  return selectedCourseOptions.value.filter((course) => !selectedCodes.has(course.code));
+}
+
+function renameSemesters(): void {
+  state.data.semesters.forEach((semester, index) => {
+    semester.name = `${index + 1}. félév`;
   });
 }
 
@@ -301,8 +323,20 @@ function removeCourse(semester: Semester, courseId: string): void {
   semester.courses = semester.courses.filter((course) => course.id !== courseId);
 }
 
+function selectSemester(semesterId: string): void {
+  state.selectedSemesterId = semesterId;
+}
+
+function hasGrade(course: CalculatorCourse): boolean {
+  return course.grade !== null;
+}
+
+function sumCredits(courses: CalculatorCourse[]): number {
+  return courses.reduce((sum, course) => sum + normalizeCredits(course.credits), 0);
+}
+
 function calculateWeightedAverage(courses: CalculatorCourse[]): number | null {
-  const creditSum = courses.reduce((sum, course) => sum + normalizeCredits(course.credits), 0);
+  const creditSum = sumCredits(courses);
   if (creditSum === 0) return null;
 
   const weightedSum = courses.reduce((sum, course) => {
@@ -315,11 +349,34 @@ function calculateWeightedAverage(courses: CalculatorCourse[]): number | null {
 function calculateCreditIndex(courses: CalculatorCourse[]): number | null {
   if (courses.length === 0) return null;
   const weightedSum = courses.reduce((sum, course) => {
-    if (!course.completed || course.grade === null) return sum;
     return sum + normalizeCredits(course.credits) * Number(course.grade);
   }, 0);
 
   return weightedSum / CREDITS_PER_SEMESTER;
+}
+
+function calculateCumulativeCreditIndex(courses: CalculatorCourse[]): number | null {
+  const semesterCount = semestersUntilSelected.value.length;
+  if (semesterCount === 0 || courses.length === 0) return null;
+
+  const weightedSum = courses.reduce((sum, course) => {
+    return sum + normalizeCredits(course.credits) * Number(course.grade);
+  }, 0);
+
+  return weightedSum / (semesterCount * CREDITS_PER_SEMESTER);
+}
+
+function calculateCorrectedCreditIndex(
+  index: number | null,
+  completedCredits: number,
+  attemptedCredits: number
+): number | null {
+  if (index === null || attemptedCredits === 0) return null;
+  return index * (completedCredits / attemptedCredits);
+}
+
+function formatCredit(value: number): string {
+  return new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 0 }).format(value);
 }
 
 function formatMetric(value: number | null): string {
@@ -341,10 +398,13 @@ function serializeCalculator(): Record<string, unknown> {
         code: course.code,
         credits: normalizeCredits(course.credits),
         grade: course.grade,
-        completed: course.completed,
       })),
     })),
   };
+}
+
+function hasSavedCalculatorData(value: unknown): boolean {
+  return normalizeCalculatorData(value).semesters.length > 0;
 }
 
 async function loadServerProfile(): Promise<void> {
@@ -355,6 +415,7 @@ async function loadServerProfile(): Promise<void> {
   try {
     const profile = await fetchOwnCreditProfile();
     const data = normalizeCalculatorData(profile.data);
+    state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
 
     if (data.semesters.length > 0) {
       replaceCalculatorData(data);
@@ -362,7 +423,7 @@ async function loadServerProfile(): Promise<void> {
     }
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) return;
-    app.notify('danger', 'Nem sikerült betölteni a szerver mentést', 'Próbáld meg később.');
+    app.notify('danger', 'Betöltési hiba', 'Nem sikerült betölteni a felhő mentést.');
   } finally {
     state.loadingServer = false;
   }
@@ -370,7 +431,7 @@ async function loadServerProfile(): Promise<void> {
 
 async function saveToServer(): Promise<void> {
   if (!app.isAuthenticated()) {
-    rememberRouteIntent('/credits');
+    rememberRouteIntent('/averages');
     app.loginWithGoogle();
     return;
   }
@@ -380,11 +441,11 @@ async function saveToServer(): Promise<void> {
   try {
     const profile = await saveOwnCreditProfile(serializeCalculator());
     replaceCalculatorData(normalizeCalculatorData(profile.data));
-    state.loadedFromServer = true;
-    app.notify('success', 'Szerver mentés kész', 'A kreditkalkulátor mentve lett a profilodba.');
+    state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
+    state.loadedFromServer = state.serverHasSavedProfile;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
-      rememberRouteIntent('/credits');
+      rememberRouteIntent('/averages');
       app.loginWithGoogle();
       return;
     }
@@ -392,6 +453,28 @@ async function saveToServer(): Promise<void> {
     app.notify('danger', 'Nem sikerült menteni', 'A helyi mentésed megmaradt a böngésződben.');
   } finally {
     state.savingServer = false;
+  }
+}
+
+async function deleteFromServer(): Promise<void> {
+  if (!app.isAuthenticated()) return;
+
+  state.deletingServer = true;
+
+  try {
+    await deleteOwnCreditProfile();
+    state.serverHasSavedProfile = false;
+    state.loadedFromServer = false;
+  } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      rememberRouteIntent('/averages');
+      app.loginWithGoogle();
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült törölni', 'A helyi mentésed megmaradt a böngésződben.');
+  } finally {
+    state.deletingServer = false;
   }
 }
 </script>
@@ -405,30 +488,44 @@ async function saveToServer(): Promise<void> {
       </div>
 
       <div class="credits-page__actions">
-        <BaseButton kind="secondary" type="button" @click="addSemester"
-          >Félév hozzáadása</BaseButton
-        >
         <BaseButton
-          :disabled="state.savingServer || state.loadingServer"
+          v-if="canDeleteServerProfile"
+          :disabled="state.deletingServer || state.savingServer || state.loadingServer"
+          kind="danger"
+          type="button"
+          @click="deleteFromServer"
+        >
+          {{ state.deletingServer ? 'Törlés...' : 'Törlés a felhőből' }}
+        </BaseButton>
+        <BaseButton
+          :disabled="state.savingServer || state.loadingServer || state.deletingServer"
           type="button"
           @click="saveToServer"
         >
-          {{ state.savingServer ? 'Mentés...' : 'Mentés szerverre' }}
+          {{ state.savingServer ? 'Mentés...' : 'Mentés felhőbe' }}
         </BaseButton>
       </div>
     </div>
 
     <section class="metrics-grid" aria-label="Kreditstatisztikák">
       <article class="metric">
-        <span>Megszerzett kreditek</span>
-        <strong>{{ completedCredits }}</strong>
+        <span>Felvett kredit</span>
+        <strong>{{ formatCredit(selectedAttemptedCredits) }}</strong>
+      </article>
+      <article class="metric">
+        <span>Megszerzett kredit</span>
+        <strong>{{ formatCredit(selectedCompletedCredits) }}</strong>
+      </article>
+      <article class="metric">
+        <span>Kum. felvett kredit</span>
+        <strong>{{ formatCredit(cumulativeAttemptedCredits) }}</strong>
       </article>
       <article class="metric">
         <span>Súlyozott tanulmányi átlag</span>
-        <strong>{{ formatMetric(latestWeightedAverage) }}</strong>
+        <strong>{{ formatMetric(selectedWeightedAverage) }}</strong>
       </article>
       <article class="metric">
-        <span>Kumulált súlyozott átlag</span>
+        <span>Kum. súlyozott tanulmányi átlag</span>
         <strong>{{ formatMetric(cumulativeWeightedAverage) }}</strong>
       </article>
       <article class="metric">
@@ -436,95 +533,86 @@ async function saveToServer(): Promise<void> {
         <strong>{{ formatMetric(creditIndex) }}</strong>
       </article>
       <article class="metric">
-        <span>Összesített korrigált kreditindex</span>
+        <span>Korr. kreditindex</span>
+        <strong>{{ formatMetric(correctedCreditIndex) }}</strong>
+      </article>
+      <article class="metric">
+        <span>Össz. korrigált kreditindex</span>
         <strong>{{ formatMetric(cumulativeCorrectedCreditIndex) }}</strong>
       </article>
     </section>
 
-    <div v-if="state.data.semesters.length === 0" class="empty-state">
-      <h3>Nincs félév</h3>
-      <BaseButton type="button" @click="addSemester">Első félév hozzáadása</BaseButton>
-    </div>
-
-    <div v-else class="semester-list">
+    <div class="semester-list">
       <section v-for="semester in state.data.semesters" :key="semester.id" class="semester">
         <div class="semester__header">
-          <input
-            v-model="semester.name"
-            aria-label="Félév neve"
-            class="semester__title"
-            type="text"
-          />
-          <BaseButton kind="ghost" type="button" @click="removeSemester(semester.id)"
-            >Törlés</BaseButton
-          >
+          <h2 class="semester__title">{{ semester.name }}</h2>
+          <div class="semester__actions">
+            <BaseButton
+              :disabled="selectedSemester?.id === semester.id"
+              kind="secondary"
+              type="button"
+              @click="selectSemester(semester.id)"
+            >
+              {{ selectedSemester?.id === semester.id ? 'Kiválasztva' : 'Kiválaszt' }}
+            </BaseButton>
+            <BaseButton kind="danger" type="button" @click="removeSemester(semester.id)"
+              >Törlés</BaseButton
+            >
+          </div>
         </div>
 
-        <div class="course-editor">
-          <label>
-            <span>Tárgy neve</span>
-            <input v-model="getDraft(semester.id).name" type="text" />
-          </label>
-          <label>
-            <span>Tárgykód</span>
-            <input v-model="getDraft(semester.id).code" type="text" />
-          </label>
-          <label>
-            <span>Kredit</span>
-            <input v-model.number="getDraft(semester.id).credits" min="0" max="60" type="number" />
-          </label>
-          <BaseButton kind="secondary" type="button" @click="addDraftCourse(semester)"
-            >Hozzáadás</BaseButton
+        <label class="select-pinned">
+          <span>Választás felvett tárgyak közül</span>
+          <select
+            :disabled="getAvailableCourseOptions(semester).length === 0"
+            @change="handlePinnedCourseSelect(semester, $event)"
           >
-        </div>
-
-        <label v-if="selectedCourseOptions.length > 0" class="select-pinned">
-          <span>Felvett tárgyból</span>
-          <select @change="handlePinnedCourseSelect(semester, $event)">
-            <option value="">Válassz tárgyat</option>
-            <option v-for="course in selectedCourseOptions" :key="course.id" :value="course.id">
+            <option value="">
+              {{
+                getAvailableCourseOptions(semester).length === 0
+                  ? 'Nincs választható tárgy'
+                  : 'Válassz tárgyat'
+              }}
+            </option>
+            <option
+              v-for="course in getAvailableCourseOptions(semester)"
+              :key="course.id"
+              :value="course.id"
+            >
               {{ course.name }} · {{ course.code }} · {{ course.credits }} kredit
             </option>
           </select>
         </label>
 
         <div v-if="semester.courses.length > 0" class="course-table">
-          <div class="course-table__head">
-            <span>Tárgy</span>
-            <span>Kredit</span>
-            <span>Jegy</span>
-            <span>Megszerzett</span>
-            <span></span>
-          </div>
+          <h3 class="course-table__title">Tárgyak</h3>
 
           <div v-for="course in semester.courses" :key="course.id" class="course-row">
             <div class="course-row__name">
-              <strong>{{ course.name }}</strong>
+              <strong>{{ course.name }} ({{ course.credits }})</strong>
               <span>{{ course.code }}</span>
             </div>
-            <input
-              v-model.number="course.credits"
-              aria-label="Kredit"
-              min="0"
-              max="60"
-              type="number"
-            />
-            <select v-model="course.grade" aria-label="Jegy">
+            <select v-model="course.grade" aria-label="Jegy" class="course-row__grade">
               <option :value="null">-</option>
               <option v-for="grade in [1, 2, 3, 4, 5]" :key="grade" :value="grade">
                 {{ grade }}
               </option>
             </select>
-            <label class="switch">
-              <input v-model="course.completed" type="checkbox" />
-              <span></span>
-            </label>
-            <BaseButton kind="ghost" type="button" @click="removeCourse(semester, course.id)"
+            <BaseButton
+              class="course-row__delete"
+              kind="danger"
+              type="button"
+              @click="removeCourse(semester, course.id)"
               >Törlés</BaseButton
             >
           </div>
         </div>
       </section>
+
+      <button class="add-semester-card" type="button" @click="addSemester">
+        <span aria-hidden="true">+</span>
+        <strong>Félév hozzáadása</strong>
+      </button>
     </div>
   </section>
 </template>
@@ -545,8 +633,7 @@ async function saveToServer(): Promise<void> {
 }
 
 .credits-page h1,
-.credits-page p,
-.empty-state h3 {
+.credits-page p {
   margin: 0;
 }
 
@@ -564,12 +651,11 @@ async function saveToServer(): Promise<void> {
 .metrics-grid {
   display: grid;
   gap: 0.8rem;
-  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .metric,
-.semester,
-.empty-state {
+.semester {
   backdrop-filter: blur(18px);
   background: var(--surface-elevated);
   border: 1px solid var(--border-soft);
@@ -599,56 +685,51 @@ async function saveToServer(): Promise<void> {
   gap: 1rem;
 }
 
-.semester,
-.empty-state {
+.semester {
   border-radius: 1.4rem;
   display: grid;
   gap: 1rem;
   padding: 1rem;
 }
 
-.empty-state {
-  justify-items: start;
-}
-
 .semester__header {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
   gap: 0.75rem;
   justify-content: space-between;
 }
 
+.semester__actions {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
 .semester__title {
-  background: transparent;
-  border: 0;
   color: var(--text-primary);
   font-size: 1.25rem;
   font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
   min-width: 0;
   width: 100%;
 }
 
-.course-editor {
-  align-items: end;
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(12rem, 1.6fr) minmax(9rem, 1fr) minmax(6rem, 0.55fr) auto;
-}
-
-.course-editor label,
 .select-pinned {
   display: grid;
   gap: 0.45rem;
+  margin-bottom: 0.35rem;
+  max-width: 34rem;
 }
 
-.course-editor span,
 .select-pinned span {
   color: var(--text-muted);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 800;
+  padding-left: 0.4rem;
 }
 
-input,
 select {
   background: var(--field-surface);
   border: 1px solid var(--border-soft);
@@ -660,37 +741,30 @@ select {
   width: 100%;
 }
 
-.select-pinned {
-  max-width: 34rem;
-}
-
 .course-table {
   display: grid;
   gap: 0.55rem;
   overflow-x: auto;
 }
 
-.course-table__head,
 .course-row {
   align-items: center;
   display: grid;
-  gap: 0.65rem;
-  grid-template-columns: minmax(14rem, 1fr) 5.5rem 5.5rem 6.5rem auto;
-  min-width: 44rem;
-}
-
-.course-table__head {
-  color: var(--text-subtle);
-  font-size: 0.78rem;
-  font-weight: 800;
-  padding: 0 0.2rem;
-}
-
-.course-row {
+  column-gap: 1.1rem;
+  grid-template-columns: minmax(13rem, 1fr) 5.2rem max-content;
+  min-width: 28rem;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(129, 140, 248, 0.12);
   border-radius: 0.9rem;
   padding: 0.6rem;
+}
+
+.course-table__title {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin: 0;
+  padding-left: 0.4rem;
 }
 
 .course-row__name {
@@ -711,56 +785,76 @@ select {
   font-size: 0.85rem;
 }
 
-.switch {
+.course-row__grade {
+  justify-self: end;
+  width: 5.2rem;
+}
+
+.course-row__delete {
+  justify-self: end;
+  min-height: 2.45rem;
+  padding: 0 0.9rem;
+}
+
+@media (min-width: 900px) {
+  .course-row {
+    grid-template-columns: minmax(18rem, 1fr) 5.2rem max-content;
+    column-gap: 1.55rem;
+    min-width: 36rem;
+  }
+}
+
+.add-semester-card {
   align-items: center;
-  display: inline-flex;
-  justify-content: center;
-}
-
-.switch input {
-  height: 1px;
-  opacity: 0;
-  position: absolute;
-  width: 1px;
-}
-
-.switch span {
-  background: rgba(148, 163, 184, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
+  appearance: none;
+  backdrop-filter: blur(18px);
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px dashed rgba(226, 232, 240, 0.28);
+  border-radius: 1.4rem;
+  color: var(--text-muted);
   cursor: pointer;
-  display: block;
-  height: 1.55rem;
-  position: relative;
-  width: 2.8rem;
-}
-
-.switch span::after {
-  background: #e2e8f0;
-  border-radius: 50%;
-  content: '';
-  height: 1.05rem;
-  left: 0.22rem;
-  position: absolute;
-  top: 0.2rem;
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  min-height: 6.5rem;
+  padding: 1rem;
   transition:
     background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
     transform 140ms ease;
-  width: 1.05rem;
+  width: 100%;
 }
 
-.switch input:checked + span {
-  background: rgba(52, 211, 153, 0.28);
+.add-semester-card:hover {
+  background: rgba(148, 163, 184, 0.14);
+  border-color: rgba(226, 232, 240, 0.44);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
-.switch input:checked + span::after {
-  background: #bbf7d0;
-  transform: translateX(1.2rem);
+.add-semester-card span {
+  align-items: center;
+  background: rgba(226, 232, 240, 0.12);
+  border: 1px solid rgba(226, 232, 240, 0.18);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 1.6rem;
+  font-weight: 500;
+  height: 2.5rem;
+  justify-content: center;
+  line-height: 1;
+  width: 2.5rem;
+}
+
+.add-semester-card strong {
+  font: inherit;
+  font-weight: 800;
 }
 
 @media (max-width: 760px) {
-  .course-editor {
-    grid-template-columns: 1fr;
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .credits-page__actions {
