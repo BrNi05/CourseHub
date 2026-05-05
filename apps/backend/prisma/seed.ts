@@ -26,6 +26,7 @@ async function main() {
   await prisma.university.deleteMany({});
   await prisma.coursePackage.deleteMany({});
   await prisma.clientPing.deleteMany({});
+  await prisma.suggestedCourse.deleteMany({});
 
   // Seed univerities and faculties
   const universitiesData = [
