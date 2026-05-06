@@ -49,6 +49,19 @@ export class SuggestionController {
     return await this.suggestionService.suggest(userId, createSuggestionDto);
   }
 
+  @Post('accept-all')
+  @Admin()
+  @ApiOperation({
+    summary: 'ADMIN',
+    description: 'Accepts all course suggestions in bulk',
+  })
+  @ApiOkResponse({ description: 'All accepted' })
+  @DatabaseOperation()
+  @Throttable(60, 1)
+  async acceptAll(): Promise<void> {
+    await this.suggestionService.acceptAll();
+  }
+
   @Post(':id') // :id is suggestion ID
   @Admin()
   @ApiOperation({

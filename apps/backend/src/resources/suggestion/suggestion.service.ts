@@ -121,6 +121,14 @@ export class SuggestionService {
     return course;
   }
 
+  async acceptAll(): Promise<void> {
+    const suggestions = await this.prisma.suggestedCourse.findMany();
+
+    for (const suggestion of suggestions) {
+      await this.accept(suggestion.id);
+    }
+  }
+
   async update(id: string, updateSuggestionDto: UpdateSuggestionDto): Promise<SuggestedCourse> {
     return await this.prisma.suggestedCourse.update({
       where: { id },

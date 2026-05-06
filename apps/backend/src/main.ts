@@ -45,7 +45,7 @@ try {
   app.setGlobalPrefix('api');
 
   // Protection agains DoS attacks (via resource exhaustion)
-  app.use(json({ limit: '4kb' }));
+  app.use(json({ limit: '16kb' }));
   app.use(urlencoded({ extended: true, limit: '4kb' }));
 
   app.use(cookieParser());
