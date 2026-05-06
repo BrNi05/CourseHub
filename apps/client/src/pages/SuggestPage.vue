@@ -104,7 +104,7 @@ async function prefillFromCourseId(courseId?: string) {
     editCourse.value = course;
     form.courseName = course.name;
     form.courseCode = course.code;
-    form.credits = course.credits;
+    form.credits = course.credits ?? 0;
     form.coursePageUrl = course.coursePageUrl;
     form.courseTadUrl = course.courseTadUrl;
     form.courseMoodleUrl = course.courseMoodleUrl;
