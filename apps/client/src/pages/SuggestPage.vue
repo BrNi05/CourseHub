@@ -157,26 +157,23 @@ watch(
 
 async function submitForm() {
   const payload: CreateSuggestionDto = {
-    uniName: form.uniName.trim(),
-    uniAbbrevName: form.uniAbbrevName.trim(),
-    facultyName: form.facultyName.trim(),
-    facultyAbbrevName: form.facultyAbbrevName.trim(),
-    courseName: form.courseName.trim(),
-    courseCode: form.courseCode.trim(),
+    uniName: form.uniName?.trim(),
+    uniAbbrevName: form.uniAbbrevName?.trim(),
+    facultyName: form.facultyName?.trim(),
+    facultyAbbrevName: form.facultyAbbrevName?.trim(),
+    courseName: form.courseName?.trim(),
+    courseCode: form.courseCode?.trim(),
     credits: form.credits,
-    coursePageUrl: form.coursePageUrl.trim(),
-    courseTadUrl: form.courseTadUrl.trim(),
-    courseMoodleUrl: form.courseMoodleUrl.trim(),
-    courseSubmissionUrl: form.courseSubmissionUrl.trim(),
-    courseTeamsUrl: form.courseTeamsUrl.trim(),
-    courseExtraUrl: form.courseExtraUrl.trim(),
+    coursePageUrl: form.coursePageUrl?.trim(),
+    courseTadUrl: form.courseTadUrl?.trim(),
+    courseMoodleUrl: form.courseMoodleUrl?.trim(),
+    courseSubmissionUrl: form.courseSubmissionUrl?.trim(),
+    courseTeamsUrl: form.courseTeamsUrl?.trim(),
+    courseExtraUrl: form.courseExtraUrl?.trim(),
   };
 
   const ok = await app.submitSuggestion(payload);
-
-  if (ok) {
-    await router.push('/');
-  }
+  if (ok) await router.push('/');
 }
 </script>
 
