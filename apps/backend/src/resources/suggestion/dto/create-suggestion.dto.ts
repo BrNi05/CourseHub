@@ -24,7 +24,7 @@ export class CreateSuggestionDto {
   @IsValidString('kurzus nevének', 'Databases', 'Name of the course', 6, 64)
   courseName!: string;
 
-  @IsValidString('kurzus kódjának', 'BMEVITMAB04', 'Course code', 6, 16)
+  @IsValidString('kurzus kódjának', 'BMEVITMAB04', 'Course code', 6, 24)
   courseCode!: string;
 
   @IntRange('credits', 0, 20, 5, 'Credit value of the course')

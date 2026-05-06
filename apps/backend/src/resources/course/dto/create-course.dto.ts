@@ -7,7 +7,7 @@ export class CreateCourseDto {
   @IsValidString('name', 'Databases', 'Name of the course', 6, 64)
   name!: string;
 
-  @IsValidString('code', 'BMEVITMAB04', 'Course code', 6, 16)
+  @IsValidString('code', 'BMEVITMAB04', 'Course code', 6, 24)
   code!: string;
 
   @IntRange('credits', 0, 20, 5, 'Credit value of the course')
