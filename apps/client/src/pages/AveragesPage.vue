@@ -36,10 +36,21 @@ type CreditCalculatorData = {
   semesters: Semester[];
 };
 
+// Formatters
+const METRIC_FORMATTER = new Intl.NumberFormat('hu-HU', {
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+});
+
+const CREDIT_FORMATTER = new Intl.NumberFormat('hu-HU', {
+  maximumFractionDigits: 0,
+});
+
 const CREDIT_CALCULATOR_STORAGE_KEY = 'coursehub.web.averages-calculator';
 const CREDITS_PER_SEMESTER = 30;
 
 const app = useAppStore();
+
 let serverProfileLoadedForUserId: string | null = null;
 const initialCalculatorData = hydrateAveragesCalculator();
 
@@ -278,7 +289,10 @@ function addSemester(): void {
 function removeSemester(semesterId: string): void {
   const removedIndex = state.data.semesters.findIndex((semester) => semester.id === semesterId);
   state.data.semesters = state.data.semesters.filter((semester) => semester.id !== semesterId);
-  renameSemesters();
+
+  state.data.semesters.forEach((semester, index) => {
+    semester.name = `${index + 1}. félév`;
+  });
 
   if (state.selectedSemesterId !== semesterId) return;
 
@@ -303,12 +317,6 @@ function addPinnedCourse(semester: Semester, courseId: string): void {
 function getAvailableCourseOptions(semester: Semester): SelectedCourseOption[] {
   const selectedCodes = new Set(semester.courses.map((course) => course.code));
   return selectedCourseOptions.value.filter((course) => !selectedCodes.has(course.code));
-}
-
-function renameSemesters(): void {
-  state.data.semesters.forEach((semester, index) => {
-    semester.name = `${index + 1}. félév`;
-  });
 }
 
 function handlePinnedCourseSelect(semester: Semester, event: Event): void {
@@ -375,16 +383,13 @@ function calculateCorrectedCreditIndex(
   return index * (completedCredits / attemptedCredits);
 }
 
-function formatCredit(value: number): string {
-  return new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 0 }).format(value);
-}
-
 function formatMetric(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return '-';
-  return new Intl.NumberFormat('hu-HU', {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: 2,
-  }).format(value);
+  return METRIC_FORMATTER.format(value);
+}
+
+function formatCredit(value: number): string {
+  return CREDIT_FORMATTER.format(value);
 }
 
 function serializeCalculator(): Record<string, unknown> {
@@ -423,7 +428,7 @@ async function loadServerProfile(): Promise<void> {
     }
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) return;
-    app.notify('danger', 'Betöltési hiba', 'Nem sikerült betölteni a felhő mentést.');
+    app.notify('danger', 'Sikertelen felhő betöltés', 'Próbáld újra később!');
   } finally {
     state.loadingServer = false;
   }
@@ -450,7 +455,7 @@ async function saveToServer(): Promise<void> {
       return;
     }
 
-    app.notify('danger', 'Nem sikerült menteni', 'A helyi mentésed megmaradt a böngésződben.');
+    app.notify('danger', 'Sikeretelen mentés', 'Próbáld újra később!');
   } finally {
     state.savingServer = false;
   }
@@ -472,7 +477,7 @@ async function deleteFromServer(): Promise<void> {
       return;
     }
 
-    app.notify('danger', 'Nem sikerült törölni', 'A helyi mentésed megmaradt a böngésződben.');
+    app.notify('danger', 'Sikeretelen törlés', 'Próbáld újra később!');
   } finally {
     state.deletingServer = false;
   }
@@ -517,15 +522,15 @@ async function deleteFromServer(): Promise<void> {
         <strong>{{ formatCredit(selectedCompletedCredits) }}</strong>
       </article>
       <article class="metric">
-        <span>Kum. felvett kredit</span>
+        <span>Kumulált felvett kredit</span>
         <strong>{{ formatCredit(cumulativeAttemptedCredits) }}</strong>
       </article>
       <article class="metric">
-        <span>Súlyozott tanulmányi átlag</span>
+        <span>Súlyozott Tanulmányi Átlag</span>
         <strong>{{ formatMetric(selectedWeightedAverage) }}</strong>
       </article>
       <article class="metric">
-        <span>Kum. súlyozott tanulmányi átlag</span>
+        <span>Kumulált STA</span>
         <strong>{{ formatMetric(cumulativeWeightedAverage) }}</strong>
       </article>
       <article class="metric">
@@ -533,7 +538,7 @@ async function deleteFromServer(): Promise<void> {
         <strong>{{ formatMetric(creditIndex) }}</strong>
       </article>
       <article class="metric">
-        <span>Korr. kreditindex</span>
+        <span>Korrigált kreditindex</span>
         <strong>{{ formatMetric(correctedCreditIndex) }}</strong>
       </article>
       <article class="metric">
@@ -553,7 +558,7 @@ async function deleteFromServer(): Promise<void> {
               type="button"
               @click="selectSemester(semester.id)"
             >
-              {{ selectedSemester?.id === semester.id ? 'Kiválasztva' : 'Kiválaszt' }}
+              {{ selectedSemester?.id === semester.id ? 'Aktuális' : 'Kiválaszt' }}
             </BaseButton>
             <BaseButton kind="danger" type="button" @click="removeSemester(semester.id)"
               >Törlés</BaseButton
@@ -589,8 +594,8 @@ async function deleteFromServer(): Promise<void> {
 
           <div v-for="course in semester.courses" :key="course.id" class="course-row">
             <div class="course-row__name">
-              <strong>{{ course.name }} ({{ course.credits }})</strong>
-              <span>{{ course.code }}</span>
+              <strong>{{ course.name }}</strong>
+              <span>{{ course.code }} &middot; {{ course.credits }} kr.</span>
             </div>
             <select v-model="course.grade" aria-label="Jegy" class="course-row__grade">
               <option :value="null">-</option>
