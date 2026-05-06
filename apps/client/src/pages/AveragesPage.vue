@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { isAxiosError } from 'axios';
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, watch, nextTick } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
+import BaseDialog from '@/components/BaseDialog.vue';
 import {
   deleteOwnCreditProfile,
   fetchOwnCreditProfile,
@@ -47,12 +48,22 @@ const CREDIT_FORMATTER = new Intl.NumberFormat('hu-HU', {
 });
 
 const CREDIT_CALCULATOR_STORAGE_KEY = 'coursehub.web.averages-calculator';
+const CREDIT_CALCULATOR_DIRTY_KEY = 'coursehub.web.averages-calculator.dirty';
+
 const CREDITS_PER_SEMESTER = 30;
 
 const app = useAppStore();
 
 let serverProfileLoadedForUserId: string | null = null;
+let isServerOverwriting = false; // Prevent watcher to mark as dirty when loading server data
+
 const initialCalculatorData = hydrateAveragesCalculator();
+const initialDirtyState = globalThis.localStorage.getItem(CREDIT_CALCULATOR_DIRTY_KEY) === 'true';
+
+function setDirtyFlag(value: boolean): void {
+  state.hasUnsyncedChanges = value;
+  globalThis.localStorage.setItem(CREDIT_CALCULATOR_DIRTY_KEY, value ? 'true' : 'false');
+}
 
 const state = reactive({
   loadedFromServer: false,
@@ -60,6 +71,9 @@ const state = reactive({
   loadingServer: false,
   savingServer: false,
   deletingServer: false,
+  hasUnsyncedChanges: initialDirtyState,
+  showSyncConflictModal: false,
+  pendingCloudData: null as CreditCalculatorData | null,
   selectedSemesterId: initialCalculatorData.semesters.at(-1)?.id ?? null,
   data: initialCalculatorData,
 });
@@ -163,6 +177,8 @@ watch(
   () => state.data,
   (data) => {
     persistCreditCalculator(data);
+
+    if (!isServerOverwriting) setDirtyFlag(true);
   },
   { deep: true }
 );
@@ -272,6 +288,25 @@ function persistCreditCalculator(data: CreditCalculatorData): void {
 function replaceCalculatorData(data: CreditCalculatorData): void {
   state.data.semesters = data.semesters;
   state.selectedSemesterId = data.semesters.at(-1)?.id ?? null;
+}
+
+function applyCloudData(data: CreditCalculatorData): void {
+  isServerOverwriting = true;
+  replaceCalculatorData(data);
+  state.loadedFromServer = true;
+
+  setDirtyFlag(false);
+
+  void nextTick(() => {
+    isServerOverwriting = false;
+  });
+}
+
+function resolveSyncConflict(keepLocal: boolean): void {
+  state.showSyncConflictModal = false;
+  if (keepLocal) state.hasUnsyncedChanges = true;
+  else if (state.pendingCloudData) applyCloudData(state.pendingCloudData);
+  state.pendingCloudData = null;
 }
 
 function addSemester(): void {
@@ -423,8 +458,12 @@ async function loadServerProfile(): Promise<void> {
     state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
 
     if (data.semesters.length > 0) {
-      replaceCalculatorData(data);
-      state.loadedFromServer = true;
+      if (state.hasUnsyncedChanges) {
+        state.pendingCloudData = data;
+        state.showSyncConflictModal = true;
+      } else {
+        applyCloudData(data);
+      }
     }
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) return;
@@ -445,9 +484,8 @@ async function saveToServer(): Promise<void> {
 
   try {
     const profile = await saveOwnCreditProfile(serializeCalculator());
-    replaceCalculatorData(normalizeCalculatorData(profile.data));
+    applyCloudData(normalizeCalculatorData(profile.data));
     state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
-    state.loadedFromServer = state.serverHasSavedProfile;
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       rememberRouteIntent('/averages');
@@ -470,6 +508,8 @@ async function deleteFromServer(): Promise<void> {
     await deleteOwnCreditProfile();
     state.serverHasSavedProfile = false;
     state.loadedFromServer = false;
+
+    setDirtyFlag(true);
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       rememberRouteIntent('/averages');
@@ -486,10 +526,34 @@ async function deleteFromServer(): Promise<void> {
 
 <template>
   <section class="credits-page">
+    <BaseDialog
+      v-model="state.showSyncConflictModal"
+      description="A felhős mentés és a böngésződben tárolt mentés között eltérés van. Melyiket használjuk?"
+      title="Szinkronizáció szükséges"
+      width="md"
+    >
+      <template #footer>
+        <div class="sync-dialog__actions">
+          <BaseButton kind="secondary" type="button" @click="resolveSyncConflict(false)">
+            Felhős mentés
+          </BaseButton>
+          <BaseButton kind="primary" type="button" @click="resolveSyncConflict(true)">
+            Helyi mentés
+          </BaseButton>
+        </div>
+      </template>
+    </BaseDialog>
+
     <div class="credits-page__header">
       <div>
         <h1>Átlag kalkulátor</h1>
-        <p>{{ state.loadedFromServer ? 'Felhő mentés aktív' : 'Helyi mentés aktív' }}</p>
+        <p>
+          {{
+            state.loadedFromServer && !state.hasUnsyncedChanges
+              ? 'Felhő mentés aktív'
+              : 'Helyi mentés aktív'
+          }}
+        </p>
       </div>
 
       <div class="credits-page__actions">
@@ -623,6 +687,12 @@ async function deleteFromServer(): Promise<void> {
 </template>
 
 <style scoped>
+.sync-dialog__actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
 .credits-page {
   display: grid;
   gap: 1.4rem;
@@ -864,6 +934,13 @@ select {
 
   .credits-page__actions {
     width: 100%;
+  }
+}
+
+@media (min-width: 640px) {
+  .sync-dialog__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0.5rem;
   }
 }
 </style>
