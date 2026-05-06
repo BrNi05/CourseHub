@@ -2437,8 +2437,8 @@ packages:
   effect@3.20.0:
     resolution: {integrity: sha512-qMLfDJscrNG8p/aw+IkT9W7fgj50Z4wG5bLBy0Txsxz8iUHjDIkOgO3SV0WZfnQbNG2VJYb0b+rDLMrhM4+Krw==}
 
-  electron-to-chromium@1.5.350:
-    resolution: {integrity: sha512-/KWD4qK8nMqIoJh35Rpc37fiVyOe80mcUQKpfje0Dp9uot2ROuipsh+EriCdfInxjleD5v1S4OlIn41I0LXP0g==}
+  electron-to-chromium@1.5.351:
+    resolution: {integrity: sha512-9D7Iqx8RImSvCnOsj86rCH6eQjZFQoM04Jn6HnZVM0Nu/G58/gmKYQ1d12MZTbjQbQSTGI8nwEy07ErsA2slLA==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -6076,7 +6076,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.10.27
       caniuse-lite: 1.0.30001791
-      electron-to-chromium: 1.5.350
+      electron-to-chromium: 1.5.351
       node-releases: 2.0.38
       update-browserslist-db: 1.2.3(browserslist@4.28.2)
 
@@ -6359,7 +6359,7 @@ snapshots:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
 
-  electron-to-chromium@1.5.350: {}
+  electron-to-chromium@1.5.351: {}
 
   emoji-regex@8.0.0: {}
 
