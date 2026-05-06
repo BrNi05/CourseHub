@@ -68,6 +68,10 @@ export function markPingedToday(userId: string, platform: ClientPlatform) {
   writePingRegistry(registry);
 }
 
+export function clearPingRegistry() {
+  globalThis.localStorage.removeItem(PING_STORAGE_KEY);
+}
+
 export async function pingClient(): Promise<void> {
   if (!authState.session.userId) return;
 
