@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import { SuggestionService } from './suggestion.service.js';
@@ -213,6 +214,21 @@ describe('SuggestionService', () => {
         courseSubmissionUrl: suggestion.courseSubmissionUrl,
       });
       expect(result).toEqual(createdCourse);
+    });
+  });
+
+  describe('acceptAll', () => {
+    it('should accept all suggestions', async () => {
+      const suggestions = [{ id: 's1' }, { id: 's2' }];
+      prisma.suggestedCourse.findMany.mockResolvedValue(suggestions);
+      service.accept = vi.fn();
+
+      await service.acceptAll();
+
+      expect(prisma.suggestedCourse.findMany).toHaveBeenCalled();
+      expect(service.accept).toHaveBeenCalledTimes(suggestions.length);
+      expect(service.accept).toHaveBeenCalledWith('s1');
+      expect(service.accept).toHaveBeenCalledWith('s2');
     });
   });
 

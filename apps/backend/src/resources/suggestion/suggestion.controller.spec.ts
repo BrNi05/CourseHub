@@ -15,6 +15,7 @@ describe('SuggestionController', () => {
       findAll: vi.fn(),
       suggest: vi.fn(),
       accept: vi.fn(),
+      acceptAll: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
     };
@@ -103,6 +104,17 @@ describe('SuggestionController', () => {
 
       expect(service.accept).toHaveBeenCalledWith(suggestionId);
       expect(result).toEqual(course);
+    });
+  });
+
+  describe('acceptAll', () => {
+    it('should accept all suggestions', async () => {
+      service.acceptAll.mockResolvedValue(undefined);
+
+      const result = await controller.acceptAll();
+
+      expect(service.acceptAll).toHaveBeenCalled();
+      expect(result).toBeUndefined();
     });
   });
 
