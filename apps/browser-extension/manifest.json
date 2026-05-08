@@ -6,23 +6,12 @@
   "version": "1.0.0",
 
   "permissions": [
-    "sidePanel",
-    "declarativeNetRequest"
+    "sidePanel"
   ],
+
   "host_permissions": [
     "*://*.coursehub.hu/*"
   ],
-
-  "declarative_net_request": {
-    "rule_resources": [
-      {
-        "id": "ruleset_1",
-        "enabled": true,
-        "path": "rules.json"
-      }
-    ]
-  },
-
   "side_panel": {
     "default_path": "sidepanel.html"
   },
