@@ -59,7 +59,7 @@ try {
     optionsSuccessStatus: 204,
   });
 
-  // HTTPS(S) headers configuration
+  // HTTP headers configuration
   app.use(hpp());
 
   // Generate a unique nonce for Cloudflare script injection
@@ -139,6 +139,7 @@ try {
   // Security policies
   const swaggerHelmet = helmet({
     contentSecurityPolicy: false, // use custom CSP builder
+    frameguard: false,
   });
 
   const mainHelmet = helmet({
@@ -146,7 +147,7 @@ try {
     permittedCrossDomainPolicies: { permittedPolicies: 'none' },
     referrerPolicy: { policy: 'no-referrer' },
     dnsPrefetchControl: { allow: false },
-    frameguard: { action: 'deny' },
+    frameguard: false, // CSP handles this with frame-src and frame-ancestors
     hidePoweredBy: true,
     hsts: {
       maxAge: 31536000,
