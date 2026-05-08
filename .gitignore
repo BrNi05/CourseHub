@@ -61,3 +61,13 @@ trivy-image-report.txt
 apps/database-backup/.venv/
 apps/database-backup/.pytest_cache/
 apps/database-backup/**/__pycache__/
+
+# Browser extension generated files
+apps/browser-extension/_metadata
+
+# Compressed
+*.zip
+*.tar.gz
+*.tar
+*.tgz
+*.7z
