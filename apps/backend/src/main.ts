@@ -84,7 +84,7 @@ try {
       'font-src': ["'self'"],
       'form-action': ["'self'"],
       'frame-src': ["'none'"],
-      'frame-ancestors': ["'none'"],
+      'frame-ancestors': ["'self'", 'chrome-extension://apohndploiijdialilnmoeadohmifjai'],
       'img-src': isSwaggerRoute ? ["'self'", 'data:'] : ["'self'"],
       'manifest-src': ["'self'"],
       'media-src': ["'none'"],
