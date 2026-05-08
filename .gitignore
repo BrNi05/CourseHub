@@ -64,3 +64,10 @@ apps/database-backup/**/__pycache__/
 
 # Browser extension generated files
 apps/browser-extension/_metadata
+
+# Compressed
+*.zip
+*.tar.gz
+*.tar
+*.tgz
+*.7z
