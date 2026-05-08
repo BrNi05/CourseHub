@@ -1,0 +1,71 @@
+{
+  "manifest_version": 3,
+  "name": "CourseHub Quick Launcher",
+  "description": "Quick launcher for CourseHub",
+  "version": "1.0.0",
+
+  "permissions": [
+    "sidePanel",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://*.coursehub.hu/*"
+  ],
+
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
+
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "commands": {
+    "open-coursehub-popup": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "MacCtrl+Shift+K"
+      },
+      "description": "Open CourseHub popup"
+    },
+    "open-coursehub-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "MacCtrl+Shift+L"
+      },
+      "description": "Open CourseHub in new tab"
+    },
+    "open-coursehub-sidepanel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "MacCtrl+Shift+Y"
+      },
+      "description": "Open CourseHub in side panel"
+    }
+  },
+
+  "action": {
+    "default_title": "Open CourseHub",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
