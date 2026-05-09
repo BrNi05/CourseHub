@@ -3,7 +3,7 @@
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzreDbaEKydVUlOCRP8z8QNACW3WbdTXJnWy1KSRZ3JgfBboU0OA5lN4n2kk/cQR6K06ls1V+1jYhHM9zFzhKMT6WOFWubWYiGeyT700N+aYHRbsTKX0hcn1Ul9jueJdYEoqBxyFpBjU6V3CVmfkOlViZS3ngWC69+/PMbNTgwhLmtdScb7zaOVG7C70yoJwV9EMe6+1tHicD+udBr1tNK5JvkRXOYHTb/4HEYnLttkgYCZ7p9ZfAAphKdVsts3Nr6hSohHbGEG5bFrGMtmOJfMn6VK7FmxzODR+DSbgTHeM4OQgsLxg85Ll9ojlTpEGX/kKSP+0hUqiTBt0NKdIzEQIDAQAB",
   "name": "CourseHub Quick Launcher",
   "description": "Quick launcher for CourseHub",
-  "version": "1.0.0",
+  "version": "1.0.1",
 
   "permissions": [
     "sidePanel"
