@@ -1,7 +1,7 @@
 # Build stage
 FROM node:lts-alpine AS base
 
-RUN corepack enable && corepack prepare pnpm@10.33.4 --activate
+RUN corepack enable && corepack prepare pnpm@11.0.9 --activate
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
 

@@ -1,14 +1,14 @@
 {
   "name": "@coursehub/client",
   "private": true,
-  "version": "1.6.5",
+  "version": "1.6.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
-  "packageManager": "pnpm@10.33.4+sha512.1c67b3b359b2d408119ba1ed289f34b8fc3c6873412bec6fd264fbdc82489e510fcbecb9ce9d22dae7f3b76269d8441046014bdca53b9979cd7a561ad631b800",
+  "packageManager": "pnpm@11.0.9",
   "dependencies": {
     "@coursehub/sdk": "workspace:*",
     "@fontsource-variable/open-sans": "^5.2.7",
@@ -18,7 +18,7 @@
     "vue-router": "^5.0.6"
   },
   "devDependencies": {
-    "@types/node": "^25.6.1",
+    "@types/node": "^25.6.2",
     "@unocss/preset-wind3": "^66.6.8",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
