@@ -23,22 +23,19 @@
   "commands": {
     "open-coursehub-popup": {
       "suggested_key": {
-        "default": "Ctrl+Shift+K",
-        "mac": "MacCtrl+Shift+K"
+        "default": "Ctrl+Shift+K"
       },
       "description": "Open CourseHub popup"
     },
     "open-coursehub-tab": {
       "suggested_key": {
-        "default": "Ctrl+Shift+L",
-        "mac": "MacCtrl+Shift+L"
+        "default": "Ctrl+Shift+L"
       },
       "description": "Open CourseHub in new tab"
     },
     "open-coursehub-sidepanel": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "MacCtrl+Shift+Y"
+        "default": "Ctrl+Shift+Y"
       },
       "description": "Open CourseHub in side panel"
     }
