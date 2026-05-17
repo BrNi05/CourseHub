@@ -282,6 +282,8 @@ Important design choices:
 
 This reduces browser-side token exposure compared with storing bearer tokens in local storage.
 
+Admin status is intentionally persisted in the `User.isAdmin` database field. `ADMIN_EMAILS` is bootstrap configuration used when a Google-authenticated user is created for the first time; changing `ADMIN_EMAILS` later is not intended to automatically grant or revoke admin status for existing users. Existing admin changes should happen through the established admin/user management flow.
+
 ### Authorization and Roles
 
 Authorization is implemented with guards and decorators.
@@ -563,6 +565,8 @@ This single-origin design simplifies authentication, routing, and deployment.
 ### Cloudflare
 
 The current design of CourseHub assumes Cloudflare as the CDN and edge security solution. The CSP, the permissions policy logic and throttling all account for Cloudflare-injected scripts, headers and challenge behavior.
+
+Rate limiting intentionally trusts `cf-connecting-ip` as the client identifier. This is acceptable only because the backend is expected to stay behind Cloudflare or an equivalent trusted edge. If the backend ever becomes directly reachable, this deployment contract must be revisited before production use.
 
 That means Cloudflare is not just a CDN in this design. It is part of the request security model and must be considered when migrating to an other third-party solution.
 

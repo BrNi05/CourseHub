@@ -74,6 +74,8 @@ The repo is API-first in practice:
 - Treat backend and database changes as security-sensitive by default.
 - Keep client API requests credentialed. Existing API wrappers use `withCredentials: true`; preserve equivalent behavior.
 - Keep DTO validation, whitelisting, serialization, guards, filters, throttling, and security middleware intact.
+- Admin privileges are intentionally stored on the `User.isAdmin` database field at first Google login. `ADMIN_EMAILS` is bootstrap/configuration input for new users, not a live source of truth for existing users. Do not treat admin drift from later `ADMIN_EMAILS` changes as a bug unless the task explicitly asks to change the authorization model.
+- CourseHub backend is intentionally deployed behind Cloudflare. Rate limiting currently trusts `cf-connecting-ip` as the client identifier, so do not flag this as a spoofing issue unless the deployment model changes or the backend becomes directly internet-reachable.
 - Keep admin-only and internal-only routes protected. Do not broaden access accidentally.
 - Validate and sanitize all new inputs.
 - Prefer least privilege for new endpoints, jobs, and data access paths.
