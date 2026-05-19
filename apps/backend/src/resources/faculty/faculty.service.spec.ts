@@ -12,6 +12,7 @@ describe('FacultyService', () => {
   let cacheManager: {
     get: ReturnType<typeof vi.fn>;
     set: ReturnType<typeof vi.fn>;
+    del: ReturnType<typeof vi.fn>;
   };
 
   const mockFindMany = vi.fn();
@@ -22,6 +23,7 @@ describe('FacultyService', () => {
   const mockEmitAsync = vi.fn();
   const mockCacheGet = vi.fn();
   const mockCacheSet = vi.fn();
+  const mockCacheDel = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,6 +42,7 @@ describe('FacultyService', () => {
     cacheManager = {
       get: mockCacheGet,
       set: mockCacheSet,
+      del: mockCacheDel,
     };
 
     service = new FacultyService(cacheManager as any, prisma, eventEmitter);
@@ -127,6 +130,7 @@ describe('FacultyService', () => {
 
       expect(mockCreate).toHaveBeenCalledWith({ data: dto });
       expect(mockEmitAsync).toHaveBeenCalledWith('faculty.created');
+      expect(mockCacheDel).toHaveBeenCalledWith('faculties_by_university_u1');
       expect(result).toEqual(mockResult);
     });
   });
@@ -134,7 +138,7 @@ describe('FacultyService', () => {
   describe('update', () => {
     it('should update an existing faculty', async () => {
       const dto: UpdateFacultyDto = { name: 'Updated Faculty' } as any;
-      const mockResult = { id: 'f1', ...dto, courses: [] };
+      const mockResult = { id: 'f1', universityId: 'u1', ...dto, courses: [] };
 
       mockUpdate.mockResolvedValue(mockResult);
 
@@ -146,28 +150,46 @@ describe('FacultyService', () => {
         include: { courses: true },
       });
       expect(mockEmitAsync).toHaveBeenCalledWith('faculty.updated');
+      expect(mockCacheDel).toHaveBeenCalledWith('faculties_by_university_u1');
       expect(result).toEqual(mockResult);
     });
 
     it('should throw if faculty does not exist', async () => {
       mockUpdate.mockRejectedValue(new Error('Not found'));
       await expect(service.update('nonexistent', {} as any)).rejects.toThrow('Not found');
+      expect(mockEmitAsync).not.toHaveBeenCalled();
+      expect(mockCacheDel).not.toHaveBeenCalled();
     });
   });
 
   describe('remove', () => {
     it('should delete a faculty by id and emit event', async () => {
-      mockDelete.mockResolvedValue(undefined);
+      mockDelete.mockResolvedValue({ id: 'f1', universityId: 'u1' });
 
       await service.remove('f1');
 
       expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'f1' } });
       expect(mockEmitAsync).toHaveBeenCalledWith('faculty.deleted');
+      expect(mockCacheDel).toHaveBeenCalledWith('faculties_by_university_u1');
+    });
+
+    it('should clear university faculty cache before emitting delete event', async () => {
+      mockDelete.mockResolvedValue({ id: 'f1', universityId: 'u1' });
+      mockEmitAsync.mockRejectedValue(new Error('Listener failed'));
+
+      await expect(service.remove('f1')).rejects.toThrow('Listener failed');
+
+      expect(mockCacheDel).toHaveBeenCalledWith('faculties_by_university_u1');
+      expect(mockCacheDel.mock.invocationCallOrder[0]).toBeLessThan(
+        mockEmitAsync.mock.invocationCallOrder[0]
+      );
     });
 
     it('should propagate error if delete fails', async () => {
       mockDelete.mockRejectedValue(new Error('Delete failed'));
       await expect(service.remove('f1')).rejects.toThrow('Delete failed');
+      expect(mockEmitAsync).not.toHaveBeenCalled();
+      expect(mockCacheDel).not.toHaveBeenCalled();
     });
   });
 });

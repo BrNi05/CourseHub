@@ -17,8 +17,12 @@ export class FacultyService {
     private readonly eventEmitter: EventEmitter2
   ) {}
 
+  private facultyByUniCacheKey(universityId: string) {
+    return `faculties_by_university_${universityId}`;
+  }
+
   async getAllByUniversity(universityId: string): Promise<FacultyWithoutCoursesDto[]> {
-    const cacheKey = `faculties_by_university_${universityId}`;
+    const cacheKey = this.facultyByUniCacheKey(universityId);
     const cached = await this.cacheManager.get<FacultyWithoutCoursesDto[]>(cacheKey);
     if (cached) return cached;
 
@@ -29,6 +33,7 @@ export class FacultyService {
     });
 
     // Assuming faculties basically never change, TTL can be longer
+    // On course add/modify/delete, the cache is reset
     await this.cacheManager.set(cacheKey, faculties, 86400000); // 1 day cache
 
     return faculties;
@@ -52,6 +57,7 @@ export class FacultyService {
     const faculty = await this.prisma.faculty.create({ data: dto });
 
     await this.eventEmitter.emitAsync('faculty.created');
+    await this.cacheManager.del(this.facultyByUniCacheKey(dto.universityId));
 
     return faculty;
   }
@@ -63,14 +69,16 @@ export class FacultyService {
       include: { courses: true },
     });
 
+    await this.cacheManager.del(this.facultyByUniCacheKey(faculty.universityId));
     await this.eventEmitter.emitAsync('faculty.updated');
 
     return faculty;
   }
 
   async remove(id: string): Promise<void> {
-    await this.prisma.faculty.delete({ where: { id } });
+    const faculty = await this.prisma.faculty.delete({ where: { id } });
 
+    await this.cacheManager.del(this.facultyByUniCacheKey(faculty.universityId));
     await this.eventEmitter.emitAsync('faculty.deleted');
   }
 }
