@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import {
-  findOne as getUniversityById,
   findOne2 as getCourseById,
   getOne as getFacultyById,
   type Course,
   type CreateSuggestionDto,
+  type FacultyWithoutCoursesDto,
+  type UniversityWithoutFacultiesDto,
 } from '@coursehub/sdk';
 
+import { fetchFacultiesByUniversity } from '@/api/faculties.api';
+import { apiOptions } from '@/api/api';
 import BaseButton from '@/components/BaseButton.vue';
 import { useAppStore } from '@/stores/composables/use-app-store';
 
 type SuggestionForm = {
-  uniName: string;
-  uniAbbrevName: string;
-  facultyName: string;
-  facultyAbbrevName: string;
+  universityId: string;
+  facultyId: string;
   courseName: string;
   courseCode: string;
   credits: number;
@@ -34,12 +35,12 @@ const route = useRoute();
 const router = useRouter();
 const editCourse = ref<Course>();
 const isEditPrefillLoading = ref(false);
+const faculties = ref<FacultyWithoutCoursesDto[]>([]);
+const loadingFaculties = ref(false);
 
 const form = reactive<SuggestionForm>({
-  uniName: '',
-  uniAbbrevName: '',
-  facultyName: '',
-  facultyAbbrevName: '',
+  universityId: '',
+  facultyId: '',
   courseName: '',
   courseCode: '',
   credits: 0,
@@ -51,23 +52,39 @@ const form = reactive<SuggestionForm>({
   courseExtraUrl: '',
 });
 
+const availableUniversities = computed<UniversityWithoutFacultiesDto[]>(
+  () => app.state.universities as UniversityWithoutFacultiesDto[]
+);
+
+const selectedUniversity = computed<UniversityWithoutFacultiesDto | null>(
+  () =>
+    availableUniversities.value.find((university) => university.id === form.universityId) ?? null
+);
+
+const selectedFaculty = computed(
+  () => faculties.value.find((faculty) => faculty.id === form.facultyId) ?? null
+);
+
 const editCourseId = computed(() => {
   const value = route.query.editCourseId;
   return typeof value === 'string' ? value : undefined;
 });
 
+const facultyPlaceholder = computed(() => {
+  if (!form.universityId) return 'Előbb válassz egyetemet';
+  if (loadingFaculties.value) return 'Karok betöltése...';
+  return 'Válassz kart';
+});
+
 let editPrefillSequence = 0;
+let facultyRequestSequence = 0;
 
 // Shows a placeholder for the input fields while the prefill data is loading, otherwise shows the default placeholder
 function getPrefillPlaceholder(defaultPlaceholder: string) {
   return editCourseId.value && isEditPrefillLoading.value ? 'Betöltés...' : defaultPlaceholder;
 }
 
-function resetForm() {
-  form.uniName = '';
-  form.uniAbbrevName = '';
-  form.facultyName = '';
-  form.facultyAbbrevName = '';
+function resetCourseFields() {
   form.courseName = '';
   form.courseCode = '';
   form.credits = 0;
@@ -79,23 +96,63 @@ function resetForm() {
   form.courseExtraUrl = '';
 }
 
+function applyPreferredUniversity() {
+  const preferredUniversityId = app.state.searchFilters.universityId;
+  const hasPreferredUniversity = availableUniversities.value.some(
+    (university) => university.id === preferredUniversityId
+  );
+
+  if (hasPreferredUniversity) form.universityId = preferredUniversityId;
+}
+
+async function loadFaculties(universityId: string) {
+  facultyRequestSequence += 1;
+  const requestSequence = facultyRequestSequence;
+
+  if (!universityId) {
+    faculties.value = [];
+    loadingFaculties.value = false;
+    return;
+  }
+
+  loadingFaculties.value = true;
+
+  try {
+    const nextFaculties = await fetchFacultiesByUniversity(universityId);
+    if (requestSequence !== facultyRequestSequence) return;
+
+    faculties.value = nextFaculties;
+  } catch (error) {
+    if (requestSequence !== facultyRequestSequence) return;
+
+    faculties.value = [];
+    app.notify(
+      'danger',
+      'Nem sikerült betölteni a karokat',
+      error instanceof Error ? error.message : 'Próbáld meg később.'
+    );
+  } finally {
+    if (requestSequence === facultyRequestSequence) loadingFaculties.value = false;
+  }
+}
+
 async function prefillFromCourseId(courseId?: string) {
   const sequence = ++editPrefillSequence; // stale request guard
 
-  resetForm();
+  resetCourseFields();
   editCourse.value = undefined;
   isEditPrefillLoading.value = Boolean(courseId);
 
   if (!courseId) {
+    applyPreferredUniversity();
     isEditPrefillLoading.value = false;
     return;
   }
 
   try {
     const courseResponse = await getCourseById({
-      baseURL: '/api',
+      ...apiOptions(),
       path: { id: courseId },
-      throwOnError: true,
     });
 
     if (sequence !== editPrefillSequence) return;
@@ -113,28 +170,24 @@ async function prefillFromCourseId(courseId?: string) {
     form.courseExtraUrl = course.courseExtraUrl;
 
     const facultyResponse = await getFacultyById({
-      baseURL: '/api',
+      ...apiOptions(),
       path: { id: course.facultyId },
-      throwOnError: true,
     });
 
     if (sequence !== editPrefillSequence) return;
 
     const faculty = facultyResponse.data;
-    form.facultyName = faculty.name;
-    form.facultyAbbrevName = faculty.abbrevName;
 
-    const universityResponse = await getUniversityById({
-      baseURL: '/api',
-      path: { id: faculty.universityId },
-      throwOnError: true,
-    });
+    await app.loadUniversities();
 
     if (sequence !== editPrefillSequence) return;
 
-    const university = universityResponse.data;
-    form.uniName = university.name;
-    form.uniAbbrevName = university.abbrevName;
+    form.universityId = faculty.universityId;
+    await loadFaculties(faculty.universityId);
+
+    if (sequence !== editPrefillSequence) return;
+
+    form.facultyId = faculty.id;
     isEditPrefillLoading.value = false;
   } catch (error) {
     if (sequence !== editPrefillSequence) return;
@@ -155,12 +208,40 @@ watch(
   { immediate: true }
 );
 
+watch(
+  () => availableUniversities.value,
+  () => {
+    if (editCourseId.value || form.universityId) return;
+    applyPreferredUniversity();
+  },
+  { immediate: true }
+);
+
+watch(
+  () => form.universityId,
+  (universityId, previousUniversityId) => {
+    if (universityId !== previousUniversityId) form.facultyId = '';
+    if (universityId) app.rememberSearchUniversity(universityId);
+    void loadFaculties(universityId);
+  },
+  { immediate: true }
+);
+
 async function submitForm() {
+  if (!selectedUniversity.value || !selectedFaculty.value) {
+    app.notify(
+      'info',
+      'Válassz egyetemet és kart',
+      'A javaslat beküldéséhez meglévő egyetemet és kart kell választani.'
+    );
+    return;
+  }
+
   const payload: CreateSuggestionDto = {
-    uniName: form.uniName?.trim(),
-    uniAbbrevName: form.uniAbbrevName?.trim(),
-    facultyName: form.facultyName?.trim(),
-    facultyAbbrevName: form.facultyAbbrevName?.trim(),
+    uniName: selectedUniversity.value.name,
+    uniAbbrevName: selectedUniversity.value.abbrevName,
+    facultyName: selectedFaculty.value.name,
+    facultyAbbrevName: selectedFaculty.value.abbrevName,
     courseName: form.courseName?.trim(),
     courseCode: form.courseCode?.trim(),
     credits: form.credits,
@@ -175,6 +256,10 @@ async function submitForm() {
   const ok = await app.submitSuggestion(payload);
   if (ok) await router.push('/');
 }
+
+onMounted(() => {
+  void app.loadUniversities();
+});
 </script>
 
 <template>
@@ -199,51 +284,39 @@ async function submitForm() {
 
       <div class="form-grid">
         <label class="field">
-          <span>Egyetem neve</span>
-          <input
-            v-model="form.uniName"
-            autocomplete="on"
-            name="uniName"
+          <span>Egyetem</span>
+          <select
+            v-model="form.universityId"
+            name="universityId"
             required
-            type="text"
-            :placeholder="getPrefillPlaceholder('Budapesti Műszaki és Gazdaságtudományi Egyetem')"
-          />
+            :disabled="app.state.loadingUniversities || isEditPrefillLoading"
+          >
+            <option value="">
+              {{ app.state.loadingUniversities ? 'Egyetemek betöltése...' : 'Válassz egyetemet' }}
+            </option>
+            <option
+              v-for="university in availableUniversities"
+              :key="university.id"
+              :value="university.id"
+            >
+              {{ university.name }} ({{ university.abbrevName }})
+            </option>
+          </select>
         </label>
 
         <label class="field">
-          <span>Egyetem rövidített neve</span>
-          <input
-            v-model="form.uniAbbrevName"
-            autocomplete="on"
-            name="uniAbbrevName"
+          <span>Kar</span>
+          <select
+            v-model="form.facultyId"
+            name="facultyId"
             required
-            type="text"
-            :placeholder="getPrefillPlaceholder('BME')"
-          />
-        </label>
-
-        <label class="field">
-          <span>Kar neve</span>
-          <input
-            v-model="form.facultyName"
-            autocomplete="on"
-            name="facultyName"
-            required
-            type="text"
-            :placeholder="getPrefillPlaceholder('Villamosmérnöki és Informatikai Kar')"
-          />
-        </label>
-
-        <label class="field">
-          <span>Kar rövidített neve</span>
-          <input
-            v-model="form.facultyAbbrevName"
-            autocomplete="on"
-            name="facultyAbbrevName"
-            required
-            type="text"
-            :placeholder="getPrefillPlaceholder('VIK')"
-          />
+            :disabled="!form.universityId || loadingFaculties || isEditPrefillLoading"
+          >
+            <option value="">{{ facultyPlaceholder }}</option>
+            <option v-for="faculty in faculties" :key="faculty.id" :value="faculty.id">
+              {{ faculty.name }} ({{ faculty.abbrevName }})
+            </option>
+          </select>
         </label>
 
         <label class="field">
@@ -435,7 +508,8 @@ async function submitForm() {
   line-height: 1.35;
 }
 
-.field input {
+.field input,
+.field select {
   background: var(--field-surface);
   border: 1px solid var(--border-soft);
   border-radius: 1rem;
@@ -445,6 +519,10 @@ async function submitForm() {
   min-height: 3rem;
   padding: 0 0.95rem;
   width: 100%;
+}
+
+.field select:disabled {
+  opacity: 0.72;
 }
 
 .field input:-webkit-autofill,

@@ -30,7 +30,7 @@ export const coursesState = reactive<CoursesState>({
     universityId: hydrateSearchUniversityId() ?? '',
     courseName: '',
     courseCode: '',
-  } as SearchFilters,
+  },
   searchResults: [] as Course[],
   searchingCourses: false,
   selectedCourses: hydrateFromStorage(),
@@ -45,6 +45,11 @@ export function replaceSelectedCourses(courses: Course[]): void {
 
 export function clearSelectedCourses(): void {
   coursesState.selectedCourses = [];
+}
+
+export function rememberSearchUniversity(universityId: string): void {
+  coursesState.searchFilters.universityId = universityId;
+  persistSearchUniversityId(universityId);
 }
 
 async function loadPinnedCoursesFromServer(userId: string): Promise<Course[] | null> {

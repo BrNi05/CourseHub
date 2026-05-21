@@ -15,6 +15,7 @@ import {
   addCourses,
   clearSelectedCourses,
   coursesState,
+  rememberSearchUniversity,
   removeCourse,
   searchCourses,
 } from '../modules/courses.store';
@@ -86,6 +87,7 @@ export function useAppStore() {
     addCourse,
     addCourses,
     removeCourse,
+    rememberSearchUniversity,
     loadUniversities,
     searchCourses,
     loginWithGoogle,
