@@ -53,6 +53,7 @@ onMounted(() => {
             v-model="app.state.searchFilters.universityId"
             name="universityId"
             :disabled="app.state.loadingUniversities"
+            @change="app.rememberSearchUniversity(app.state.searchFilters.universityId)"
           >
             <option
               v-for="university in app.state.universities"
