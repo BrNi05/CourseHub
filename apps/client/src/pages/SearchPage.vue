@@ -32,7 +32,6 @@ onMounted(() => {
     <div class="search-panel">
       <div class="search-panel__header">
         <div>
-          <p class="search-page__eyebrow">Szűrők</p>
           <h2>Keresés az összes ismert tárgy között</h2>
         </div>
 
