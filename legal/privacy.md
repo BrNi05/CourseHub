@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.05.05. (ötödik verzió)
+**Hatályba lép:** 2026.05.26. (hatodik verzió)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -24,6 +24,10 @@ Az adatkezelő az a jogi vagy természetes személy, amely a személyes adatok k
 
 - **Érintett:** Bármely meghatározott, személyes adat alapján azonosított vagy - közvetlenül vagy közvetve - azonosítható természetes személy (a Felhasználó).
 
+## Kiskorúak adatkezelése
+
+A CourseHub szolgáltatásai kizárólag 16. életévüket betöltött személyek számára készültek. Amennyiben az Adatkezelő tudomására jut, hogy 16 év alatti Érintett adatait is kezeli, azokat haladéktalanul törli a rendszerből.
+
 ## Kezelt adatok köre, célja és jogalapja
 
 Személyes adatokat kizárólag meghatározott célból, jogalappal rendelkező esetekben kezelünk. Az adatkezelés jogszerűsége a GDPR 6. cikk (1) bekezdésén alapul.
@@ -40,7 +44,7 @@ Személyes adatokat kizárólag meghatározott célból, jogalappal rendelkező 
 
 - **Időtartam:** A fiók felhasználó általi törléséig. Törlés esetén az adatok azonnal megsemmisülnek.
 
-### Technikailag szükséges hitelesítési sütik
+### Technikailag szükséges hitelesítési sütik és helyi adattárolás
 
 A sütik használata során a CourseHub személyes adatokat kezel, amennyiben a süti azonosított vagy azonosítható természetes személyhez köthető információt tartalmaz vagy tesz hozzáférhetővé.
 
@@ -69,6 +73,10 @@ A CourseHub a bejelentkezett állapot fenntartásához és a Google OAuth2 bejel
   - **Időtartam:** a Google OAuth callback lezárásáig, de legfeljebb 2 percig.
 
   - **Biztonsági jellemzők:** `HttpOnly`, `SameSite=Lax`, `Secure`.
+
+- Böngésző helyi tárhelye (`localStorage` és `sessionStorage`)
+
+  A CourseHub a felhasználói élmény növelése, az alkalmazás gyorsítása, az ismétlődő adatbázis-lekérdezések elkerülése, valamint a hálózati adatforgalom minimalizálása érdekében a böngésző helyi tárhelyét is használja. A tárolt adatok nem szolgálnak profilalkotási vagy nyomon követési célokat.
 
 ### Felhasználói preferenciák (Kurzusok)
 
@@ -172,7 +180,7 @@ A felhasználó a kliensen keresztül önkéntes alapon hibajelentést küldhet.
 
 ### GitHub alapú kurzusjavaslat
 
-Amennyiben a felhasználó a CourseHub GitHub repository-n keresztül küld kurzus javaslatot, úgy az adatkezelésére a GitHub saját [adatvédelmi szabályzata](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) vonatkozik.
+Amennyiben a felhasználó a CourseHub GitHub repository-n keresztül küld kurzus javaslatot, úgy az adatkezelésére a GitHub saját [adatvédelmi szabályzata](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) vonatkozik. Ez egy opcionális lehetőség.
 
 ### Alkalmazáson belüli kurzusajánlás
 
@@ -224,19 +232,19 @@ Az Adatkezelő az adatok kezeléséhez az alábbi adatfeldolgozókat/szolgáltat
 | --------------- | --------------------------- | -------- |
 | Cloudflare Inc. | Peremvédelem                | USA / EU |
 | Google LLC      | Hitelesítés (OAuth2)        | USA / EU |
-| GitHub Inc.     | Nyílt forráskódú javaslatok | USA      |
+| GitHub Inc.     | Javaslatok fogadása         | USA      |
 
 A CourseHub nem értékesít adatokat. Személyes adatokat harmadik felek részére kizárólag adatfeldolgozók igénybevétele, jogszabályi kötelezettség teljesítése, illetve jogérvényesítés esetén továbbít.
 
-Az egyes szolgáltatók az EGT-n kívül, így az Egyesült Államokban is végezhetnek adatkezelési műveleteket. Az ilyen adattovábbítások az érintett szolgáltató által biztosított megfelelő adatvédelmi garanciák mellett történnek.
+Az egyes szolgáltatók az EGT-n kívül, így az Egyesült Államokban is végezhetnek adatkezelési műveleteket. Az ilyen adattovábbítások az érintett szolgáltató által biztosított megfelelő adatvédelmi garanciák (pl. EU-USA DPF) mellett történnek.
 
 A Google Adatvédelmi Tájékoztatója elérhető [itt](https://policies.google.com/privacy?gl=HU&hl=en).
 
 A Cloudflare Adatvédelmi Tájékoztatója elérhető [itt](https://www.cloudflare.com/en-gb/privacypolicy/).
 
-## Más weboldalak
+## Harmadik fél weboldalai
 
-A CourseHub külső weboldalak tartalmát jeleníti meg. Ezekre a weboldalakra azok saját adatvédelmi szabályzataik vonatkoznak.
+A CourseHub harmadik fél által működtetett weboldalakra irányíthatja át a felhasználókat. Ezekre a weboldalakra azok saját adatvédelmi szabályzataik, valamint szerződési feltételeik vonatkoznak.
 
 ## Automatizált döntéshozatal és profilalkotás
 
@@ -251,6 +259,8 @@ Az Érintett kérelmezheti az Adatkezelőnél az alábbiakat:
 - **Helyesbítés:** Kérheti pontatlan adatainak javítását vagy hiányos adatainak kiegészítését.
 
 - **Törlés („elfeledtetéshez való jog”):** Kérheti adatai törlését, ha az adatkezelés célja megszűnt, vagy visszavonja hozzájárulását (fiók törlése). Megjegyzés: Jogi kötelezettség teljesítéséhez szükséges adatok esetén a törlés nem minden esetben lehetséges azonnal.
+
+- **Hozzájárulás visszavonása:** Az önkéntes hozzájáruláson alapuló adatkezelések (pl. hibabejelentés) esetén a hozzájárulását bármikor visszavonhatja. A visszavonás nem érinti a visszavonás előtt, a hozzájárulás alapján végrehajtott adatkezelés jogszerűségét.
 
 - **Zárolás/Korlátozás:** Kérheti az adatkezelés korlátozását, ha vitatja az adatok pontosságát vagy az adatkezelés jogszerűségét.
 
