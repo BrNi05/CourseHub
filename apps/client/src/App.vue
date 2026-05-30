@@ -4,6 +4,7 @@ import { RouterView, useRouter } from 'vue-router';
 
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
+import CookieBanner from './components/CookieBanner.vue';
 import PwaInstallPromptDialog from './components/PwaInstallPromptDialog.vue';
 import ToastStack from './components/ToastStack.vue';
 
@@ -27,6 +28,8 @@ onMounted(() => {
 
 <template>
   <div class="app-shell">
+    <CookieBanner />
+
     <div class="app-shell__glow app-shell__glow--left"></div>
     <div class="app-shell__glow app-shell__glow--right"></div>
 
