@@ -13,7 +13,7 @@ function closeBanner() {
 
 <template>
   <div v-if="isVisible" class="cookie-banner" role="region" aria-live="polite">
-    <p class="cookie-banner__text">A CourseHub biztonsági és egyéb kötelező sütiket használ.</p>
+    <p class="cookie-banner__text">A CourseHub biztonsági és egyéb szükséges sütiket használ.</p>
 
     <button
       class="cookie-banner__close"
