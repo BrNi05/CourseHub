@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const COOKIE_BANNER_ACCEPTED_KEY = 'coursehub.web.cookieBannerAccepted';
+import { COOKIE_BANNER_ACCEPTED_STORAGE_KEY } from '@/stores/shared/storage';
 
-const isVisible = ref(globalThis.localStorage.getItem(COOKIE_BANNER_ACCEPTED_KEY) !== 'true');
+const isVisible = ref(
+  globalThis.localStorage.getItem(COOKIE_BANNER_ACCEPTED_STORAGE_KEY) !== 'true'
+);
 
 function closeBanner() {
-  globalThis.localStorage.setItem(COOKIE_BANNER_ACCEPTED_KEY, 'true');
+  globalThis.localStorage.setItem(COOKIE_BANNER_ACCEPTED_STORAGE_KEY, 'true');
   isVisible.value = false;
 }
 </script>

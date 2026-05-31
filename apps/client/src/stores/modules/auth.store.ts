@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios';
 import { reactive } from 'vue';
 
 import { getErrorMessage } from '../shared/errors';
-import { PING_STORAGE_KEY } from '../shared/storage';
+import { clearCourseHubBrowserState } from '../shared/storage';
 import type { SessionState } from '../shared/types';
 import type { AuthSessionDto } from '@coursehub/sdk';
 
@@ -13,7 +13,6 @@ import {
   logoutSession,
 } from '../../api/auth.api';
 import { pushNotice } from './notifications.store';
-import { clearPingRegistry } from './analytics.store';
 
 export const authState = reactive({
   session: {
@@ -52,7 +51,6 @@ export function clearSession(): void {
   sessionPromise = null;
   authState.session.userId = null;
   authState.session.email = null;
-  globalThis.localStorage.removeItem(PING_STORAGE_KEY);
 }
 
 export function handleUnauthorized(showNotice: boolean = true): void {
@@ -102,8 +100,7 @@ export function loginWithGoogle(): void {
     authState.loginInFlight = false;
   }, 3000);
 
-  // Clear local ping registry on login as an other user might have logged in
-  clearPingRegistry();
+  clearCourseHubBrowserState(false);
 
   globalThis.location.assign('api/auth/google');
 }
@@ -112,15 +109,14 @@ export async function logout(): Promise<void> {
   try {
     await logoutSession();
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
-      clearSession();
-    } else {
+    if (!isAxiosError(error) || error.response?.status !== 401) {
       pushNotice('danger', 'Nem sikerült kijelentkezni', getErrorMessage(error));
       return;
     }
   }
 
   clearSession();
+  clearCourseHubBrowserState();
   pushNotice(
     'info',
     'Kijelentkezve',
@@ -139,6 +135,7 @@ export async function deleteProfile(): Promise<boolean> {
   try {
     await deleteProfileById(authState.session.userId);
     clearSession();
+    clearCourseHubBrowserState();
 
     pushNotice(
       'success',

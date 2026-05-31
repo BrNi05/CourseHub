@@ -2,12 +2,11 @@
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+import { PWA_INSTALL_PROMPT_CLOSED_STORAGE_KEY } from '@/stores/shared/storage';
 import { isMobileClientPlatform, isPWA } from '@/utils/client-runtime';
 
 import BaseButton from './BaseButton.vue';
 import BaseDialog from './BaseDialog.vue';
-
-const PWA_INSTALL_PROMPT_CLOSED_KEY = 'coursehub.web.pwaInstallPromptClosed';
 
 const route = useRoute();
 const isOpen = ref(false);
@@ -16,13 +15,13 @@ function maybeOpenPrompt() {
   if (route.path !== '/') return;
   if (!isMobileClientPlatform()) return;
   if (isPWA()) return;
-  if (globalThis.localStorage.getItem(PWA_INSTALL_PROMPT_CLOSED_KEY) === 'true') return;
+  if (globalThis.localStorage.getItem(PWA_INSTALL_PROMPT_CLOSED_STORAGE_KEY) === 'true') return;
 
   isOpen.value = true;
 }
 
 function closePrompt() {
-  globalThis.localStorage.setItem(PWA_INSTALL_PROMPT_CLOSED_KEY, 'true');
+  globalThis.localStorage.setItem(PWA_INSTALL_PROMPT_CLOSED_STORAGE_KEY, 'true');
   isOpen.value = false;
 }
 

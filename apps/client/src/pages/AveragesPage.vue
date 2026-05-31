@@ -11,6 +11,10 @@ import {
 } from '@/api/averages.api';
 import { rememberRouteIntent } from '@/router/routing-manager';
 import { useAppStore } from '@/stores/composables/use-app-store';
+import {
+  AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY,
+  AVERAGES_CALCULATOR_STORAGE_KEY,
+} from '@/stores/shared/storage';
 
 type CalculatorCourse = {
   id: string;
@@ -47,9 +51,6 @@ const CREDIT_FORMATTER = new Intl.NumberFormat('hu-HU', {
   maximumFractionDigits: 0,
 });
 
-const CREDIT_CALCULATOR_STORAGE_KEY = 'coursehub.web.averages-calculator';
-const CREDIT_CALCULATOR_DIRTY_KEY = 'coursehub.web.averages-calculator.dirty';
-
 const CREDITS_PER_SEMESTER = 30;
 
 const app = useAppStore();
@@ -58,11 +59,12 @@ let serverProfileLoadedForUserId: string | null = null;
 let isServerOverwriting = false; // Prevent watcher to mark as dirty when loading server data
 
 const initialCalculatorData = hydrateAveragesCalculator();
-const initialDirtyState = globalThis.localStorage.getItem(CREDIT_CALCULATOR_DIRTY_KEY) === 'true';
+const initialDirtyState =
+  globalThis.localStorage.getItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY) === 'true';
 
 function setDirtyFlag(value: boolean): void {
   state.hasUnsyncedChanges = value;
-  globalThis.localStorage.setItem(CREDIT_CALCULATOR_DIRTY_KEY, value ? 'true' : 'false');
+  globalThis.localStorage.setItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY, value ? 'true' : 'false');
 }
 
 const state = reactive({
@@ -270,19 +272,19 @@ function normalizeCalculatorData(value: unknown): CreditCalculatorData {
 }
 
 function hydrateAveragesCalculator(): CreditCalculatorData {
-  const saved = globalThis.localStorage.getItem(CREDIT_CALCULATOR_STORAGE_KEY);
+  const saved = globalThis.localStorage.getItem(AVERAGES_CALCULATOR_STORAGE_KEY);
   if (!saved) return { semesters: [] };
 
   try {
     return normalizeCalculatorData(JSON.parse(saved));
   } catch {
-    globalThis.localStorage.removeItem(CREDIT_CALCULATOR_STORAGE_KEY);
+    globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_STORAGE_KEY);
     return { semesters: [] };
   }
 }
 
 function persistCreditCalculator(data: CreditCalculatorData): void {
-  globalThis.localStorage.setItem(CREDIT_CALCULATOR_STORAGE_KEY, JSON.stringify(data));
+  globalThis.localStorage.setItem(AVERAGES_CALCULATOR_STORAGE_KEY, JSON.stringify(data));
 }
 
 function replaceCalculatorData(data: CreditCalculatorData): void {
