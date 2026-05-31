@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/backend",
-  "version": "1.7.3",
+  "version": "1.7.4",
   "description": "Backend server for CourseHub",
   "type": "module",
   "author": "BrNi05",
