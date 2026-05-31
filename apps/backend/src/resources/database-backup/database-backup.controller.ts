@@ -21,7 +21,7 @@ export class DatabaseBackupController {
   })
   @ApiProduces('application/octet-stream')
   @ApiOkResponse({ description: 'Downloaded' })
-  @Throttable(60, 2)
+  @Throttable(60, 1)
   @FileSystemOperation()
   async downloadBackup(@Res() res: Response): Promise<void> {
     const { fileName, filePath } = await this.databaseBackupService.createDownloadableBackup();

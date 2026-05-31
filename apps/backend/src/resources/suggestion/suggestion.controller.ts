@@ -41,7 +41,7 @@ export class SuggestionController {
   })
   @ApiCreatedResponse({ type: SuggestedCourse, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 200)
   async suggest(
     @AuthUserId() userId: string,
     @Body() createSuggestionDto: CreateSuggestionDto
@@ -84,7 +84,7 @@ export class SuggestionController {
   })
   @ApiOkResponse({ type: SuggestedCourse, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async update(
     @Param('id') id: string,
     @Body() updateSuggestionDto: UpdateSuggestionDto
@@ -100,7 +100,7 @@ export class SuggestionController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 200)
   async delete(@Param('id') id: string): Promise<void> {
     await this.suggestionService.delete(id);
   }

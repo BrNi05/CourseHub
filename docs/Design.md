@@ -314,6 +314,8 @@ The usual NestJS patterns are applied:
 
 - Generated Swagger/OpenAPI docs in non-production environments.
 
+API throttling is incremental and strict. The rules are: 1 req/s for most admin endpoints, and for public or behind-auth endpoints: 20, 200 or 20000 req/s.
+
 ### Caching Strategy
 
 CourseHub uses more than one cache layer:

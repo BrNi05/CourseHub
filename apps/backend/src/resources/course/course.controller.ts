@@ -50,7 +50,7 @@ export class CourseController {
   })
   @ApiCreatedResponse({ type: Course, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async create(@Body() dto: CreateCourseDto): Promise<Course> {
     return this.courseService.create(dto);
   }
@@ -63,7 +63,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: Course, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto): Promise<Course> {
     return this.courseService.update(id, dto);
   }
@@ -89,7 +89,7 @@ export class CourseController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async delete(@Param('id') id: string): Promise<void> {
     return this.courseService.remove(id);
   }

@@ -25,7 +25,7 @@ export class AveragesController {
   })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 2000)
+  @Throttable(60, 20000)
   async findOwnCredits(@AuthUserId() userId: string): Promise<AveragesCalculation> {
     return await this.averagesService.findMine(userId);
   }
@@ -38,7 +38,7 @@ export class AveragesController {
   })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 2)
+  @Throttable(60, 1)
   async findCreditsByUserId(@Param('id') id: string): Promise<AveragesCalculation> {
     return await this.averagesService.findByUserId(id);
   }
@@ -68,7 +68,7 @@ export class AveragesController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(60, 2000)
   async deleteOwnCredits(@AuthUserId() userId: string): Promise<void> {
     await this.averagesService.deleteMine(userId);
   }
@@ -81,7 +81,7 @@ export class AveragesController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 2)
+  @Throttable(60, 1)
   async deleteCreditsCacheByUserId(@Param('id') id: string): Promise<void> {
     await this.averagesService.clearCacheForUser(id);
   }
@@ -94,7 +94,7 @@ export class AveragesController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 2)
+  @Throttable(60, 1)
   async deleteCreditsByUserId(@Param('id') id: string): Promise<void> {
     await this.averagesService.deleteForUser(id);
   }

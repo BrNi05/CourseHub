@@ -68,6 +68,7 @@ The repo is API-first in practice:
 - Average calculator local saves live in browser localStorage and are used for both anonymous and authenticated users.
 - The backend serves the SPA and static assets; the top-level `bundle:static` flow copies client output into the backend.
 - Ignore the local backup helper under `apps/database-backup`. It is a dev helper tool and is not releant to the production code.
+- API throttling is incremental. 1 req/s for most admin endpoints, and for public or behind-auth endpoints 20, 200 or 20000.
 
 ## Security Requirements
 

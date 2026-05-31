@@ -24,7 +24,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: PingsStatisticsResponseDto })
   @Admin()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(86400, 1)
   async pings(): Promise<PingsStatisticsResponseDto> {
     return await this.statisticsService.getPingStatistics();
   }
@@ -37,7 +37,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: CoursesPinnedDto, isArray: true })
   @Admin()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(86400, 1)
   async pins(): Promise<CoursesPinnedDto[]> {
     return await this.statisticsService.getPinStatistics();
   }
@@ -50,7 +50,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: UniversityUsersDto, isArray: true })
   @Admin()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(86400, 1)
   async users(): Promise<UniversityUsersDto[]> {
     return await this.statisticsService.getUserStatistics();
   }
@@ -67,7 +67,7 @@ export class StatisticsController {
   })
   @Admin()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(86400, 1)
   async courses(): Promise<UniversityCoursesDto[]> {
     return await this.statisticsService.getCourseStatistics();
   }

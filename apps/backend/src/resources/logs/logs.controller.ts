@@ -24,7 +24,7 @@ export class LogsController {
   @ApiProduces('text/plain')
   @ApiOkResponse({ description: 'Downloaded' })
   @FileSystemOperation()
-  @Throttable(60, 3)
+  @Throttable(86400, 1) // 1 download per day
   async downloadLogs(@Res() res: Response) {
     const stream = await this.logsService.getLogStream();
 
@@ -49,7 +49,7 @@ export class LogsController {
     description: 'Clears the log file of the application',
   })
   @DeletedResponse('cleared')
-  @Throttable(60, 3)
+  @Throttable(86400, 1) // 1 clear per day
   @FileSystemOperation()
   async clearLogs() {
     return this.logsService.clearLogs();

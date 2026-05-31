@@ -57,7 +57,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: [CoursePackage], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(60, 2000)
   async findMine(@AuthUserId() userId: string): Promise<CoursePackage[]> {
     return await this.coursePackageService.findMine(userId);
   }
@@ -70,7 +70,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: [CoursePackage], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(60, 20000)
   async search(@Query() query: SearchCoursePackageDto): Promise<CoursePackage[]> {
     return await this.coursePackageService.search(query);
   }
@@ -83,7 +83,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(60, 20000)
   async findOne(@Param('id') id: string): Promise<CoursePackage> {
     return await this.coursePackageService.findById(id);
   }
@@ -96,7 +96,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 40)
+  @Throttable(60, 20)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCoursePackageDto
@@ -113,7 +113,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(60, 1)
   async setPermanent(
     @Param('id') id: string,
     @Body() dto: SetCoursePackagePermanentDto
@@ -142,7 +142,7 @@ export class CoursePackageController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(60, 200)
   async remove(@Param('id') id: string): Promise<void> {
     await this.coursePackageService.remove(id);
   }
@@ -158,7 +158,7 @@ export class CoursePackageController {
     description: 'Usage timestamp updated',
   })
   @DatabaseOperation()
-  @Throttable(60, 1000)
+  @Throttable(60, 20000)
   async markAsUsed(@Param('id') id: string): Promise<void> {
     await this.coursePackageService.markAsUsed(id);
   }

@@ -73,7 +73,7 @@ export class ClientController {
     description: 'List all error report files content',
   })
   @ApiOkResponse({ description: 'Success', type: [ErrorReportResponseDto] })
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   @FileSystemOperation()
   async listErrorReports(): Promise<ErrorReportResponseDto[]> {
     return await this.clientService.listErrorReports();
@@ -86,7 +86,7 @@ export class ClientController {
     description: 'Delete an error report',
   })
   @DeletedResponse()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   @FileSystemOperation()
   async deleteErrorReport(@Param('fileName') fileName: string): Promise<void> {
     await this.clientService.deleteErrorReport(fileName);

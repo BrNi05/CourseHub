@@ -48,7 +48,7 @@ export class FacultyController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async getOneWithCourses(@Param('id') id: string) {
     return this.facultyService.getOneWithCourses(id);
   }
@@ -64,7 +64,7 @@ export class FacultyController {
   })
   @Header('Cache-Control', 'public, max-age=3600')
   @DatabaseOperation()
-  @Throttable(60, 60000)
+  @Throttable(60, 20000)
   async getOne(@Param('id') id: string) {
     return this.facultyService.getOne(id);
   }
@@ -80,7 +80,7 @@ export class FacultyController {
     type: FacultyWithoutCoursesDto,
     description: 'Created',
   })
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async create(@Body() dto: CreateFacultyDto) {
     return this.facultyService.create(dto);
   }
@@ -90,7 +90,7 @@ export class FacultyController {
   @ApiOperation({ summary: 'ADMIN', description: 'Update existing faculty' })
   @ApiOkResponse({ type: Faculty, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async update(@Param('id') id: string, @Body() dto: UpdateFacultyDto) {
     return this.facultyService.update(id, dto);
   }
@@ -100,7 +100,7 @@ export class FacultyController {
   @ApiOperation({ summary: 'ADMIN', description: 'Delete existing faculty' })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async remove(@Param('id') id: string) {
     return this.facultyService.remove(id);
   }

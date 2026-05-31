@@ -30,7 +30,7 @@ export class UniversityController {
   })
   @Header('Cache-Control', 'public, max-age=86400')
   @DatabaseOperation()
-  @Throttable(60, 10000)
+  @Throttable(60, 20000)
   findAll() {
     return this.universityService.findAll();
   }
@@ -47,7 +47,7 @@ export class UniversityController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   findAllWithFaculties() {
     return this.universityService.findAllWithFaculties();
   }
@@ -61,9 +61,9 @@ export class UniversityController {
     type: UniversityWithoutFacultiesDto,
     description: 'Success',
   })
-  @Header('Cache-Control', 'public, max-age=3600')
+  @Header('Cache-Control', 'public, max-age=43200') // Cached for 12 hours
   @DatabaseOperation()
-  @Throttable(60, 60000)
+  @Throttable(60, 20000)
   findOne(@Param('id') id: string) {
     return this.universityService.findOne(id);
   }
@@ -76,7 +76,7 @@ export class UniversityController {
   })
   @ApiCreatedResponse({ type: University, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   create(@Body() dto: CreateUniversityDto) {
     return this.universityService.create(dto);
   }
@@ -89,7 +89,7 @@ export class UniversityController {
   })
   @ApiOkResponse({ type: University, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   update(@Param('id') id: string, @Body() dto: UpdateUniversityDto) {
     return this.universityService.update(id, dto);
   }
@@ -115,7 +115,7 @@ export class UniversityController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async remove(@Param('id') id: string): Promise<void> {
     await this.universityService.remove(id);
   }

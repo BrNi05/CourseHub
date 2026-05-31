@@ -27,7 +27,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: UserResponseWithoutPinnedDto, isArray: true, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(86400, 1)
   async readAll(): Promise<UserResponseWithoutPinnedDto[]> {
     return this.userService.getAllUsers();
   }
@@ -43,7 +43,7 @@ export class UserController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 10000)
+  @Throttable(60, 20000)
   async readOne(@Param('id') id: string): Promise<User> {
     return this.userService.getUserById(id);
   }
@@ -56,7 +56,7 @@ export class UserController {
   })
   @ApiCreatedResponse({ type: User, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 10000)
+  @Throttable(60, 20000)
   async updatePinnedCourses(
     @Param('id') id: string,
     @Body() dto: UpdatePinnedCoursesDto
@@ -72,7 +72,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: User, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(id, dto);
   }
@@ -98,7 +98,7 @@ export class UserController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(60, 1)
   async delete(@Param('id') id: string): Promise<void> {
     return this.userService.deleteUser(id);
   }
