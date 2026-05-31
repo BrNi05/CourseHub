@@ -71,3 +71,6 @@ apps/browser-extension/_metadata
 *.tar
 *.tgz
 *.7z
+
+# pnpm
+.pnpm-store
