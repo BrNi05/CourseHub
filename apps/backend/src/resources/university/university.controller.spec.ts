@@ -72,7 +72,7 @@ describe('UniversityController', () => {
       expect(result).toEqual(mockData);
     });
 
-    it('sets a 1 hour Cache-Control header', () => {
+    it('sets a 12 hour Cache-Control header', () => {
       const headers = Reflect.getMetadata(
         HEADERS_METADATA,
         UniversityController.prototype.findOne
@@ -83,7 +83,7 @@ describe('UniversityController', () => {
 
       expect(headers).toContainEqual({
         name: 'Cache-Control',
-        value: 'public, max-age=3600',
+        value: 'public, max-age=43200',
       });
     });
   });
