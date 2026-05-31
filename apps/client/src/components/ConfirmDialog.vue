@@ -10,7 +10,7 @@ const props = withDefaults(
     confirmLabel?: string;
     cancelLabel?: string;
     busy?: boolean;
-    confirmKind?: 'primary' | 'danger';
+    confirmKind?: 'primary' | 'secondary' | 'danger';
     width?: 'sm' | 'md';
   }>(),
   {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { isAxiosError } from 'axios';
-import { computed, reactive, watch, nextTick } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, watch, nextTick } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
 import BaseDialog from '@/components/BaseDialog.vue';
@@ -11,9 +11,11 @@ import {
 } from '@/api/averages.api';
 import { rememberRouteIntent } from '@/router/routing-manager';
 import { useAppStore } from '@/stores/composables/use-app-store';
+import { handleUnauthorized } from '@/stores/modules/auth.store';
 import {
   AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY,
   AVERAGES_CALCULATOR_STORAGE_KEY,
+  COURSEHUB_BROWSER_STATE_CLEARED_EVENT,
 } from '@/stores/shared/storage';
 
 type CalculatorCourse = {
@@ -57,6 +59,7 @@ const app = useAppStore();
 
 let serverProfileLoadedForUserId: string | null = null;
 let isServerOverwriting = false; // Prevent watcher to mark as dirty when loading server data
+let isLocalStorageResetting = false;
 
 const initialCalculatorData = hydrateAveragesCalculator();
 const initialDirtyState =
@@ -64,6 +67,12 @@ const initialDirtyState =
 
 function setDirtyFlag(value: boolean): void {
   state.hasUnsyncedChanges = value;
+
+  if (!value) {
+    globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY);
+    return;
+  }
+
   globalThis.localStorage.setItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY, value ? 'true' : 'false');
 }
 
@@ -178,6 +187,8 @@ const selectedCourseOptions = computed<SelectedCourseOption[]>(() => {
 watch(
   () => state.data,
   (data) => {
+    if (isLocalStorageResetting) return;
+
     persistCreditCalculator(data);
 
     if (!isServerOverwriting) setDirtyFlag(true);
@@ -284,12 +295,41 @@ function hydrateAveragesCalculator(): CreditCalculatorData {
 }
 
 function persistCreditCalculator(data: CreditCalculatorData): void {
+  if (data.semesters.length === 0) {
+    globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_STORAGE_KEY);
+    return;
+  }
+
   globalThis.localStorage.setItem(AVERAGES_CALCULATOR_STORAGE_KEY, JSON.stringify(data));
 }
 
 function replaceCalculatorData(data: CreditCalculatorData): void {
   state.data.semesters = data.semesters;
   state.selectedSemesterId = data.semesters.at(-1)?.id ?? null;
+}
+
+function resetAverageLocalSaves(): void {
+  isLocalStorageResetting = true;
+  replaceCalculatorData({ semesters: [] });
+  state.hasUnsyncedChanges = false;
+  state.loadedFromServer = false;
+  state.serverHasSavedProfile = false;
+  state.pendingCloudData = null;
+  state.showSyncConflictModal = false;
+  serverProfileLoadedForUserId = null;
+  globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_STORAGE_KEY);
+  globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY);
+
+  void nextTick(() => {
+    isLocalStorageResetting = false;
+  });
+}
+
+function handleBrowserStateCleared(event: Event): void {
+  const detail = (event as CustomEvent<{ keepLocalSaves?: boolean }>).detail;
+  if (detail?.keepLocalSaves) return;
+
+  resetAverageLocalSaves();
 }
 
 function applyCloudData(data: CreditCalculatorData): void {
@@ -468,7 +508,11 @@ async function loadServerProfile(): Promise<void> {
       }
     }
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) return;
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
     app.notify('danger', 'Sikertelen felhő betöltés', 'Próbáld újra később!');
   } finally {
     state.loadingServer = false;
@@ -524,6 +568,14 @@ async function deleteFromServer(): Promise<void> {
     state.deletingServer = false;
   }
 }
+
+onMounted(() => {
+  globalThis.addEventListener(COURSEHUB_BROWSER_STATE_CLEARED_EVENT, handleBrowserStateCleared);
+});
+
+onBeforeUnmount(() => {
+  globalThis.removeEventListener(COURSEHUB_BROWSER_STATE_CLEARED_EVENT, handleBrowserStateCleared);
+});
 </script>
 
 <template>

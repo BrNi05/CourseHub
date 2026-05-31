@@ -11,6 +11,8 @@ const app = useAppStore();
 const session = app.state.session as { email: string | null };
 const isAccountDialogOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
+const isLogoutDialogOpen = ref(false);
+const clearLocalSaves = ref(true);
 
 const sessionLabel = computed<string>(() => session.email ?? 'Bejelentkezés');
 
@@ -24,7 +26,14 @@ function closeAccountDialog() {
 
 function openDeleteDialog() {
   isAccountDialogOpen.value = false;
+  clearLocalSaves.value = true;
   isDeleteDialogOpen.value = true;
+}
+
+function openLogoutDialog() {
+  isAccountDialogOpen.value = false;
+  clearLocalSaves.value = true;
+  isLogoutDialogOpen.value = true;
 }
 
 function handleDeleteBack() {
@@ -32,14 +41,20 @@ function handleDeleteBack() {
   isAccountDialogOpen.value = true;
 }
 
+function handleLogoutBack() {
+  isLogoutDialogOpen.value = false;
+  isAccountDialogOpen.value = true;
+}
+
 async function handleLogout() {
+  isLogoutDialogOpen.value = false;
   closeAccountDialog();
   isDeleteDialogOpen.value = false;
-  await app.logout();
+  await app.logout(!clearLocalSaves.value);
 }
 
 async function handleDeleteProfile() {
-  const deleted = await app.deleteProfile();
+  const deleted = await app.deleteProfile(!clearLocalSaves.value);
 
   if (deleted) {
     isDeleteDialogOpen.value = false;
@@ -67,7 +82,11 @@ async function handleDeleteProfile() {
 
       <template #footer="{ close }">
         <div class="account-dialog__actions">
-          <BaseButton :disabled="app.state.deletingProfile" kind="secondary" @click="handleLogout">
+          <BaseButton
+            :disabled="app.state.deletingProfile"
+            kind="secondary"
+            @click="openLogoutDialog"
+          >
             Kijelentkezés
           </BaseButton>
 
@@ -83,6 +102,23 @@ async function handleDeleteProfile() {
     </BaseDialog>
 
     <ConfirmDialog
+      v-model="isLogoutDialogOpen"
+      cancel-label="Vissza"
+      confirm-kind="secondary"
+      confirm-label="Kijelentkezés"
+      description="Ha ez nem a saját készüléked, akkor ajánlott a helyi mentések törlése."
+      title="Kijelentkezés"
+      width="md"
+      @back="handleLogoutBack"
+      @confirm="handleLogout"
+    >
+      <label class="account-dialog__choice">
+        <input v-model="clearLocalSaves" type="checkbox" />
+        <span>Helyi mentések törlése</span>
+      </label>
+    </ConfirmDialog>
+
+    <ConfirmDialog
       v-model="isDeleteDialogOpen"
       :busy="app.state.deletingProfile"
       cancel-label="Vissza"
@@ -93,6 +129,10 @@ async function handleDeleteProfile() {
       @back="handleDeleteBack"
       @confirm="handleDeleteProfile"
     >
+      <label class="account-dialog__choice">
+        <input v-model="clearLocalSaves" type="checkbox" />
+        <span>Helyi mentések törlése (ajánlott)</span>
+      </label>
     </ConfirmDialog>
   </div>
 </template>
@@ -110,6 +150,25 @@ async function handleDeleteProfile() {
   display: grid;
   gap: 1.2rem;
   margin-top: 0.55rem;
+}
+
+.account-dialog__choice {
+  align-items: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.95rem;
+  font-weight: 700;
+  gap: 0.7rem;
+  margin-bottom: 0.84rem;
+  padding-left: 0.24rem;
+}
+
+.account-dialog__choice input {
+  accent-color: var(--accent-green);
+  flex: 0 0 auto;
+  height: 1rem;
+  width: 1rem;
 }
 
 @media (min-width: 640px) {

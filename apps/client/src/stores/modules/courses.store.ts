@@ -47,6 +47,12 @@ export function clearSelectedCourses(): void {
   coursesState.selectedCourses = [];
 }
 
+export function clearLocalCourseSaves(): void {
+  coursesState.selectedCourses = [];
+  coursesState.searchFilters.universityId = '';
+  coursesState.searchResults = [];
+}
+
 export function rememberSearchUniversity(universityId: string): void {
   coursesState.searchFilters.universityId = universityId;
   persistSearchUniversityId(universityId);

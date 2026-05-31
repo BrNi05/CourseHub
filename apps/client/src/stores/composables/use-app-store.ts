@@ -13,7 +13,7 @@ import { contentState } from '../modules/content.store';
 import {
   addCourse,
   addCourses,
-  clearSelectedCourses,
+  clearLocalCourseSaves,
   coursesState,
   rememberSearchUniversity,
   removeCourse,
@@ -64,17 +64,18 @@ watchEffect(() => {
   state.notices = notificationsState.notices;
 });
 
-async function logoutAndClearUser(): Promise<void> {
-  await logout();
+async function logoutAndClearUser(keepLocalSaves: boolean = false): Promise<void> {
+  await logout(keepLocalSaves);
   clearCurrentUser();
+  if (!keepLocalSaves) clearLocalCourseSaves();
 }
 
-async function deleteProfileAndClearData(): Promise<boolean> {
-  const deleted: boolean = await deleteProfile();
+async function deleteProfileAndClearData(keepLocalSaves: boolean = false): Promise<boolean> {
+  const deleted: boolean = await deleteProfile(keepLocalSaves);
 
   if (deleted) {
     clearCurrentUser();
-    clearSelectedCourses();
+    if (!keepLocalSaves) clearLocalCourseSaves();
   }
 
   return deleted;

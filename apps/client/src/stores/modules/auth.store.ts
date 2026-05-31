@@ -100,12 +100,12 @@ export function loginWithGoogle(): void {
     authState.loginInFlight = false;
   }, 3000);
 
-  clearCourseHubBrowserState(false);
+  clearCourseHubBrowserState({ clearCookieAccepted: false, keepLocalSaves: true });
 
   globalThis.location.assign('api/auth/google');
 }
 
-export async function logout(): Promise<void> {
+export async function logout(keepLocalSaves: boolean = false): Promise<void> {
   try {
     await logoutSession();
   } catch (error) {
@@ -116,7 +116,7 @@ export async function logout(): Promise<void> {
   }
 
   clearSession();
-  clearCourseHubBrowserState();
+  clearCourseHubBrowserState({ keepLocalSaves });
   pushNotice(
     'info',
     'Kijelentkezve',
@@ -124,7 +124,7 @@ export async function logout(): Promise<void> {
   );
 }
 
-export async function deleteProfile(): Promise<boolean> {
+export async function deleteProfile(keepLocalSaves: boolean = false): Promise<boolean> {
   if (!authState.session.userId) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a profil törléséhez.');
     return false;
@@ -135,7 +135,7 @@ export async function deleteProfile(): Promise<boolean> {
   try {
     await deleteProfileById(authState.session.userId);
     clearSession();
-    clearCourseHubBrowserState();
+    clearCourseHubBrowserState({ keepLocalSaves });
 
     pushNotice(
       'success',

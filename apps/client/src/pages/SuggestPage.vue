@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isAxiosError } from 'axios';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -15,6 +16,8 @@ import { fetchFacultiesByUniversity } from '@/api/faculties.api';
 import { apiOptions } from '@/api/api';
 import BaseButton from '@/components/BaseButton.vue';
 import { useAppStore } from '@/stores/composables/use-app-store';
+import { handleUnauthorized } from '@/stores/modules/auth.store';
+import { getErrorMessage } from '@/stores/shared/errors';
 
 type SuggestionForm = {
   universityId: string;
@@ -126,11 +129,7 @@ async function loadFaculties(universityId: string) {
     if (requestSequence !== facultyRequestSequence) return;
 
     faculties.value = [];
-    app.notify(
-      'danger',
-      'Nem sikerült betölteni a karokat',
-      error instanceof Error ? error.message : 'Próbáld meg később.'
-    );
+    app.notify('danger', 'Nem sikerült betölteni a karokat', getErrorMessage(error));
   } finally {
     if (requestSequence === facultyRequestSequence) loadingFaculties.value = false;
   }
@@ -192,11 +191,13 @@ async function prefillFromCourseId(courseId?: string) {
   } catch (error) {
     if (sequence !== editPrefillSequence) return;
     isEditPrefillLoading.value = false;
-    app.notify(
-      'danger',
-      'Nem sikerült betölteni a tárgy adatait',
-      error instanceof Error ? error.message : 'Próbáld meg kicsit később.'
-    );
+
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült betölteni a tárgy adatait', getErrorMessage(error));
   }
 }
 

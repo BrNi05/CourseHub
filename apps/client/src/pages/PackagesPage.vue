@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isAxiosError } from 'axios';
 import { computed, onMounted, reactive, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -20,7 +21,7 @@ import {
 import { rememberRouteIntent } from '@/router/routing-manager';
 import { appLifecycleState } from '@/stores/app-bootstrap';
 import { useAppStore } from '@/stores/composables/use-app-store';
-import { authState } from '@/stores/modules/auth.store';
+import { authState, handleUnauthorized } from '@/stores/modules/auth.store';
 import { coursesState } from '@/stores/modules/courses.store';
 import { getErrorMessage } from '@/stores/shared/errors';
 
@@ -115,11 +116,13 @@ async function loadMine() {
   try {
     myPackages.value = await fetchMyCoursePackages();
   } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült betölteni a csomagjaidat',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      myPackages.value = [];
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült betölteni a csomagjaidat', getErrorMessage(error));
   } finally {
     loadingMine.value = false;
   }
@@ -142,11 +145,12 @@ async function submitSearch() {
   try {
     searchResults.value = await searchCoursePackages(searchForm);
   } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült keresni a csomagok között',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+    if (isAxiosError(error) && error.response?.status === 401) {
+      handleUnauthorized();
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült keresni a csomagok között', getErrorMessage(error));
   } finally {
     searching.value = false;
   }
@@ -173,11 +177,7 @@ async function loadSearchFaculties(universityId: string) {
     if (requestId !== searchFacultyRequestId) return;
 
     searchFaculties.value = [];
-    app.notify(
-      'danger',
-      'Nem sikerült betölteni a karokat',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+    app.notify('danger', 'Nem sikerült betölteni a karokat', getErrorMessage(error));
   } finally {
     if (requestId === searchFacultyRequestId) {
       loadingSearchFaculties.value = false;
@@ -225,6 +225,13 @@ async function savePackage(payload: CreateCoursePackageDto) {
       `A(z) ${savedPackage.name} csomag létrehozva.`
     );
   } catch (error) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      editorOpen.value = false;
+      packageToEdit.value = null;
+      handleUnauthorized();
+      return;
+    }
+
     const [firstMessage] = getErrorMessage(error).split('\n\n');
     editorErrorMessage.value = firstMessage || 'A csomag mentése sikertelen.';
   } finally {
@@ -257,11 +264,13 @@ async function confirmDeletePackage() {
     );
     packageToDelete.value = null;
   } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült törölni a csomagot',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+    if (isAxiosError(error) && error.response?.status === 401) {
+      packageToDelete.value = null;
+      handleUnauthorized();
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült törölni a csomagot', getErrorMessage(error));
   } finally {
     deletingPackageId.value = '';
   }
@@ -310,14 +319,16 @@ async function confirmUsePackage() {
 
   try {
     await app.addCourses(packageToUse.value.courses ?? []);
+
+    if (!app.isAuthenticated()) {
+      await closeUseDialog();
+      return;
+    }
+
     await closeUseDialog();
     await router.push('/');
   } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült felvenni a csomagot',
-      error instanceof Error ? error.message : 'Próbáld meg később újra.'
-    );
+    app.notify('danger', 'Nem sikerült felvenni a csomagot', getErrorMessage(error));
   } finally {
     usingPackageId.value = '';
   }
@@ -350,11 +361,14 @@ async function loadSharedPackageFromQuery(packageId: string) {
       // Do not handle
     }
   } catch (error) {
-    app.notify(
-      'danger',
-      'Nem sikerült betölteni a megosztott csomagot',
-      error instanceof Error ? error.message : 'Lehet, hogy a link már nem érvényes.'
-    );
+    if (isAxiosError(error) && error.response?.status === 401) {
+      packageToUse.value = null;
+      useDialogOpen.value = false;
+      handleUnauthorized();
+      return;
+    }
+
+    app.notify('danger', 'Nem sikerült betölteni a megosztott csomagot', getErrorMessage(error));
     await clearSharedPackageQuery();
   } finally {
     loadingSharedPackage.value = false;
