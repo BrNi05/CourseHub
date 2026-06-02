@@ -66,16 +66,12 @@ export async function logout(keepLocalSaves: boolean = false): Promise<void> {
   clearSession();
   clearCourseHubBrowserState({ keepLocalSaves });
 
-  pushNotice(
-    'info',
-    'Kijelentkezve',
-    'A módosításaid innentől csak a böngésződben lesznek elmentve.'
-  );
+  pushNotice('info', 'Kijelentkezve', 'A módosításaid innentől csak lokálisan lesznek mentve.');
 }
 
 export async function deleteProfile(keepLocalSaves: boolean = false): Promise<boolean> {
   if (!authState.session.authenticated) {
-    pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a profil törléséhez.');
+    pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a fiókod törléséhez.');
     return false;
   }
 
@@ -89,7 +85,7 @@ export async function deleteProfile(keepLocalSaves: boolean = false): Promise<bo
     pushNotice(
       'success',
       'Profil törölve',
-      'A fiókod és a szerveren tárolt felvett tárgyaid törölve lettek.'
+      'A fiókod és a szerveren tárolt adataid törölve lettek.'
     );
     return true;
   } catch (error) {

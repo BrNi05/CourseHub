@@ -25,7 +25,7 @@ export async function submitSuggestion(payload: CreateSuggestionDto): Promise<bo
     pushNotice(
       'success',
       'Javaslat elküldve',
-      'A javaslat sikeresen elküldve, és hamarosan feldolgozásra kerül.'
+      'Köszönjük a javaslatodat! Hamarosan feldolgozásra kerül.'
     );
     return true;
   } catch (error) {

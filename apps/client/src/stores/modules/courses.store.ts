@@ -85,7 +85,7 @@ export async function syncLocalPinnedCoursesAfterLogin(): Promise<void> {
     const { selectedCourses } = applyUserResponse(user);
 
     replaceSelectedCourses(selectedCourses);
-    pushNotice('success', 'Bejelentkezve', 'A helyi mentésed szinkronizálva lett a fiókoddal.');
+    pushNotice('success', 'Bejelentkezve', 'A mentéseidet szinkronizáltuk.');
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       handleUnauthorized();
@@ -98,16 +98,16 @@ export async function syncLocalPinnedCoursesAfterLogin(): Promise<void> {
       replaceSelectedCourses(restoredCourses);
       pushNotice(
         'danger',
-        'A szinkronizálás nem sikerült',
-        'A szerveren tárolt tárgyak maradtak érvényben.'
+        'Sikertelen szinkronizáció',
+        'A szerveren tárolt mentésedet visszaállítottuk. Próbáld újra később.'
       );
       return;
     }
 
     pushNotice(
       'danger',
-      'A szinkronizálás nem sikerült',
-      'A helyi mentésed megőriztük a böngésződben. Kérlek próbáld újra később.'
+      'Sikertelen szinkronizáció',
+      'A lokális mentésedet megőriztük a böngésződben. Próbáld újra később.'
     );
   } finally {
     coursesState.syncingCourses = false;
@@ -123,7 +123,7 @@ export async function syncPinnedCourses(
     pushNotice(
       'info',
       successTitle,
-      'A választásaid a mentésre kerültek a böngésződben. Jelentkezz be, hogy minden eszközödön elérhesd őket.'
+      'A választásaid lokálisan mentésre kerültek. Jelentkezz be, hogy minden eszközödön elérhesd őket.'
     );
     return;
   }
@@ -150,8 +150,8 @@ export async function syncPinnedCourses(
       'danger',
       'Sikertelen szinkronizáció',
       restoredCourses == null
-        ? 'A szerveren tárolt választásaid visszaállítása nem sikerült. Kérlek próbáld újra később.'
-        : 'A szerveren tárolt választásaid visszaállításra kerültek.'
+        ? 'A szerveren tárolt mentésed visszaállítása nem sikerült. Próbáld újra később.'
+        : 'A szerveren tárolt mentésedet visszaállítottuk. Próbáld újra később.'
     );
   } finally {
     coursesState.syncingCourses = false;
