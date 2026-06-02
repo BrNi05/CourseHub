@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/client",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "description": "SPA frontend for CourseHub",
   "type": "module",
   "author": "BrNi05",
