@@ -5,7 +5,7 @@ import { getErrorMessage } from '../shared/errors';
 import { clearCourseHubBrowserState } from '../shared/storage';
 import type { SessionState } from '../shared/types';
 
-import { consumeLoginResultFromUrl, logoutSession } from '../../api/auth.api';
+import { logoutSession } from '../../api/auth.api';
 import { deleteCurrentUserProfile } from '../../api/user.api';
 import { pushNotice } from './notifications.store';
 
@@ -17,14 +17,6 @@ export const authState = reactive({
   deletingProfile: false,
   loginInFlight: false,
 });
-
-let pendingLoginResult: string | null = consumeLoginResultFromUrl();
-
-export function consumePendingLoginResult(): string | null {
-  const result: string | null = pendingLoginResult;
-  pendingLoginResult = null;
-  return result;
-}
 
 export function isAuthenticated(): boolean {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
@@ -43,9 +35,7 @@ export function clearSession(): void {
 
 export function handleUnauthorized(showNotice: boolean = true): void {
   clearSession();
-
   if (!showNotice) return;
-
   pushNotice('danger', 'Jelentkezz be', 'A munkamenet lejárt. Jelentkezz be újra a folytatáshoz.');
 }
 
@@ -75,6 +65,7 @@ export async function logout(keepLocalSaves: boolean = false): Promise<void> {
 
   clearSession();
   clearCourseHubBrowserState({ keepLocalSaves });
+
   pushNotice(
     'info',
     'Kijelentkezve',

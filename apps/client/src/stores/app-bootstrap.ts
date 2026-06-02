@@ -2,7 +2,6 @@ import { reactive } from 'vue';
 
 import { shouldSyncLocalCoursesAfterLogin } from './helpers/login-course-sync';
 import { pingClient } from './modules/analytics.store';
-import { consumePendingLoginResult } from './modules/auth.store';
 import { loadNews } from './modules/content.store';
 import {
   coursesState,
@@ -25,7 +24,6 @@ export async function initialize(): Promise<void> {
   }
 
   initializePromise = (async () => {
-    const pendingLoginResult = consumePendingLoginResult();
     const hasLocalDraft = coursesState.selectedCourses.length > 0;
     const newsPromise = loadNews();
 
@@ -34,7 +32,6 @@ export async function initialize(): Promise<void> {
 
       if (userResult) {
         const shouldSyncLocalAfterLogin = shouldSyncLocalCoursesAfterLogin({
-          pendingLoginResult,
           localCourseCount: coursesState.selectedCourses.length,
           serverCourseCount: userResult.selectedCourses.length,
         });
@@ -42,17 +39,11 @@ export async function initialize(): Promise<void> {
         if (shouldSyncLocalAfterLogin) await syncLocalPinnedCoursesAfterLogin();
         else replaceSelectedCourses(userResult.selectedCourses);
 
-        if (pendingLoginResult === 'success' && !shouldSyncLocalAfterLogin) {
+        if (!shouldSyncLocalAfterLogin) {
           pushNotice('success', 'Bejelentkezve', 'Mentett tárgyak betöltve.');
         }
 
         await pingClient();
-      } else if (pendingLoginResult === 'success') {
-        pushNotice(
-          'danger',
-          'A bejelentkezés nem sikerült',
-          'Ellenőrizd a sütibeállításokat, majd próbáld újra.'
-        );
       } else if (hasLocalDraft) {
         pushNotice(
           'info',
