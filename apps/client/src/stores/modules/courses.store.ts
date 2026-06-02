@@ -58,9 +58,9 @@ export function rememberSearchUniversity(universityId: string): void {
   persistSearchUniversityId(universityId);
 }
 
-async function loadPinnedCoursesFromServer(userId: string): Promise<Course[] | null> {
+async function loadPinnedCoursesFromServer(): Promise<Course[] | null> {
   try {
-    const user = await fetchCurrentUser(userId);
+    const user = await fetchCurrentUser();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return applyUserResponse(user).selectedCourses;
   } catch (error) {
@@ -74,15 +74,12 @@ async function loadPinnedCoursesFromServer(userId: string): Promise<Course[] | n
 }
 
 export async function syncLocalPinnedCoursesAfterLogin(): Promise<void> {
-  const userId = authState.session.userId;
-
-  if (!userId || coursesState.selectedCourses.length === 0) return;
+  if (!authState.session.authenticated || coursesState.selectedCourses.length === 0) return;
 
   coursesState.syncingCourses = true;
 
   try {
     const user = await updateCurrentUserPinnedCourses(
-      userId,
       coursesState.selectedCourses.map((entry) => String(entry.id))
     );
     const { selectedCourses } = applyUserResponse(user);
@@ -95,7 +92,7 @@ export async function syncLocalPinnedCoursesAfterLogin(): Promise<void> {
       return;
     }
 
-    const restoredCourses = await loadPinnedCoursesFromServer(userId);
+    const restoredCourses = await loadPinnedCoursesFromServer();
 
     if (restoredCourses !== null && restoredCourses.length > 0) {
       replaceSelectedCourses(restoredCourses);
@@ -122,9 +119,7 @@ export async function syncPinnedCourses(
   successTitle: string,
   successDetail: string
 ): Promise<void> {
-  const userId = authState.session.userId;
-
-  if (!userId) {
+  if (!authState.session.authenticated) {
     pushNotice(
       'info',
       successTitle,
@@ -136,7 +131,7 @@ export async function syncPinnedCourses(
   coursesState.syncingCourses = true;
 
   try {
-    const user = await updateCurrentUserPinnedCourses(userId, ids);
+    const user = await updateCurrentUserPinnedCourses(ids);
     const { selectedCourses } = applyUserResponse(user);
 
     replaceSelectedCourses(selectedCourses);
@@ -147,7 +142,7 @@ export async function syncPinnedCourses(
       return;
     }
 
-    const restoredCourses = await loadPinnedCoursesFromServer(userId);
+    const restoredCourses = await loadPinnedCoursesFromServer();
 
     if (restoredCourses !== null) replaceSelectedCourses(restoredCourses);
 

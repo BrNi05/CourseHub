@@ -21,7 +21,7 @@ export class AveragesController {
   @RequiresAuth()
   @ApiOperation({
     summary: 'USER AUTH',
-    description: 'Return the authenticated users saved average calculator JSON',
+    description: 'Returns the authenticated users saved average calculator JSON',
   })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Success' })
   @DatabaseOperation()

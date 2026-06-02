@@ -13,6 +13,8 @@ import { DatabaseOperation } from '../../decorators/responses/database-operation
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { RequiresAuthAndOwnership } from '../../decorators/auth/ownership.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
+import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
+import { AuthUserId } from '../../decorators/auth/user-id.decorator.js';
 
 @Controller('users')
 @Serialize(User)
@@ -32,6 +34,22 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
+  @Get('me')
+  @RequiresAuth()
+  @ApiOperation({
+    summary: 'USER AUTH',
+    description: 'Returns the authenticated user data including pinned courses',
+  })
+  @ApiOkResponse({
+    type: User,
+    description: 'Success',
+  })
+  @DatabaseOperation()
+  @Throttable(60, 20000)
+  async readOwnOne(@AuthUserId() userId: string): Promise<User> {
+    return this.userService.getUserById(userId);
+  }
+
   @Get(':id')
   @RequiresAuthAndOwnership()
   @ApiOperation({
@@ -48,11 +66,27 @@ export class UserController {
     return this.userService.getUserById(id);
   }
 
+  @Post('me')
+  @RequiresAuth()
+  @ApiOperation({
+    summary: 'USER AUTH',
+    description: 'Update pinned courses of the authenticated user.',
+  })
+  @ApiCreatedResponse({ type: User, description: 'Created' })
+  @DatabaseOperation()
+  @Throttable(60, 20000)
+  async updateOwnPinnedCourses(
+    @AuthUserId() userId: string,
+    @Body() dto: UpdatePinnedCoursesDto
+  ): Promise<User> {
+    return this.userService.updateUser(userId, dto);
+  }
+
   @Post(':id')
   @RequiresAuthAndOwnership()
   @ApiOperation({
     summary: 'USER AUTH / ADMIN',
-    description: 'Update pinned courses of the user. Supposed to be used by the client apps.',
+    description: 'Update pinned courses of the user.',
   })
   @ApiCreatedResponse({ type: User, description: 'Created' })
   @DatabaseOperation()
@@ -90,6 +124,19 @@ export class UserController {
     return await this.userService.resetAllUsersCache();
   }
 
+  @Delete('me')
+  @RequiresAuth()
+  @ApiOperation({
+    summary: 'USER AUTH',
+    description: 'Deletes the authenticated user from the database',
+  })
+  @DeletedResponse()
+  @DatabaseOperation()
+  @Throttable(60, 20)
+  async deleteOwn(@AuthUserId() userId: string): Promise<void> {
+    return this.userService.deleteUser(userId);
+  }
+
   @Delete(':id')
   @RequiresAuthAndOwnership()
   @ApiOperation({
@@ -98,7 +145,7 @@ export class UserController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(60, 20)
   async delete(@Param('id') id: string): Promise<void> {
     return this.userService.deleteUser(id);
   }

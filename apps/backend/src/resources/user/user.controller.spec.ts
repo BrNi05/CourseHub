@@ -50,6 +50,23 @@ describe('UserController', () => {
     });
   });
 
+  describe('readOwnOne', () => {
+    it('should return the authenticated user by the auth-derived id', async () => {
+      const result = await controller.readOwnOne('user1');
+
+      expect(serviceMock.getUserById).toHaveBeenCalledWith('user1');
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should not accept a caller supplied user id', async () => {
+      await controller.readOwnOne('auth-user-id');
+
+      expect(serviceMock.getUserById).toHaveBeenCalledOnce();
+      expect(serviceMock.getUserById).toHaveBeenCalledWith('auth-user-id');
+      expect(serviceMock.getUserById).not.toHaveBeenCalledWith('other-user-id');
+    });
+  });
+
   describe('updatePinnedCourses', () => {
     it('should update pinned courses of a user', async () => {
       const dto: UpdatePinnedCoursesDto = { pinnedCourses: ['course1', 'course2'] };
@@ -57,6 +74,26 @@ describe('UserController', () => {
 
       expect(serviceMock.updateUser).toHaveBeenCalledWith('user1', dto);
       expect(result).toEqual(mockUser);
+    });
+  });
+
+  describe('updateOwnPinnedCourses', () => {
+    it('should update pinned courses for the auth-derived user id', async () => {
+      const dto: UpdatePinnedCoursesDto = { pinnedCourses: ['course1', 'course2'] };
+      const result = await controller.updateOwnPinnedCourses('auth-user-id', dto);
+
+      expect(serviceMock.updateUser).toHaveBeenCalledWith('auth-user-id', dto);
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should not accept a caller supplied user id', async () => {
+      const dto: UpdatePinnedCoursesDto = { pinnedCourses: ['course1'] };
+
+      await controller.updateOwnPinnedCourses('auth-user-id', dto);
+
+      expect(serviceMock.updateUser).toHaveBeenCalledOnce();
+      expect(serviceMock.updateUser).toHaveBeenCalledWith('auth-user-id', dto);
+      expect(serviceMock.updateUser).not.toHaveBeenCalledWith('other-user-id', dto);
     });
   });
 
@@ -75,6 +112,22 @@ describe('UserController', () => {
       await controller.delete('user1');
 
       expect(serviceMock.deleteUser).toHaveBeenCalledWith('user1');
+    });
+  });
+
+  describe('deleteOwn', () => {
+    it('should delete the authenticated user by the auth-derived id', async () => {
+      await controller.deleteOwn('auth-user-id');
+
+      expect(serviceMock.deleteUser).toHaveBeenCalledWith('auth-user-id');
+    });
+
+    it('should not accept a caller supplied user id', async () => {
+      await controller.deleteOwn('auth-user-id');
+
+      expect(serviceMock.deleteUser).toHaveBeenCalledOnce();
+      expect(serviceMock.deleteUser).toHaveBeenCalledWith('auth-user-id');
+      expect(serviceMock.deleteUser).not.toHaveBeenCalledWith('other-user-id');
     });
   });
 

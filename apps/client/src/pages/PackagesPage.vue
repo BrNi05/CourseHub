@@ -61,7 +61,7 @@ const searchForm = reactive({
 });
 
 const appInitialized = ref(false);
-const sessionUserId = ref<string | null>(null);
+const sessionAuthenticated = ref(false);
 const selectedCourseIds = ref<Set<string>>(new Set());
 const searchFaculties = ref<FacultyWithoutCoursesDto[]>([]);
 const loadingSearchFaculties = ref(false);
@@ -377,16 +377,16 @@ async function loadSharedPackageFromQuery(packageId: string) {
 
 watchEffect(() => {
   appInitialized.value = appLifecycleState.initialized;
-  sessionUserId.value = authState.session.userId;
+  sessionAuthenticated.value = authState.session.authenticated;
   selectedCourseIds.value = new Set(
     coursesState.selectedCourses.map((course: Course) => course.id)
   );
 });
 
 watch(
-  () => [sharedPackageId.value, sessionUserId.value] as const,
-  ([packageId, userId]) => {
-    if (!packageId || userId) return;
+  () => [sharedPackageId.value, sessionAuthenticated.value] as const,
+  ([packageId, authenticated]) => {
+    if (!packageId || authenticated) return;
     rememberRouteIntent(route.fullPath);
   },
   { immediate: true }
@@ -402,9 +402,9 @@ watch(
 );
 
 watch(
-  () => [appInitialized.value, sessionUserId.value] as const,
-  ([initialized, userId]) => {
-    if (!initialized || !userId) {
+  () => [appInitialized.value, sessionAuthenticated.value] as const,
+  ([initialized, authenticated]) => {
+    if (!initialized || !authenticated) {
       myPackages.value = [];
       return;
     }
@@ -423,9 +423,9 @@ watch(
 );
 
 watch(
-  () => [appInitialized.value, sessionUserId.value, sharedPackageId.value] as const,
-  ([initialized, userId, packageId]) => {
-    if (!initialized || !userId || !packageId) return;
+  () => [appInitialized.value, sessionAuthenticated.value, sharedPackageId.value] as const,
+  ([initialized, authenticated, packageId]) => {
+    if (!initialized || !authenticated || !packageId) return;
     void loadSharedPackageFromQuery(packageId);
   },
   { immediate: true }

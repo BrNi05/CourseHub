@@ -4,27 +4,20 @@ import { reactive } from 'vue';
 import { getErrorMessage } from '../shared/errors';
 import { clearCourseHubBrowserState } from '../shared/storage';
 import type { SessionState } from '../shared/types';
-import type { AuthSessionDto } from '@coursehub/sdk';
 
-import {
-  consumeLoginResultFromUrl,
-  deleteProfileById,
-  fetchCurrentSession,
-  logoutSession,
-} from '../../api/auth.api';
+import { consumeLoginResultFromUrl, logoutSession } from '../../api/auth.api';
+import { deleteCurrentUserProfile } from '../../api/user.api';
 import { pushNotice } from './notifications.store';
 
 export const authState = reactive({
   session: {
-    userId: null,
+    authenticated: false,
     email: null,
   } as SessionState,
   deletingProfile: false,
   loginInFlight: false,
 });
 
-let sessionPromise: Promise<AuthSessionDto | null> | null = null;
-let cachedSession: AuthSessionDto | null = null;
 let pendingLoginResult: string | null = consumeLoginResultFromUrl();
 
 export function consumePendingLoginResult(): string | null {
@@ -34,22 +27,17 @@ export function consumePendingLoginResult(): string | null {
 }
 
 export function isAuthenticated(): boolean {
-  return Boolean(authState.session.userId);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return authState.session.authenticated;
 }
 
-export function applyAuthSession(session: AuthSessionDto): void {
-  cachedSession = session;
-  authState.session.userId = session.id;
-}
-
-export function setSessionEmail(email: string | null): void {
+export function setAuthenticatedSession(email: string | null): void {
+  authState.session.authenticated = true;
   authState.session.email = email;
 }
 
 export function clearSession(): void {
-  cachedSession = null;
-  sessionPromise = null;
-  authState.session.userId = null;
+  authState.session.authenticated = false;
   authState.session.email = null;
 }
 
@@ -59,36 +47,6 @@ export function handleUnauthorized(showNotice: boolean = true): void {
   if (!showNotice) return;
 
   pushNotice('danger', 'Jelentkezz be', 'A munkamenet lejárt. Jelentkezz be újra a folytatáshoz.');
-}
-
-export async function getCurrentSession(
-  notifyOnUnauthorized: boolean = true
-): Promise<AuthSessionDto | null> {
-  if (cachedSession) {
-    return cachedSession;
-  }
-
-  if (sessionPromise !== null) return await sessionPromise;
-
-  sessionPromise = (async () => {
-    try {
-      const session: AuthSessionDto = await fetchCurrentSession();
-      applyAuthSession(session);
-      return session;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 401) {
-        handleUnauthorized(notifyOnUnauthorized);
-        return null;
-      }
-
-      pushNotice('danger', 'Nem sikerült betölteni a tárgyaidat', getErrorMessage(error));
-      return null;
-    } finally {
-      sessionPromise = null;
-    }
-  })();
-
-  return await sessionPromise;
 }
 
 export function loginWithGoogle(): void {
@@ -125,7 +83,7 @@ export async function logout(keepLocalSaves: boolean = false): Promise<void> {
 }
 
 export async function deleteProfile(keepLocalSaves: boolean = false): Promise<boolean> {
-  if (!authState.session.userId) {
+  if (!authState.session.authenticated) {
     pushNotice('info', 'Bejelentkezés szükséges', 'Jelentkezz be a profil törléséhez.');
     return false;
   }
@@ -133,7 +91,7 @@ export async function deleteProfile(keepLocalSaves: boolean = false): Promise<bo
   authState.deletingProfile = true;
 
   try {
-    await deleteProfileById(authState.session.userId);
+    await deleteCurrentUserProfile();
     clearSession();
     clearCourseHubBrowserState({ keepLocalSaves });
 

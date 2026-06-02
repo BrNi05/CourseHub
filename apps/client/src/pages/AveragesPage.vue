@@ -57,7 +57,7 @@ const CREDITS_PER_SEMESTER = 30;
 
 const app = useAppStore();
 
-let serverProfileLoadedForUserId: string | null = null;
+let serverProfileLoadedForAuthenticatedSession = false;
 let isServerOverwriting = false; // Prevent watcher to mark as dirty when loading server data
 let isLocalStorageResetting = false;
 
@@ -164,7 +164,8 @@ const cumulativeCorrectedCreditIndex = computed(() => {
 });
 
 const canDeleteServerProfile = computed(() => {
-  return Boolean(app.state.session.userId) && state.serverHasSavedProfile;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return app.state.session.authenticated && state.serverHasSavedProfile;
 });
 
 // Returns a list of courses from the user's selected courses that can be added to semesters
@@ -197,18 +198,18 @@ watch(
 );
 
 watch(
-  () => [app.state.initialized, app.state.session.userId] as const,
-  ([initialized, userId]) => {
-    if (!userId) {
-      serverProfileLoadedForUserId = null;
+  () => [app.state.initialized, app.state.session.authenticated] as const,
+  ([initialized, authenticated]) => {
+    if (!authenticated) {
+      serverProfileLoadedForAuthenticatedSession = false;
       state.serverHasSavedProfile = false;
       state.loadedFromServer = false;
       return;
     }
 
-    if (!initialized || state.loadingServer || serverProfileLoadedForUserId === userId) return;
+    if (!initialized || state.loadingServer || serverProfileLoadedForAuthenticatedSession) return;
 
-    serverProfileLoadedForUserId = userId;
+    serverProfileLoadedForAuthenticatedSession = true;
     void loadServerProfile();
   },
   { immediate: true }
@@ -316,7 +317,7 @@ function resetAverageLocalSaves(): void {
   state.serverHasSavedProfile = false;
   state.pendingCloudData = null;
   state.showSyncConflictModal = false;
-  serverProfileLoadedForUserId = null;
+  serverProfileLoadedForAuthenticatedSession = false;
   globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_STORAGE_KEY);
   globalThis.localStorage.removeItem(AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY);
 

@@ -11,7 +11,7 @@ export type Notice = {
 };
 
 export type SessionState = {
-  userId: string | null;
+  authenticated: boolean;
   email: string | null;
 };
 

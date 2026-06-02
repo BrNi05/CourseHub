@@ -1,26 +1,9 @@
-import {
-  delete2 as deleteUser,
-  logout as logoutRequest,
-  me,
-  type AuthSessionDto,
-} from '@coursehub/sdk';
+import { logout as logoutRequest } from '@coursehub/sdk';
 
 import { apiOptions } from './api';
 
-export async function fetchCurrentSession(): Promise<AuthSessionDto> {
-  const response = await me(apiOptions());
-  return response.data;
-}
-
 export async function logoutSession(): Promise<void> {
   await logoutRequest(apiOptions());
-}
-
-export async function deleteProfileById(userId: string): Promise<void> {
-  await deleteUser({
-    ...apiOptions(),
-    path: { id: userId },
-  });
 }
 
 export function consumeLoginResultFromUrl(): string | null {

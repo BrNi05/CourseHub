@@ -4,7 +4,7 @@ import { reactive } from 'vue';
 import { getErrorMessage } from '../shared/errors';
 import { fetchCurrentUser } from '../../api/user.api';
 import { dedupeCourses } from '../helpers/course.utils';
-import { getCurrentSession, handleUnauthorized, setSessionEmail } from './auth.store';
+import { handleUnauthorized, setAuthenticatedSession } from './auth.store';
 import { pushNotice } from './notifications.store';
 import type { Course, User } from '@coursehub/sdk';
 
@@ -21,7 +21,7 @@ export function clearCurrentUser(): void {
 
 export function applyUserResponse(user: User): UserLoadResult {
   userState.currentUser = user;
-  setSessionEmail(user.googleEmail);
+  setAuthenticatedSession(user.googleEmail);
 
   return { user, selectedCourses: dedupeCourses(user.pinnedCourses ?? []) };
 }
@@ -29,15 +29,8 @@ export function applyUserResponse(user: User): UserLoadResult {
 export async function loadCurrentUser(
   notifyOnUnauthorized: boolean = true
 ): Promise<UserLoadResult | null> {
-  const session = await getCurrentSession(notifyOnUnauthorized);
-
-  if (!session) {
-    clearCurrentUser();
-    return null;
-  }
-
   try {
-    const user = await fetchCurrentUser(session.id);
+    const user = await fetchCurrentUser();
     return applyUserResponse(user);
   } catch (error) {
     clearCurrentUser();

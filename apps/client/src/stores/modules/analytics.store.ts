@@ -11,12 +11,8 @@ function pingDayKey(now: Date = new Date()) {
   return now.toISOString().slice(0, 10);
 }
 
-export function pingStorageKey(
-  userId: string,
-  platform: ClientPlatform,
-  day: string = pingDayKey()
-) {
-  return `${userId}:${platform}:${day}`;
+export function pingStorageKey(platform: ClientPlatform, day: string = pingDayKey()) {
+  return `${platform}:${day}`;
 }
 
 export function readPingRegistry(): PingRegistry {
@@ -57,27 +53,27 @@ export function writePingRegistry(registry: PingRegistry) {
   globalThis.localStorage.setItem(PING_STORAGE_KEY, JSON.stringify(entries));
 }
 
-export function hasPingedToday(userId: string, platform: ClientPlatform) {
+export function hasPingedToday(platform: ClientPlatform) {
   const registry = readPingRegistry();
-  return registry[pingStorageKey(userId, platform)] === true;
+  return registry[pingStorageKey(platform)] === true;
 }
 
-export function markPingedToday(userId: string, platform: ClientPlatform) {
+export function markPingedToday(platform: ClientPlatform) {
   const registry = readPingRegistry();
-  registry[pingStorageKey(userId, platform)] = true;
+  registry[pingStorageKey(platform)] = true;
   writePingRegistry(registry);
 }
 
 export async function pingClient(): Promise<void> {
-  if (!authState.session.userId) return;
+  if (!authState.session.authenticated) return;
 
   const platform = getClientPlatform();
 
-  if (hasPingedToday(authState.session.userId, platform)) return;
+  if (hasPingedToday(platform)) return;
 
   try {
     await sendClientPing(platform, CLIENT_VERSION);
-    markPingedToday(authState.session.userId, platform);
+    markPingedToday(platform);
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       handleUnauthorized();

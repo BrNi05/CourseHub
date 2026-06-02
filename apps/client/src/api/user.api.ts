@@ -1,25 +1,20 @@
-import { readOne, updatePinnedCourses, type User } from '@coursehub/sdk';
+import { deleteOwn, readOwnOne, updateOwnPinnedCourses, type User } from '@coursehub/sdk';
 
 import { apiOptions } from './api';
 
-export async function fetchCurrentUser(userId: string): Promise<User> {
-  const response = await readOne({
+export async function fetchCurrentUser(): Promise<User> {
+  return (await readOwnOne(apiOptions())).data;
+}
+
+export async function updateCurrentUserPinnedCourses(pinnedCourses: string[]): Promise<User> {
+  const response = await updateOwnPinnedCourses({
     ...apiOptions(),
-    path: { id: userId },
+    body: { pinnedCourses },
   });
 
   return response.data;
 }
 
-export async function updateCurrentUserPinnedCourses(
-  userId: string,
-  pinnedCourses: string[]
-): Promise<User> {
-  const response = await updatePinnedCourses({
-    ...apiOptions(),
-    body: { pinnedCourses },
-    path: { id: userId },
-  });
-
-  return response.data;
+export async function deleteCurrentUserProfile(): Promise<void> {
+  await deleteOwn(apiOptions());
 }
