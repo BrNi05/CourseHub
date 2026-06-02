@@ -1,12 +1,11 @@
 import { reactive } from 'vue';
 
-import { shouldSyncLocalCoursesAfterLogin } from './helpers/login-course-sync';
 import { pingClient } from './modules/analytics.store';
 import { loadNews } from './modules/content.store';
 import {
   coursesState,
   replaceSelectedCourses,
-  syncLocalPinnedCoursesAfterLogin,
+  updateRemotePinnedCoursesAfterLogin,
 } from './modules/courses.store';
 import { pushNotice } from './modules/notifications.store';
 import { loadCurrentUser } from './modules/user.store';
@@ -28,19 +27,13 @@ export async function initialize(): Promise<void> {
     const newsPromise = loadNews();
 
     try {
-      const userResult = await loadCurrentUser(false);
+      const serverUser = await loadCurrentUser(false);
 
-      if (userResult) {
-        const shouldSyncLocalAfterLogin = shouldSyncLocalCoursesAfterLogin({
-          localCourseCount: coursesState.selectedCourses.length,
-          serverCourseCount: userResult.selectedCourses.length,
-        });
-
-        if (shouldSyncLocalAfterLogin) await syncLocalPinnedCoursesAfterLogin();
-        else replaceSelectedCourses(userResult.selectedCourses);
-
-        if (!shouldSyncLocalAfterLogin) {
-          pushNotice('success', 'Bejelentkezve', 'Mentett tárgyak betöltve.');
+      if (serverUser) {
+        if (hasLocalDraft && serverUser.selectedCourses.length === 0) {
+          await updateRemotePinnedCoursesAfterLogin();
+        } else {
+          replaceSelectedCourses(serverUser.selectedCourses);
         }
 
         await pingClient();

@@ -73,7 +73,7 @@ async function loadPinnedCoursesFromServer(): Promise<Course[] | null> {
   }
 }
 
-export async function syncLocalPinnedCoursesAfterLogin(): Promise<void> {
+export async function updateRemotePinnedCoursesAfterLogin(): Promise<void> {
   if (!authState.session.authenticated || coursesState.selectedCourses.length === 0) return;
 
   coursesState.syncingCourses = true;
