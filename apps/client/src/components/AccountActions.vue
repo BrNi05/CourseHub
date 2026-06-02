@@ -123,7 +123,7 @@ async function handleDeleteProfile() {
       :busy="app.state.deletingProfile"
       cancel-label="Vissza"
       confirm-label="Fiók törlése"
-      description="A fiókod és a szerveren tárolt felvett tárgyaid végleg törlődnek."
+      description="A fiókod és a szerveren tárolt adataid végleg törlődnek."
       title="Fiók törlése"
       width="md"
       @back="handleDeleteBack"
