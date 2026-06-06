@@ -1,6 +1,6 @@
 # CourseHub Felhasználási Feltételek (ÁSZF)
 
-**Hatályba lép:** 2026.03.19. (első változat)
+**Hatályba lép:** 2026.06.07. (második változat)
 
 Jelen Felhasználási Feltételek (a továbbiakban: **Feltételek**) határozzák meg a CourseHub szolgáltatás (a továbbiakban: **Szolgáltatás**) használatának szabályait. A Szolgáltatás üzemeltetője Szőcs Barnabás (a továbbiakban: **Üzemeltető**; email: <barni@sigsegv.hu>).
 
@@ -36,7 +36,7 @@ Az Üzemeltető fenntartja a jogot, hogy a jelen Feltételek megsértése eseté
 
 ## Felhasználói magatartás
 
-A Szolgáltatás igénybevétele 16. életévét betöltött felhasználók számára engedélyezett. Kiskorúak esetén a szülői vagy gondviselői beleegyezés szükséges.
+A Szolgáltatás igénybevétele 16. életévét betöltött felhasználók számára engedélyezett.
 
 A Felhasználó a Szolgáltatás használata során köteles jóhiszeműen eljárni, és nem végezhet olyan tevékenységet, amely:
 
@@ -46,9 +46,23 @@ A Felhasználó a Szolgáltatás használata során köteles jóhiszeműen eljá
 
 A Felhasználó által a Szolgáltatásba feltöltött linkekért és információkért teljes mértékben felel. A megosztott linkeknek pontosnak, valósnak és jogszerűnek kell lenniük; tilos tudatosan rosszindulatú, félrevezető vagy kárt okozó hivatkozásokat megosztani. Az Üzemeltető a feltöltött tartalmakat nem köteles előzetesen ellenőrizni, és alapesetben nem felel azok jogszerűségéért.
 
-Amennyiben bárki (akár Felhasználó, akár harmadik személy) úgy észleli, hogy a Szolgáltatásban elérhető valamely tartalom (pl. egy megosztott kurzus-link) szerzői jogot sért, kártékony, vagy egyéb módon jogszabályba ütközik, kérjük, jelezze ezt az Üzemeltető felé a <barni@sigsegv.hu> email címen. Az értesítésnek tartalmaznia kell a sérelmezett tartalom pontos helyét és a jogsértés vélelmezett okát. Az Üzemeltető a bejelentést megvizsgálja, és amennyiben azt megalapozottnak érzi, haladéktalanul gondoskodik a jogsértő tartalom eltávolításáról vagy elérésének letiltásáról.
-
 A Felhasználó a fiókja törlésével bármikor, azonnali hatállyal felmondhatja a jelen szerződést.
+
+### Értesítési és eltávolítási eljárás (Ekertv. alapján)
+
+Amennyiben bárki (akár Felhasználó, akár harmadik személy) úgy észleli, hogy a Szolgáltatásban elérhető valamely tartalom (pl. egy megosztott kurzus-link, kurzus csomag leírása, stb.) szerzői jogot sért, kártékony, vagy egyéb módon jogszabályba ütközik, kérjük, jelezze ezt az Üzemeltető felé a <barni@sigsegv.hu> email címen.
+
+Az érvényes értesítésnek (melyet teljes bizonyító erejű magánokiratba vagy közokiratba foglalva kell eljuttatni) tartalmaznia kell:
+
+1. A sérelem tárgyát és a jogsértést valószínűsítő tényeket.
+
+2. A jogsértő tartalom azonosításához szükséges adatokat (a tartalom pontos helye/linkje, stb.).
+
+3. A jogosult nevét, lakcímét, illetve székhelyét, telefonszámát, valamint elektronikus levelezési címét.
+
+Az Üzemeltető a szabályszerű értesítés kézhezvételét követően a jogsértő tartalomhoz való hozzáférést haladéktalanul (legkésőbb 12 órán belül) letiltja vagy azt eltávolítja, és erről az eltávolítástól számított 3 munkanapon belül emailben értesíti az érintett Felhasználót, amennyiben azonosítható.
+
+Az érintett Felhasználó a törvényben meghatározott módon, teljes bizonyító erejű magánokiratban vagy közokiratban kifogással élhet a tartalom eltávolítása ellen. Amennyiben a kifogás megalapozott, az Üzemeltető a tartalomhoz való hozzáférést visszaállítja, feltéve, hogy a jogosult nem indított bírósági vagy hatósági eljárást. Ha a rendszer architektúrájából adódóan az érintett Felhasználó személye utólag nem azonosítható, az értesítés és a felhasználói kifogásolás lehetősége értelemszerűen elmarad.
 
 ## Szellemi tulajdonjogok és nyílt forráskód
 

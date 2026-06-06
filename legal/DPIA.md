@@ -6,9 +6,9 @@
 
 **Dokumentum státusza:** hatályos
 
-**Készült:** 2026.05.30. (első verzió)
+**Készült:** 2026.06.06. (második verzió)
 
-**Következő tervezett felülvizsgálat:** 2027.05.30., illetve minden olyan lényeges funkcionális, infrastrukturális, adatfeldolgozói vagy adatkezelési változás előtt, amely az érintetti kockázatokat növelheti.
+**Következő tervezett felülvizsgálat:** 2027.06.06., illetve minden olyan lényeges funkcionális, infrastrukturális, adatfeldolgozói vagy adatkezelési változás előtt, amely az érintetti kockázatokat növelheti.
 
 ## 1. A dokumentum célja és hatálya
 
@@ -381,7 +381,7 @@ A kockázatértékelés az érintetti jogokra és szabadságokra gyakorolt hatá
 | #   | Kockázat                                                                             | Lehetséges érintetti hatás                                                                                  | Kiinduló kockázat    | Meglévő vagy tervezett intézkedések                                                                                                                                                  | Fennmaradó kockázat |
 | --- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | 1   | Szerveroldali jegyadatok jogosulatlan hozzáférése                                    | Jegyek, tanulmányi előmenetel, szak vagy intézmény illetéktelen megismerése, szégyen és reputációs kockázat | 3 x 4 = magas        | Auth süti HttpOnly/Secure, saját adat csak autentikált felhasználónak, admin endpointok külön védve, rate limiting, HTTPS, DB hozzáférés korlátozása, törlési lehetőség, méretkorlát | 2 x 4 = közepes     |
-| 2   | Admin jogosultság hibás kezelése vagy admin fiók kompromittálódása                   | Több felhasználó adataihoz való hozzáférés, technikai adatok megismerése                                    | 4 x 5 = nagyon magas | Admin jogosultság adatbázisban, admin guardok, admin endpointok szigorú throttlinggal, admin hozzáférés szűk körben tartott, böngészőben admin süti nem tárolt, HS384 algo.          | 1 x 5 = közepes     |
+| 2   | Admin jogosultság hibás kezelése vagy admin fiók kompromittálódása                   | Több felhasználó adataihoz való hozzáférés, technikai adatok megismerése                                    | 4 x 5 = nagyon magas | Admin jogosultság adatbázisban, admin endpointok szigorú throttlinggal, admin hozzáférés szűk körű, böngészőben admin süti nem tárolt, HS384 algo., 30 perces access token           | 1 x 5 = közepes     |
 | 3   | XSS vagy kliensoldali támadás miatt helyi szivárgása                                 | Helyi jegy- és kurzusadatok illetéktelen hozzáférése az adott eszközön                                      | 3 x 4 = magas        | CSP, script nonce, `script-src-attr` tiltás, referrer policy, nincs auth token localStorage-ban                                                                                      | 2 x 4 = közepes     |
 | 4   | A kurzuscsomag neve vagy leírása túl sok személyes adatot tartalmaz                  | Közösségen belüli következtetés intézményre, szakra, érdeklődési körre                                      | 2 x 3 = közepes      | Adatkezelési tájékoztató figyelmeztet, csomag törölhető / módosítható, nem permanens csomagok inaktivitás után törölhetők, kereshetőség bejelentkezett kontextusra korlátozott       | 1 x 3 = alacsony    |
 | 5   | JSON-ba (user.creditProfile) a felhasználó szükségtelen vagy különleges adatot ír    | Túlzott adatkezelés, érzékeny adatok indokolatlan tárolása                                                  | 3 x 4 = magas        | Méretkorlát, felhasználói önkéntesség, UI korlátok, törlési lehetőség, adatkezelési tájékoztató                                                                                      | 1 x 4 = alacsony    |
@@ -410,13 +410,16 @@ A jelenlegi adatvédelmi architektúra több lényeges kockázatcsökkentő elem
 
 ## 20. Dokumentáció és jóváhagyás
 
+Tekintettel arra, hogy jelen dokumentum verziókövetése Git alapú környezetben valósul meg, a lenti táblázat kizárólag a mindenkori hatályos állapot jóváhagyását tükrözi.
+
 | Szerep                  | Név            | Döntés           | Dátum       | Megjegyzés                           |
 | ----------------------- | -------------- | ---------------- | ----------- | ------------------------------------ |
-| Adatkezelő              | Szőcs Barnabás | Jóváhagyott      | 2026.05.30. | Eljárt mint adatkezelő és fejlesztő. |
+| Adatkezelő              | Szőcs Barnabás | Jóváhagyott      | 2026.06.06. | Eljárt mint adatkezelő és fejlesztő. |
 | Adatvédelmi tisztviselő | -              | Nem alkalmazandó | -           | Nincs kijelölt DPO.                  |
 
 ## 21. Felülvizsgálati napló
 
-| Dátum       | Verzió      | Változás                                                                                       |
-| ----------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| 2026.05.30. | Első verzió | Első DPIA verzió a meglévő jogi dokumentumok, repo architektúra és NAIH/GDPR források alapján. |
+| Dátum       | Verzió         | Változás                                                                                                         |
+| ----------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 2026.05.30. | Első verzió    | Első DPIA verzió a meglévő jogi dokumentumok, repo architektúra és NAIH/GDPR források alapján.                   |
+| 2026.06.06. | Második verzió | "Admin jogosultság hibás kezelése vagy admin fiók kompromittálódása" kockázatértékelés frissítése (access token) |

@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.05.26. (hatodik verzió)
+**Hatályba lép:** 2026.06.07. (hetedik verzió)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -38,11 +38,11 @@ Személyes adatokat kizárólag meghatározott célból, jogalappal rendelkező 
 
 - **Nem kezeljük:** Google jelszó, Google hozzáférési tokenek (access tokens).
 
-- **Cél:** Az Érintett azonosítása, egyedi felhasználói profil biztosítása.
+- **Cél:** Az Érintett azonosítása, egyedi felhasználói profil biztosítása, Ekertv. szerinti megkeresés.
 
 - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
 
-- **Időtartam:** A fiók felhasználó általi törléséig. Törlés esetén az adatok azonnal megsemmisülnek.
+- **Megőrzési idő:** A fiók felhasználó általi törléséig. Törlés esetén az adatok azonnal megsemmisülnek.
 
 ### Technikailag szükséges hitelesítési sütik és helyi adattárolás
 
@@ -58,7 +58,7 @@ A CourseHub a bejelentkezett állapot fenntartásához és a Google OAuth2 bejel
 
   - **Jogalap:** Szerződés teljesítése (GDPR 6. cikk (1) b)).
 
-  - **Időtartam:** legfeljebb 160 nap, vagy a kijelentkezésig, illetve a süti törléséig.
+  - **Időtartam:** legfeljebb 30 perc, vagy a kijelentkezésig, illetve a süti törléséig (30 perc).
 
   - **Biztonsági jellemzők:** `HttpOnly`, `SameSite=Lax`, `Secure`.
 
@@ -70,7 +70,7 @@ A CourseHub a bejelentkezett állapot fenntartásához és a Google OAuth2 bejel
 
   - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
 
-  - **Időtartam:** a Google OAuth callback lezárásáig, de legfeljebb 2 percig.
+  - **Megőrzési idő:** a Google OAuth callback lezárásáig, de legfeljebb 2 percig.
 
   - **Biztonsági jellemzők:** `HttpOnly`, `SameSite=Lax`, `Secure`.
 
@@ -136,7 +136,7 @@ Bejelentkezett felhasználó esetén egy adott platformon egy adott napon elősz
 
 - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
 
-- **Időtartam:** Legfeljebb 1 év, ezt követően az adatok törlésre kerülnek. Fiók törlése esetén a ping rekordok anonimizálásra kerülnek, és azok többé nem kapcsolhatók a felhasználókhoz.
+- **Megőrzési idő:** Legfeljebb 1 év, ezt követően az adatok törlésre kerülnek. Fiók törlése esetén a ping rekordok anonimizálásra kerülnek, és azok többé nem kapcsolhatók a felhasználókhoz.
 
 ### Biztonsági naplózás (Logok)
 
@@ -148,7 +148,7 @@ A rendszer a visszaéléseket, támadásokat (pl. DDoS) és hibás kéréseket k
 
 - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
 
-- **Időtartam:** legfeljebb 1 év.
+- **Megőrzési idő:** legfeljebb 1 év.
 
 ### Peremvédelem
 
@@ -174,7 +174,7 @@ A felhasználó a kliensen keresztül önkéntes alapon hibajelentést küldhet.
 
 - **Jogalap:** Az Érintett önkéntes hozzájárulása (GDPR 6. cikk (1) a)).
 
-- **Időtartam:** legfeljebb 1 év.
+- **Megőrzési idő:** legfeljebb 1 év.
 
 - **Különös törlési szabály:** A felhasználói fiók (profil) törlése **nem vonja magával** a korábban beküldött hibajelentések automatikus törlését, azok a hibajavítási folyamatok folytonossága érdekében a megőrzési idő végéig tárolhatók. Az Érintett az elfeledtetéshez való jogát (törlési kérelmét) a hibajelentésekre vonatkozóan a maximális 1 éves időtartamon belül bármikor, egyedileg is gyakorolhatja a megadott elérhetőségen.
 
@@ -192,7 +192,19 @@ A felhasználóknak lehetősége van a kliensen keresztül új kurzusok felvéte
 
 - **Jogalap:** Az Érintett önkéntes hozzájárulása (GDPR 6. cikk (1) a) bekezdés).
 
-- **Időtartam és Törlés:** 30 nap. A fő adatbázisba átemelt kurzusinformációk a továbbiakban nem minősülnek személyes adatnak, és nem kapcsolhatók vissza a beküldő felhasználóhoz.
+- **Megőrzési idő:** Legfeljebb 30 nap. A fő adatbázisba átemelt kurzusinformációk a továbbiakban nem minősülnek személyes adatnak, és nem kapcsolhatók vissza a beküldő felhasználóhoz.
+
+### Jogsértő tartalmak bejelentése (Értesítési-eltávolítási eljárás)
+
+Amennyiben egy harmadik fél vagy Felhasználó az Ekertv. (2001. évi CVIII. törvény) alapján jogsértő tartalom eltávolítását kéri, az Üzemeltető a bejelentés során megadott személyes adatokat is kezeli.
+
+- **Kezelt adatok:** A bejelentő (és az esetlegesen kifogással élő Felhasználó) neve, lakcíme, székhelye, telefonszáma, elektronikus levelezési címe, valamint a bejelentést tartalmazó okirat.
+
+- **Cél:** A bejelentett jogsértés kivizsgálása, az értesítési és eltávolítási eljárás törvényes lefolytatása, a kapcsolattartás, valamint az Üzemeltető jogi védelme egy esetleges, későbbi jogvita során.
+
+- **Jogalap:** Az Üzemeltetőre vonatkozó jogi kötelezettség teljesítése [GDPR 6. cikk (1) bek. c) pont], tekintettel az Ekertv. 13. §-ára.
+
+- **Megőrzési idő:** Az Üzemeltető az eljárás során keletkezett dokumentumokat és adatokat egy esetleges jogvita esetére, a polgári jogi elévülési ideig, azaz a bejelentés lezárásától számított 5 évig őrzi meg.
 
 ## Inaktivitás és automatikus adattörlés
 
