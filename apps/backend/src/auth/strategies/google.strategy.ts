@@ -6,6 +6,11 @@ import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { AuthService } from '../auth.service.js';
 import { OAuthStateStore } from '../oauth-state.store.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import {
+  isProduction,
+  AUTH_COOKIE_MAX_AGE_MS_DEV,
+  AUTH_COOKIE_MAX_AGE_MS_PROD,
+} from '../auth.constants.js';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -44,7 +49,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const jwt: string = this.authService.generateJwtToken({
       sub: user.id,
       email: user.googleEmail,
-      exp: Math.floor(Date.now() / 1000) + 160 * 24 * 60 * 60, // in seconds since UNIX epoch
+      exp: isProduction()
+        ? Math.floor(Date.now() / 1000) + AUTH_COOKIE_MAX_AGE_MS_PROD / 1000 // in seconds since UNIX epoch (30 minutes)
+        : Math.floor(Date.now() / 1000) + AUTH_COOKIE_MAX_AGE_MS_DEV / 1000, // in seconds since UNIX epoch (160 days)
     });
 
     // Return to controller callback endpoint
