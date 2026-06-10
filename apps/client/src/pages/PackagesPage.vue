@@ -24,6 +24,7 @@ import { useAppStore } from '@/stores/composables/use-app-store';
 import { authState, handleUnauthorized } from '@/stores/modules/auth.store';
 import { coursesState } from '@/stores/modules/courses.store';
 import { getErrorMessage } from '@/stores/shared/errors';
+import { hydrateSearchUniversityId } from '@/stores/shared/storage';
 
 import type {
   Course,
@@ -154,6 +155,19 @@ async function submitSearch() {
   } finally {
     searching.value = false;
   }
+}
+
+function applyPreferredSearchUniversity() {
+  if (searchForm.universityId) return;
+
+  const preferredUniversityId = hydrateSearchUniversityId();
+  if (!preferredUniversityId) return;
+
+  const hasPreferredUniversity = app.state.universities.some(
+    (university) => university.id === preferredUniversityId
+  );
+
+  if (hasPreferredUniversity) searchForm.universityId = preferredUniversityId;
 }
 
 async function loadSearchFaculties(universityId: string) {
@@ -396,7 +410,7 @@ watch(
   appInitialized,
   (initialized) => {
     if (!initialized) return;
-    void app.loadUniversities();
+    void app.loadUniversities().then(applyPreferredSearchUniversity);
   },
   { immediate: true }
 );
@@ -417,6 +431,7 @@ watch(
   () => searchForm.universityId,
   (universityId) => {
     searchForm.facultyId = '';
+    if (universityId) app.rememberSearchUniversity(universityId);
     void loadSearchFaculties(universityId);
   },
   { immediate: true }
@@ -432,7 +447,7 @@ watch(
 );
 
 onMounted(() => {
-  void app.loadUniversities();
+  void app.loadUniversities().then(applyPreferredSearchUniversity);
 });
 </script>
 
