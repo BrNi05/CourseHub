@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import BaseButton from '@/components/BaseButton.vue';
 import CourseCard from '@/components/CourseCard.vue';
@@ -7,14 +8,82 @@ import CourseCard from '@/components/CourseCard.vue';
 import { useAppStore } from '@/stores/composables/use-app-store';
 
 const app = useAppStore();
+const route = useRoute();
+const router = useRouter();
+const routeSearchInitialized = ref(false);
+let updatingRouteFromSubmit = false;
 
 const selectedIds = computed<Set<string>>(
   () => new Set(app.state.selectedCourses.map((course) => String(course.id)))
 );
 
-onMounted(() => {
-  void app.loadUniversities();
+function readQueryString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function hasSearchQuery(): boolean {
+  return ['universityId', 'courseName', 'courseCode'].some((key) => {
+    const value = route.query[key];
+    return typeof value === 'string' && value.length > 0;
+  });
+}
+
+function applySearchQuery(): boolean {
+  if (!hasSearchQuery()) return false;
+
+  const universityId = readQueryString(route.query.universityId);
+
+  if (
+    universityId &&
+    !app.state.universities.some((university) => university.id === universityId)
+  ) {
+    app.notify('info', 'Ismeretlen egyetem', 'A keresett egyetem nem található.');
+    return false;
+  }
+
+  if (universityId) app.rememberSearchUniversity(universityId);
+  app.state.searchFilters.courseName = readQueryString(route.query.courseName);
+  app.state.searchFilters.courseCode = readQueryString(route.query.courseCode);
+
+  return true;
+}
+
+async function replaySearchFromRoute(): Promise<void> {
+  await app.loadUniversities();
+  if (!applySearchQuery()) return;
+  await app.searchCourses();
+}
+
+async function submitSearch(): Promise<void> {
+  const query = {
+    universityId: app.state.searchFilters.universityId || undefined,
+    courseName: app.state.searchFilters.courseName.trim() || undefined,
+    courseCode: app.state.searchFilters.courseCode.trim() || undefined,
+  };
+
+  updatingRouteFromSubmit = true;
+  try {
+    await router.replace({ name: 'search', query });
+    await app.searchCourses();
+  } finally {
+    updatingRouteFromSubmit = false;
+  }
+}
+
+onMounted(async () => {
+  await replaySearchFromRoute();
+  routeSearchInitialized.value = true;
 });
+
+watch(
+  () => route.query,
+  () => {
+    if (!routeSearchInitialized.value) return;
+    if (updatingRouteFromSubmit) return;
+
+    void replaySearchFromRoute();
+  }
+);
 </script>
 
 <template>
@@ -45,7 +114,7 @@ onMounted(() => {
         </BaseButton>
       </div>
 
-      <form id="course-search-form" class="search-grid" @submit.prevent="app.searchCourses">
+      <form id="course-search-form" class="search-grid" @submit.prevent="submitSearch">
         <label class="field field--university">
           <span>Egyetem</span>
           <select
