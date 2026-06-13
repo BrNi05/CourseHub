@@ -4,7 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import { ErrorResponse } from '../responses/error.response.js';
 
 export function Throttable(ttlSeconds: number, limit: number) {
-  const throttleDecorator = Throttle({ default: { limit, ttl: ttlSeconds } });
+  const throttleDecorator = Throttle({ default: { limit, ttl: ttlSeconds * 1000 } });
   const apiExtra = ApiExtraModels(ErrorResponse);
   const apiResponse = ApiResponse({
     status: 429,

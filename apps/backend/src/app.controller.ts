@@ -26,7 +26,7 @@ export class AppController {
     type: HealthCheckDto,
     description: 'Returns health status of CourseHub server instance',
   })
-  @Throttable(10, 60)
+  @Throttable(60, 10)
   getHealth(): HealthCheckDto {
     return this.appService.getHealth();
   }
@@ -42,7 +42,7 @@ export class AppController {
     description: 'Returns Prometheus metrics in text format',
   })
   @InternalOnly()
-  @Throttable(5, 60)
+  @Throttable(60, 5)
   async getMetrics(@Res() res: Response): Promise<void> {
     res.setHeader('Content-Type', this.appService.getMetricsContentType());
     res.send(await this.appService.getMetrics());
