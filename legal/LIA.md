@@ -4,9 +4,9 @@
 
 **Szolgáltatás:** CourseHub
 
-**Hatályba lép:** 2026.04.27. (negyedik verzió)
+**Hatályba lép:** 2026.06.13. (ötödik verzió)
 
-**Utolsó felülvizsgálat:** 2026.05.03.
+**Utolsó felülvizsgálat:** 2026.06.13.
 
 ## 1. A dokumentum célja
 
@@ -200,6 +200,8 @@ Az Adatkezelő jogos érdeke, hogy:
 
 - Megőrizze a Szolgáltatás rendelkezésre állását és integritását.
 
+- Valós időben detektálja és auditálja a kiemelt jogosultságú (adminisztrátori) végpontokhoz való hozzáférési kísérleteket, beleértve a jogosulatlan próbálkozásokat is.
+
 Ez a cél közvetlenül illeszkedik a GDPR (49) preambulumbekezdésében nevesített hálózati és információbiztonsági jogos érdekhez.
 
 #### 5.2.2. Szükségességi teszt
@@ -211,6 +213,8 @@ Az adatkezelés szükséges, mert:
 - Naplózás nélkül egy incidens utólagos kivizsgálása jelentősen nehezebb vagy lehetetlen.
 
 - A biztonsági intézkedések hatékonyságának ellenőrzéséhez szükséges a kérés- és válaszkörnyezet alapvető rögzítése.
+
+- A kiemelt jogosultságú (adminisztrátori) végpontok elleni támadások (pl. jogosulatlan próbálkozások) felderítése lehetetlen vagy jelentősen megnehezített a kísérletet tevő IP címének és a kérés metaadatainak rögzítése nélkül.
 
 Kevésbé invazív alternatíva a rövidebb vagy aggregált naplózás lenne, azonban ez csökkentené a visszaélések felismerhetőségét és az incidensek kivizsgálhatóságát. A jelenlegi adatkör ugyanakkor nem terjed ki a kommunikáció teljes tartalmára, csak a védelemhez érdemben szükséges technikai metaadatokra.
 

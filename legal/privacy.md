@@ -1,6 +1,6 @@
 # CourseHub Adatkezelési Tájékoztató
 
-**Hatályba lép:** 2026.06.07. (hetedik verzió)
+**Hatályba lép:** 2026.06.14. (nyolcadik verzió)
 
 Jelen tájékoztató célja, hogy a CourseHub felhasználói („Érintettek”) részletes tájékoztatást kapjanak személyes adataik kezeléséről. Az adatkezelés során az alábbi jogszabályok az irányadók:
 
@@ -138,17 +138,17 @@ Bejelentkezett felhasználó esetén egy adott platformon egy adott napon elősz
 
 - **Megőrzési idő:** Legfeljebb 1 év, ezt követően az adatok törlésre kerülnek. Fiók törlése esetén a ping rekordok anonimizálásra kerülnek, és azok többé nem kapcsolhatók a felhasználókhoz.
 
-### Biztonsági naplózás (Logok)
+### Biztonsági naplózás és monitorozás
 
-A rendszer a visszaéléseket, támadásokat (pl. DDoS) és hibás kéréseket különböző módokon naplózza.
+A rendszer a visszaéléseket, támadásokat (pl. DDoS), hibás kéréseket, valamint az adminisztrátori vagy egyéb, kiemelt jogosultságot igénylő végpontokhoz való hozzáférési kísérleteket (sikeres és sikertelen bejelentkezések, próbálkozások) különböző módokon naplózza és monitorozza.
 
-- **Kezelt adatok:** felhasználó IP címe, hívott API végpont, HTTP státuszkód, időbélyeg, felhasználó azonosítója.
+- **Kezelt adatok:** felhasználó IP címe, hívott API végpont, HTTP státuszkód, hibaüzenet, időbélyeg, felhasználó azonosítója (ha rendelkezésre áll).
 
 - **Cél:** Az informatikai rendszer védelme, visszaélések megelőzése és kivizsgálása, incidenskezelés.
 
 - **Jogalap:** Jogos érdek (GDPR 6. cikk (1) f)).
 
-- **Megőrzési idő:** legfeljebb 1 év.
+- **Megőrzési idő:** legfeljebb 1 év. A lokális napló esetében legfeljebb 3 hét.
 
 ### Peremvédelem
 
@@ -253,6 +253,10 @@ Az egyes szolgáltatók az EGT-n kívül, így az Egyesült Államokban is vége
 A Google Adatvédelmi Tájékoztatója elérhető [itt](https://policies.google.com/privacy?gl=HU&hl=en).
 
 A Cloudflare Adatvédelmi Tájékoztatója elérhető [itt](https://www.cloudflare.com/en-gb/privacypolicy/).
+
+### Discordos értesítések
+
+A rendszer bizonyos kritikus biztonsági eseményekről riasztásokat küldhet külső szolgáltatókon keresztül, azonban ezek az üzenetek kizárólag olyan metaadatokat tartalmaznak, amelyek a külső szolgáltató szempontjából teljesen anonimnak minősülnek.
 
 ## Harmadik fél weboldalai
 
