@@ -112,6 +112,7 @@ The repo is API-first in practice:
   - update tests affected by schema changes
 - Be aware that OpenAPI generation intentionally avoids opening a database connection via `OPENAPI_GENERATION=true`; do not break that path.
 - Preserve cache invalidation and event-driven behavior when changing course, faculty, university, or user flows.
+- Use ContextualLogger when implementing logging realted features.
 
 ## Frontend Rules
 

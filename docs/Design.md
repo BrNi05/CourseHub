@@ -502,17 +502,37 @@ The system also assumes Cloudflare is part of the production defense boundary.
 
 ## Logging, Metrics, and Observability
 
-- Logs are written to a file mounted from the host.
+CourseHub implements a custom, context-aware logging framework designed for operational observability and sufficient security auditing.
 
-- `/api/health` endpoint exposes user readable status.
+### Core Logging Architecture
 
-- `/api/metrics` endpoint exposes data for Prometheus. E.g.; event loop stats, RAM usage, CPU usage, file descriptor usage, etc.
+- **Contextual Logging:** The backend uses a custom `LoggerService` and `ContextualLogger` wrapper. Every log entry is tagged with its execution context to ensure traceability across the system.
+
+- **File-Based Persistence:** Logs are written to a shared, persistent file stream mounted from the host.
+
+- **Maintenance Mode & Buffering:** The logger supports an exclusive stream lock. When background jobs or admins trigger log rotation/clearing, the file stream is gracefully closed and released. Any logs generated during this maintenance window are held in a memory array and flushed once the stream is restored, ensuring zero log loss.
+
+### Security & Audit Alerts (Discord Integration)
+
+- High-privilege actions and security events are tracked using a custom logic.
+
+- **Local Audit Trail:** Full details, including the client IP address, target endpoint, and user email, are written exclusively to the local log file for GDPR-compliant security auditing and incident response.
+
+- **Real-Time Webhook Alerts:** An asynchronous alert is dispatched to a Discord webhook for immediate visibility. To comply with data minimization and avoid third-party data processing liabilities, this payload is strictly anonymized (containing only the action, status, and timestamp) and includes no Personally Identifiable Information (PII).
+
+- Unauthenticated request failures are not logged to prevent DDoS-related situations.
+
+### Other Observability Mechanisms
+
+- `/api/health` endpoint exposes user-readable status.
+
+- `/api/metrics` endpoint (internally) exposes data for Prometheus.
 
 - Admins can download or clear logs through API endpoints.
 
 - Client error reports are stored as JSON files.
 
-- `ClientPing` provides usage metrics.
+- ClientPing provides usage metrics.
 
 - Statistics endpoints aggregate usage, pins, users, and course counts.
 
