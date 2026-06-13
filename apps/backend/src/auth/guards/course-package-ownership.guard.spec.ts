@@ -8,6 +8,11 @@ import { CoursePackageOwnershipGuard } from './course-package-ownership.guard.js
 
 describe('CoursePackageOwnershipGuard', () => {
   let guard: CoursePackageOwnershipGuard;
+  let logAdminOperation: ReturnType<typeof vi.fn>;
+  let logger: {
+    logAdminOperation: ReturnType<typeof vi.fn>;
+    forContext: ReturnType<typeof vi.fn>;
+  };
   let prisma: {
     coursePackage: {
       findUniqueOrThrow: ReturnType<typeof vi.fn>;
@@ -21,23 +26,32 @@ describe('CoursePackageOwnershipGuard', () => {
       },
     };
 
-    const logger = {
-      forContext: () => ({
+    logAdminOperation = vi.fn();
+    logger = {
+      logAdminOperation,
+      forContext: vi.fn().mockReturnValue({
         warn: vi.fn(),
       }),
-    } as unknown as LoggerService;
+    };
 
-    guard = new CoursePackageOwnershipGuard(logger, prisma as any);
+    guard = new CoursePackageOwnershipGuard(logger as unknown as LoggerService, prisma as any);
   });
 
-  it('allows admins without ownership lookup', async () => {
+  it('allows admins without ownership lookup and logs the admin operation', async () => {
     const context = createContext({
       params: { id: 'package-1' },
+      headers: { 'cf-connecting-ip': '203.0.113.14' },
       user: { id: 'admin-1', googleEmail: 'admin@example.com', isAdmin: true },
     });
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(prisma.coursePackage.findUniqueOrThrow).not.toHaveBeenCalled();
+    expect(logAdminOperation).toHaveBeenCalledWith(
+      'CoursePackageOwnershipGuard Admin Override',
+      true,
+      '203.0.113.14',
+      'Admin admin@example.com accessed course package package-1.'
+    );
   });
 
   it('allows the owner of the course package', async () => {

@@ -1,23 +1,29 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback, type Profile } from 'passport-google-oauth20';
+import { Request } from 'express';
 
 import { AuthService } from '../auth.service.js';
 import { OAuthStateStore } from '../oauth-state.store.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { LoggerService, ContextualLogger } from '../../logger/logger.service.js';
 import {
   isProduction,
   AUTH_COOKIE_MAX_AGE_MS_DEV,
   AUTH_COOKIE_MAX_AGE_MS_PROD,
 } from '../auth.constants.js';
+import { getClientIp } from '../../common/security/ip.resolver.js';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  private readonly auditLogger: ContextualLogger;
+
   constructor(
     private readonly authService: AuthService,
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
+    logger: LoggerService,
     oauthStateStore: OAuthStateStore
   ) {
     super({
@@ -26,12 +32,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL')!,
       scope: ['email'],
       store: oauthStateStore,
+      passReqToCallback: true, // For IP logging
     });
+
+    this.auditLogger = logger.forContext('GoogleLogin');
   }
 
   // Callback function, that passport calls
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async validate(_accessToken: string, _refreshToken: string, profile: any, done: VerifyCallback) {
+  async validate(
+    req: Request,
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback
+  ) {
     const { id: googleId, emails } = profile;
     const email = emails?.[0]?.value;
 
@@ -40,11 +54,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
     let user = await this.prisma.user.findUnique({ where: { googleId } });
     const adminEmails = this.configService.get<string>('ADMIN_EMAILS')?.split(',') ?? [];
-    const isAdmin = adminEmails.includes(email as string);
+    const isAdmin = adminEmails.includes(email);
 
     user ??= await this.prisma.user.create({
       data: { googleId, googleEmail: email, isAdmin },
     });
+
+    if (user.isAdmin) {
+      this.auditLogger.logAdminOperation(
+        'Admin Login',
+        true,
+        getClientIp(req),
+        `Admin ${email} logged in. Session will expire in 30 mins.`
+      );
+    }
 
     const jwt: string = this.authService.generateJwtToken({
       sub: user.id,

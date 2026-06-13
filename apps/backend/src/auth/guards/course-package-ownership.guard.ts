@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 
 import type { RequestWithAuthenticatedUserAndIdParam } from '../interfaces.js';
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
+import { getClientIp } from '../../common/security/ip.resolver.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
@@ -9,10 +10,10 @@ export class CoursePackageOwnershipGuard implements CanActivate {
   private readonly logger: ContextualLogger;
 
   constructor(
-    logger: LoggerService,
+    private readonly auditLogger: LoggerService,
     private readonly prisma: PrismaService
   ) {
-    this.logger = logger.forContext(CoursePackageOwnershipGuard.name);
+    this.logger = auditLogger.forContext(CoursePackageOwnershipGuard.name);
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -27,7 +28,16 @@ export class CoursePackageOwnershipGuard implements CanActivate {
       throw new ForbiddenException('Invalid authenticated state.');
     }
 
-    if (user.isAdmin) return true;
+    // Log if admin override access is granted
+    if (user.isAdmin) {
+      this.auditLogger.logAdminOperation(
+        'CoursePackageOwnershipGuard Admin Override',
+        true,
+        getClientIp(context),
+        `Admin ${user.googleEmail} accessed course package ${packageId}.`
+      );
+      return true;
+    }
 
     const coursePackage = await this.prisma.coursePackage.findUniqueOrThrow({
       where: { id: packageId },

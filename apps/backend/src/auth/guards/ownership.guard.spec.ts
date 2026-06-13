@@ -12,7 +12,7 @@ type GuardRequest = {
 };
 
 function createContext(request: GuardRequest, handlerName = 'updateUser'): ExecutionContext {
-  const handler = { [handlerName]() {} }[handlerName] as () => void;
+  const handler = { [handlerName]() {} }[handlerName];
 
   return {
     switchToHttp: () => ({
@@ -29,6 +29,7 @@ describe('UserOwnershipGuard', () => {
       debug: vi.fn(),
     };
     const logger = {
+      logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
     const guard = new UserOwnershipGuard(logger);
@@ -53,6 +54,7 @@ describe('UserOwnershipGuard', () => {
       debug: vi.fn(),
     };
     const logger = {
+      logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
     const request: GuardRequest = {
@@ -77,16 +79,18 @@ describe('UserOwnershipGuard', () => {
   });
 
   it('allows admin override on non-restricted handlers', () => {
+    const logAdminOperation = vi.fn();
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
     };
     const logger = {
+      logAdminOperation,
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
     const request: GuardRequest = {
       params: { id: 'resource-user-id' },
-      headers: { authorization: 'Bearer token' },
+      headers: { authorization: 'Bearer token', 'cf-connecting-ip': '203.0.113.12' },
       user: {
         id: 'admin-user-id',
         googleEmail: 'admin@example.com',
@@ -98,8 +102,11 @@ describe('UserOwnershipGuard', () => {
     const result = guard.canActivate(createContext(request, 'updateUser'));
 
     expect(result).toBe(true);
-    expect(scopedLogger.debug).toHaveBeenCalledWith(
-      'Admin override granted for user admin-user-id (admin@example.com) on user resource resource-user-id'
+    expect(logAdminOperation).toHaveBeenCalledWith(
+      'UserOwnershipGuard Admin Override',
+      true,
+      '203.0.113.12',
+      'Admin admin@example.com accessed user resource resource-user-id.'
     );
     expect(request.user).toEqual({
       id: 'admin-user-id',
@@ -109,11 +116,13 @@ describe('UserOwnershipGuard', () => {
   });
 
   it('blocks admin override on restricted handlers like ping', () => {
+    const logAdminOperation = vi.fn();
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
     };
     const logger = {
+      logAdminOperation,
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
     const guard = new UserOwnershipGuard(logger);
@@ -123,7 +132,7 @@ describe('UserOwnershipGuard', () => {
         createContext(
           {
             params: { id: 'resource-user-id' },
-            headers: { authorization: 'Bearer token' },
+            headers: { authorization: 'Bearer token', 'cf-connecting-ip': '203.0.113.13' },
             user: {
               id: 'admin-user-id',
               googleEmail: 'admin@example.com',
@@ -135,6 +144,12 @@ describe('UserOwnershipGuard', () => {
       )
     ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
+    expect(logAdminOperation).toHaveBeenCalledWith(
+      'UserOwnershipGuard Admin Override',
+      false,
+      '203.0.113.13',
+      'Admin admin@example.com was denied access for user resource resource-user-id.'
+    );
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'Access denied. Authenticated user admin-user-id is not owner nor admin for resource resource-user-id'
     );
@@ -146,6 +161,7 @@ describe('UserOwnershipGuard', () => {
       debug: vi.fn(),
     };
     const logger = {
+      logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
     const guard = new UserOwnershipGuard(logger);

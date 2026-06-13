@@ -30,6 +30,10 @@ export class ContextualLogger {
   verbose(message: any) {
     this.rootLogger.verbose(message, this.context);
   }
+
+  logAdminOperation(action: string, success: boolean, ipAddress: string, details?: string) {
+    this.rootLogger.logAdminOperation(action, success, ipAddress, details, this.context);
+  }
 }
 
 @Injectable()
@@ -122,6 +126,60 @@ export class LoggerService extends ConsoleLogger implements OnModuleDestroy {
     this.writeToFile(
       `${this.formatTimestamp()} [VERBOSE] [${resolvedContext}] ${formattedMessage}`
     );
+  }
+
+  logAdminOperation(
+    action: string,
+    success: boolean,
+    ipAddress: string,
+    details?: string,
+    context?: string
+  ) {
+    const status = success ? 'SUCCESS' : 'FAILURE';
+    const detailString = details ? ` | Details: ${details}` : '';
+    const localLogMessage = `Admin Operation [${action}] - Status: ${status} | IP: ${ipAddress}${detailString}`;
+
+    this.log(localLogMessage, context);
+
+    this.sendAnonymizedDiscordAlert(action, success).catch((err) => {
+      this.error(
+        `Failed to execute Discord webhook: ${(err as Error).message}`,
+        undefined,
+        'LoggerService'
+      );
+    });
+  }
+
+  private async sendAnonymizedDiscordAlert(action: string, success: boolean): Promise<void> {
+    const payload = {
+      embeds: [
+        {
+          title: 'Admin Operation Triggered',
+          color: success ? 0x28a745 : 0xdc3545,
+          fields: [
+            { name: 'Action', value: action, inline: true },
+            { name: 'Status', value: success ? 'Success' : 'Failed', inline: true },
+            { name: 'Timestamp', value: new Date().toISOString(), inline: false },
+          ],
+          footer: { text: 'Detailed context and IP are logged on the server.' },
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
+
+    const response = await fetch(process.env.DISCORD_WEBHOOK_URL!, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      this.error(
+        `Discord API returned status: ${response.status} ${response.statusText}`,
+        undefined,
+        'LoggerService'
+      );
+    }
   }
 
   // Formats the current timestamp for file logging

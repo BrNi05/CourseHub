@@ -1,14 +1,15 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
+import { getClientIp } from '../../common/security/ip.resolver.js';
 import type { RequestWithAuthenticatedUserAndIdParam } from '../interfaces.js';
 
 @Injectable()
 export class UserOwnershipGuard implements CanActivate {
   private readonly logger: ContextualLogger;
 
-  constructor(logger: LoggerService) {
-    this.logger = logger.forContext(UserOwnershipGuard.name);
+  constructor(private readonly auditLogger: LoggerService) {
+    this.logger = auditLogger.forContext(UserOwnershipGuard.name);
   }
 
   canActivate(context: ExecutionContext): boolean {
@@ -28,12 +29,25 @@ export class UserOwnershipGuard implements CanActivate {
     const doNotAllowAdminOverride =
       context.getHandler().name === 'ping' || context.getHandler().name === 'errorReport';
 
-    // Admins can access any resource
+    // Log if admin override access is granted
     if (user.isAdmin && !doNotAllowAdminOverride) {
-      this.logger.debug(
-        `Admin override granted for user ${user.id} (${user.googleEmail}) on user resource ${resourceUserId}`
+      this.auditLogger.logAdminOperation(
+        'UserOwnershipGuard Admin Override',
+        true,
+        getClientIp(context),
+        `Admin ${user.googleEmail} accessed user resource ${resourceUserId}.`
       );
       return true;
+    }
+
+    // Log if admin override access is denied
+    if (user.isAdmin) {
+      this.auditLogger.logAdminOperation(
+        'UserOwnershipGuard Admin Override',
+        false,
+        getClientIp(context),
+        `Admin ${user.googleEmail} was denied access for user resource ${resourceUserId}.`
+      );
     }
 
     this.logger.warn(
