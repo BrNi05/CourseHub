@@ -6,6 +6,8 @@ import type { LoggerService } from '../../logger/logger.service.js';
 import { UserOwnershipGuard } from './ownership.guard.js';
 
 type GuardRequest = {
+  method?: string;
+  url?: string;
   params: { id: string };
   headers?: Record<string, string | undefined>;
   user?: IAuthenticatedUser;
@@ -14,9 +16,15 @@ type GuardRequest = {
 function createContext(request: GuardRequest, handlerName = 'updateUser'): ExecutionContext {
   const handler = { [handlerName]() {} }[handlerName];
 
+  const requestWithDefaults = {
+    method: 'GET',
+    url: `/users/${request.params.id}`,
+    ...request,
+  };
+
   return {
     switchToHttp: () => ({
-      getRequest: () => request,
+      getRequest: () => requestWithDefaults,
     }),
     getHandler: () => handler,
   } as unknown as ExecutionContext;
@@ -150,9 +158,8 @@ describe('UserOwnershipGuard', () => {
       '203.0.113.13',
       'Admin admin@example.com was denied access for user resource resource-user-id.'
     );
-    expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Access denied. Authenticated user admin-user-id is not owner nor admin for resource resource-user-id'
-    );
+
+    expect(scopedLogger.warn).not.toHaveBeenCalled();
   });
 
   it('rejects non-owner non-admin authenticated users', () => {
@@ -169,8 +176,10 @@ describe('UserOwnershipGuard', () => {
     expect(() =>
       guard.canActivate(
         createContext({
+          method: 'PATCH',
+          url: '/users/resource-user-id',
           params: { id: 'resource-user-id' },
-          headers: { authorization: 'Bearer token' },
+          headers: { authorization: 'Bearer token', 'cf-connecting-ip': '203.0.113.14' },
           user: {
             id: 'other-user-id',
             googleEmail: 'user@example.com',
@@ -181,7 +190,7 @@ describe('UserOwnershipGuard', () => {
     ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
-      'Access denied. Authenticated user other-user-id is not owner nor admin for resource resource-user-id'
+      'User other-user-id attempted to access resource resource-user-id. Context: HTTP PATCH /users/resource-user-id. IP: 203.0.113.14'
     );
   });
 });

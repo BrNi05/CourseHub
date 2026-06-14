@@ -16,6 +16,7 @@ export class UserOwnershipGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithAuthenticatedUserAndIdParam>();
     const resourceUserId = request.params.id; // GET /users/:id
     const user = request.user;
+    const ipAddr = getClientIp(context);
 
     if (!user?.id) {
       this.logger.warn(`Missing authenticated user on request for resource ${resourceUserId}`);
@@ -34,7 +35,7 @@ export class UserOwnershipGuard implements CanActivate {
       this.auditLogger.logAdminOperation(
         'UserOwnershipGuard Admin Override',
         true,
-        getClientIp(context),
+        ipAddr,
         `Admin ${user.googleEmail} accessed user resource ${resourceUserId}.`
       );
       return true;
@@ -45,14 +46,14 @@ export class UserOwnershipGuard implements CanActivate {
       this.auditLogger.logAdminOperation(
         'UserOwnershipGuard Admin Override',
         false,
-        getClientIp(context),
+        ipAddr,
         `Admin ${user.googleEmail} was denied access for user resource ${resourceUserId}.`
       );
+    } else {
+      this.logger.warn(
+        `User ${user.id} attempted to access resource ${resourceUserId}. Context: HTTP ${request.method} ${request.url}. IP: ${ipAddr}`
+      );
     }
-
-    this.logger.warn(
-      `Access denied. Authenticated user ${user.id} is not owner nor admin for resource ${resourceUserId}`
-    );
 
     throw new ForbiddenException('Hozzáférés megtagadva!');
   }
