@@ -127,10 +127,36 @@ describe('LoggerService', () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 500, statusText: 'Server Error' });
 
     logger.logAdminOperation('Admin login', true, '203.0.113.10');
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(logStreamMock.write).toHaveBeenCalledWith(
       expect.stringContaining('[LoggerService] Discord API returned status: 500 Server Error\n')
+    );
+  });
+
+  it('logs an error without throwing if Discord API times out via AbortSignal', async () => {
+    const timeoutError = new Error('The operation was aborted due to timeout');
+    timeoutError.name = 'AbortError';
+    fetchMock.mockRejectedValueOnce(timeoutError);
+
+    logger.logAdminOperation('Admin action', true, '203.0.113.11');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(logStreamMock.write).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '[LoggerService] Failed to execute Discord webhook: The operation was aborted due to timeout\n'
+      )
+    );
+  });
+
+  it('logs an error if Discord fetch throws a generic network error', async () => {
+    fetchMock.mockRejectedValueOnce(new Error('fetch failed'));
+
+    logger.logAdminOperation('Admin action', false, '203.0.113.12');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(logStreamMock.write).toHaveBeenCalledWith(
+      expect.stringContaining('[LoggerService] Failed to execute Discord webhook: fetch failed\n')
     );
   });
 });
