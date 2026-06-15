@@ -5,10 +5,11 @@ import type { Request, Response } from 'express';
 import type { ConfigService } from '@nestjs/config';
 import type { GoogleCallbackDto } from './dto/google-callback.dto.js';
 import type { AuthService } from './auth.service.js';
+import { AUTH_COOKIE_NAME } from './auth.constants.js';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: Pick<AuthService, 'setAuthCookie' | 'clearAuthCookie'>;
+  let authService: Pick<AuthService, 'setAuthCookie' | 'clearAuthCookie' | 'blacklistToken'>;
 
   beforeEach(() => {
     const configService = {
@@ -18,9 +19,11 @@ describe('AuthController', () => {
         return undefined;
       }),
     } as unknown as ConfigService;
+
     authService = {
       setAuthCookie: vi.fn(),
       clearAuthCookie: vi.fn(),
+      blacklistToken: vi.fn().mockResolvedValue(undefined),
     };
 
     controller = new AuthController(authService as AuthService, configService);
@@ -74,26 +77,48 @@ describe('AuthController', () => {
     await expect(controller.me('user-1')).resolves.toEqual({ id: 'user-1' });
   });
 
-  it('should clear the auth cookie on logout', () => {
-    const res = {} as Response;
+  describe('logout', () => {
+    it('should blacklist the token and clear the auth cookie if token is present', async () => {
+      const req = {
+        cookies: {
+          [AUTH_COOKIE_NAME]: 'valid-jwt-token',
+        },
+      } as unknown as Request;
+      const res = {} as Response;
 
-    controller.logout(res);
+      await controller.logout(req, res);
 
-    expect(authService.clearAuthCookie).toHaveBeenCalledWith(res, false);
-  });
+      expect(authService.blacklistToken).toHaveBeenCalledWith('valid-jwt-token');
+      expect(authService.clearAuthCookie).toHaveBeenCalledWith(res, false);
+    });
 
-  it('should clear a secure auth cookie on logout in production', () => {
-    const productionConfig = {
-      get: vi.fn().mockImplementation((key: string) => {
-        if (key === 'NODE_ENV') return 'production';
-        return undefined;
-      }),
-    } as unknown as ConfigService;
-    const productionController = new AuthController(authService as AuthService, productionConfig);
-    const res = {} as Response;
+    it('should clear the auth cookie without blacklisting if token is missing', async () => {
+      const req = {
+        cookies: {}, // No auth cookie
+      } as unknown as Request;
+      const res = {} as Response;
 
-    productionController.logout(res);
+      await controller.logout(req, res);
 
-    expect(authService.clearAuthCookie).toHaveBeenCalledWith(res, true);
+      expect(authService.blacklistToken).not.toHaveBeenCalled();
+      expect(authService.clearAuthCookie).toHaveBeenCalledWith(res, false);
+    });
+
+    it('should clear a secure auth cookie on logout in production', async () => {
+      const productionConfig = {
+        get: vi.fn().mockImplementation((key: string) => {
+          if (key === 'NODE_ENV') return 'production';
+          return undefined;
+        }),
+      } as unknown as ConfigService;
+      const productionController = new AuthController(authService as AuthService, productionConfig);
+
+      const req = { cookies: {} } as unknown as Request;
+      const res = {} as Response;
+
+      await productionController.logout(req, res);
+
+      expect(authService.clearAuthCookie).toHaveBeenCalledWith(res, true);
+    });
   });
 });

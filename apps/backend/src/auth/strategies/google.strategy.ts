@@ -75,6 +75,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       exp: isProduction()
         ? Math.floor(Date.now() / 1000) + AUTH_COOKIE_MAX_AGE_MS_PROD / 1000 // in seconds since UNIX epoch (30 minutes)
         : Math.floor(Date.now() / 1000) + AUTH_COOKIE_MAX_AGE_MS_DEV / 1000, // in seconds since UNIX epoch (160 days)
+      // jti is generated inside generateJwtToken, so it's not set here
     });
 
     // Return to controller callback endpoint

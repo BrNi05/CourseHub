@@ -7,7 +7,7 @@ import { AuthService } from './auth.service.js';
 import { AuthController } from './auth.controller.js';
 import { OAuthStateStore } from './oauth-state.store.js';
 
-import { JwtStrategy } from './strategies/jwt.stretegy.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { GoogleStrategy } from './strategies/google.strategy.js';
 
 import { JwtAuthGuard } from './guards/jwt.guard.js';

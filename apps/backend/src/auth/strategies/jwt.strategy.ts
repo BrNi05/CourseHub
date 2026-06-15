@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { type Cache } from 'cache-manager';
 import type { Request } from 'express';
 
 import { IAuthenticatedUser, IJwtPayload } from '../interfaces.js';
@@ -17,7 +19,8 @@ function extractJwtFromCookie(request: Request | undefined): string | null {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     private readonly prisma: PrismaService,
-    configService: ConfigService
+    configService: ConfigService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
   ) {
     super({
       jwtFromRequest: extractJwtFromCookie,
@@ -29,6 +32,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // Assigned to req.user on successful Jwt auth
   async validate(payload: IJwtPayload): Promise<IAuthenticatedUser> {
+    // Check if the JWT is blacklisted (logged out)
+    if (payload.jti) {
+      const isBlacklisted = await this.cacheManager.get(`jwt:blacklist:${payload.jti}`);
+      if (isBlacklisted)
+        throw new UnauthorizedException(
+          'Érvénytelen azonosított állapot! A token visszavonásra került!'
+        );
+    }
+
     // If a user is deleted but their JWT is still valid, this will throw acting as a gateway
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: payload.sub } });
 

@@ -1,7 +1,6 @@
-import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException, HttpException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-// Basically AuthGuard('jwt'), but with logging
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor() {
@@ -11,8 +10,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
   handleRequest(err: any, user: any, _info: any, _context: ExecutionContext): any {
     if (err || !user) {
-      //const clientIp = getClientIp(context);
-      //this.logger.warn(`Auth cookie validation failed. IP: ${clientIp}`); would log on every failed attempt, which is too noisy
+      // If the strategy explicitly threw an HttpException (jti blocked), rethrow it
+      if (err instanceof HttpException) throw err;
+
+      // Generic fallback for missing cookies, malformed token, or naturally expired token
       throw new UnauthorizedException('Érvénytelen azonosított állapot!');
     }
 

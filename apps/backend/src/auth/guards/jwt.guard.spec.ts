@@ -21,7 +21,7 @@ describe('JwtAuthGuard', () => {
     expect(result).toBe(user);
   });
 
-  it('throws an UnauthorizedException when the user is missing', () => {
+  it('throws a generic UnauthorizedException when the user is missing', () => {
     const guard = new JwtAuthGuard();
     const context = createHttpContext({
       headers: { 'cf-connecting-ip': '203.0.113.20' },
@@ -29,16 +29,30 @@ describe('JwtAuthGuard', () => {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    expect(() => guard.handleRequest(null, null, null, context)).toThrow(UnauthorizedException);
+    expect(() => guard.handleRequest(null, null, null, context)).toThrow(
+      new UnauthorizedException('Érvénytelen azonosított állapot!')
+    );
   });
 
-  it('throws an UnauthorizedException when passport returns an error', () => {
+  it('throws a generic UnauthorizedException when passport returns a raw error', () => {
     const guard = new JwtAuthGuard();
     const context = createHttpContext({ headers: {} });
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     expect(() => guard.handleRequest(new Error('passport failed'), null, null, context)).toThrow(
-      UnauthorizedException
+      new UnauthorizedException('Érvénytelen azonosított állapot!')
     );
+  });
+
+  it('rethrows the specific HttpException if the strategy provided one (e.g. blacklisted token)', () => {
+    const guard = new JwtAuthGuard();
+    const context = createHttpContext({ headers: {} });
+
+    const strategyError = new UnauthorizedException(
+      'Érvénytelen azonosított állapot! A token visszavonásra került!'
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    expect(() => guard.handleRequest(strategyError, null, null, context)).toThrow(strategyError);
   });
 });

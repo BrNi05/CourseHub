@@ -5,6 +5,7 @@ export interface IJwtPayload {
   sub: string; // User.id
   email: string; // User.googleEmail
   exp: number; // seconds since UNIX epoch
+  jti?: string; // JWT ID (for revocation)
 }
 
 // req.user after JwtStrategy.validate()

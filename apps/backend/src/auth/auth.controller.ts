@@ -27,6 +27,8 @@ import { GoogleCallbackDto } from './dto/google-callback.dto.js';
 import { AuthSessionDto } from './dto/auth-session.dto.js';
 import { AuthService } from './auth.service.js';
 
+import { AUTH_COOKIE_NAME } from './auth.constants.js';
+
 @Controller('auth')
 // eslint-disable-next-line internal/no-serializer
 export class AuthController {
@@ -83,14 +85,20 @@ export class AuthController {
   }
 
   @Post('logout')
+  @RequiresAuth()
   @Throttable(60, 1000)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'LOGOUT',
-    description: 'Clears the authentication cookie.',
+    description: 'Blacklists the JWT and clears the authentication cookie.',
   })
   @ApiNoContentResponse({ description: 'Logged out' })
-  logout(@Res({ passthrough: true }) res: Response): void {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
+    // Blacklist the JWT
+    const token = req.cookies?.[AUTH_COOKIE_NAME];
+    if (typeof token === 'string') await this.authService.blacklistToken(token);
+
+    // Clear the auth cookie
     const isSecure = this.configService.get<string>('NODE_ENV') === 'production';
     this.authService.clearAuthCookie(res, isSecure);
   }
