@@ -3,6 +3,7 @@ import { LoggerService, ContextualLogger } from '../../logger/logger.service.js'
 import { getClientIp } from '../../common/security/ip.resolver.js';
 import type { RequestWithAuthenticatedUser } from '../interfaces.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuthService } from '../auth.service.js';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -10,7 +11,8 @@ export class AdminGuard implements CanActivate {
 
   constructor(
     loggerService: LoggerService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService
   ) {
     this.auditLogger = loggerService.forContext(AdminGuard.name);
   }
@@ -32,6 +34,7 @@ export class AdminGuard implements CanActivate {
         clientIp,
         `User ${request.user?.googleEmail} attempted admin access to ${targetEndpoint}.`
       );
+
       throw new UnauthorizedException('Hozzáférés megtagadva! Admin jogosultság szükséges!');
     }
 
@@ -49,6 +52,7 @@ export class AdminGuard implements CanActivate {
           clientIp,
           `User ${request.user.googleEmail} attempted admin access to ${targetEndpoint}, but DB verification failed.`
         );
+
         throw new UnauthorizedException('Hozzáférés megtagadva! Admin jogosultság szükséges!');
       }
     } catch {
@@ -58,7 +62,24 @@ export class AdminGuard implements CanActivate {
         clientIp,
         `User ${request.user.googleEmail} attempted admin access to ${targetEndpoint}, but user record no longer exists in DB.`
       );
+
       throw new UnauthorizedException('Hozzáférés megtagadva! Felhasználó nem található!');
+    }
+
+    const isMfaValid = await this.authService.verifyAdminMfaToken(
+      request.user.id,
+      request.headers['x-admin-api-mfa'] as string
+    );
+
+    if (!isMfaValid) {
+      this.auditLogger.logAdminOperation(
+        'AdminGuard (canActivate)',
+        false,
+        clientIp,
+        `Admin ${request.user.googleEmail} failed MFA verification for ${targetEndpoint}.`
+      );
+
+      throw new UnauthorizedException('Érvénytelen vagy hiányzó másodlagos azonosító (MFA)!');
     }
 
     this.auditLogger.logAdminOperation(

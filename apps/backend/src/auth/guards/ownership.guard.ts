@@ -3,16 +3,20 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
 import type { RequestWithAuthenticatedUserAndIdParam } from '../interfaces.js';
+import { AuthService } from '../auth.service.js';
 
 @Injectable()
 export class UserOwnershipGuard implements CanActivate {
   private readonly logger: ContextualLogger;
 
-  constructor(private readonly auditLogger: LoggerService) {
+  constructor(
+    private readonly auditLogger: LoggerService,
+    private readonly authService: AuthService
+  ) {
     this.logger = auditLogger.forContext(UserOwnershipGuard.name);
   }
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithAuthenticatedUserAndIdParam>();
     const resourceUserId = request.params.id; // GET /users/:id
     const user = request.user;
@@ -32,6 +36,22 @@ export class UserOwnershipGuard implements CanActivate {
 
     // Log if admin override access is granted
     if (user.isAdmin && !doNotAllowAdminOverride) {
+      const isMfaValid = await this.authService.verifyAdminMfaToken(
+        user.id,
+        request.headers['x-admin-api-mfa'] as string
+      );
+
+      if (!isMfaValid) {
+        this.auditLogger.logAdminOperation(
+          'UserOwnershipGuard Admin Override',
+          false,
+          ipAddr,
+          `Admin ${user.googleEmail} failed MFA verification during override for user resource ${resourceUserId}.`
+        );
+
+        throw new ForbiddenException('Érvénytelen vagy hiányzó másodlagos azonosító (MFA)!');
+      }
+
       this.auditLogger.logAdminOperation(
         'UserOwnershipGuard Admin Override',
         true,

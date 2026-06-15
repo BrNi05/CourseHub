@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { LoggerService } from '../../logger/logger.service.js';
 import type { PrismaService } from '../../prisma/prisma.service.js';
+import type { AuthService } from '../auth.service.js';
 import { AdminGuard } from './admin.guard.js';
 
 function createHttpContext(request: object): ExecutionContext {
@@ -14,7 +15,7 @@ function createHttpContext(request: object): ExecutionContext {
 }
 
 describe('AdminGuard', () => {
-  it('allows authenticated admins through when DB confirms admin status', async () => {
+  it('allows authenticated admins through when DB confirms admin status and MFA is valid', async () => {
     const contextualLogAdminOperation = vi.fn();
     const mockContextualLogger = { logAdminOperation: contextualLogAdminOperation };
     const forContext = vi.fn().mockReturnValue(mockContextualLogger);
@@ -26,13 +27,16 @@ describe('AdminGuard', () => {
     });
     const prismaService = { user: { findUniqueOrThrow } } as unknown as PrismaService;
 
-    const guard = new AdminGuard(loggerService, prismaService);
+    const verifyAdminMfaToken = vi.fn().mockResolvedValue(true);
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new AdminGuard(loggerService, prismaService, authService);
 
     const request = {
       method: 'GET',
       url: '/api/v1/admin/dashboard',
       user: { id: 'user-1', googleEmail: 'admin@example.com', isAdmin: true },
-      headers: { 'cf-connecting-ip': '203.0.113.11' },
+      headers: { 'cf-connecting-ip': '203.0.113.11', 'x-admin-api-mfa': 'valid-mfa' },
       socket: {},
     };
 
@@ -43,6 +47,7 @@ describe('AdminGuard', () => {
       where: { id: 'user-1' },
       select: { isAdmin: true, googleEmail: true },
     });
+    expect(verifyAdminMfaToken).toHaveBeenCalledWith('user-1', 'valid-mfa');
     expect(forContext).toHaveBeenCalledWith('AdminGuard');
     expect(contextualLogAdminOperation).toHaveBeenCalledWith(
       'AdminGuard (canActivate)',
@@ -61,7 +66,10 @@ describe('AdminGuard', () => {
     const findUniqueOrThrow = vi.fn();
     const prismaService = { user: { findUniqueOrThrow } } as unknown as PrismaService;
 
-    const guard = new AdminGuard(loggerService, prismaService);
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new AdminGuard(loggerService, prismaService, authService);
 
     const request = {
       method: 'DELETE',
@@ -76,6 +84,7 @@ describe('AdminGuard', () => {
     );
 
     expect(findUniqueOrThrow).not.toHaveBeenCalled();
+    expect(verifyAdminMfaToken).not.toHaveBeenCalled();
     expect(forContext).toHaveBeenCalledWith('AdminGuard');
     expect(contextualLogAdminOperation).toHaveBeenCalledWith(
       'AdminGuard (canActivate)',
@@ -97,7 +106,10 @@ describe('AdminGuard', () => {
     });
     const prismaService = { user: { findUniqueOrThrow } } as unknown as PrismaService;
 
-    const guard = new AdminGuard(loggerService, prismaService);
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new AdminGuard(loggerService, prismaService, authService);
 
     const request = {
       method: 'POST',
@@ -111,6 +123,7 @@ describe('AdminGuard', () => {
       UnauthorizedException
     );
 
+    expect(verifyAdminMfaToken).not.toHaveBeenCalled();
     expect(contextualLogAdminOperation).toHaveBeenCalledWith(
       'AdminGuard (canActivate)',
       false,
@@ -128,7 +141,10 @@ describe('AdminGuard', () => {
     const findUniqueOrThrow = vi.fn().mockRejectedValue(new Error('Record not found'));
     const prismaService = { user: { findUniqueOrThrow } } as unknown as PrismaService;
 
-    const guard = new AdminGuard(loggerService, prismaService);
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new AdminGuard(loggerService, prismaService, authService);
 
     const request = {
       method: 'GET',
@@ -142,11 +158,50 @@ describe('AdminGuard', () => {
       UnauthorizedException
     );
 
+    expect(verifyAdminMfaToken).not.toHaveBeenCalled();
     expect(contextualLogAdminOperation).toHaveBeenCalledWith(
       'AdminGuard (canActivate)',
       false,
       '203.0.113.13',
       'User ghost@example.com attempted admin access to GET /api/v1/admin/logs, but user record no longer exists in DB.'
+    );
+  });
+
+  it('rejects requests if MFA token is invalid or missing', async () => {
+    const contextualLogAdminOperation = vi.fn();
+    const mockContextualLogger = { logAdminOperation: contextualLogAdminOperation };
+    const forContext = vi.fn().mockReturnValue(mockContextualLogger);
+    const loggerService = { forContext } as unknown as LoggerService;
+
+    const findUniqueOrThrow = vi.fn().mockResolvedValue({
+      isAdmin: true,
+      googleEmail: 'admin@example.com',
+    });
+    const prismaService = { user: { findUniqueOrThrow } } as unknown as PrismaService;
+
+    const verifyAdminMfaToken = vi.fn().mockResolvedValue(false);
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new AdminGuard(loggerService, prismaService, authService);
+
+    const request = {
+      method: 'GET',
+      url: '/api/v1/admin/dashboard',
+      user: { id: 'user-1', googleEmail: 'admin@example.com', isAdmin: true },
+      headers: { 'cf-connecting-ip': '203.0.113.11', 'x-admin-api-mfa': 'invalid-mfa' },
+      socket: {},
+    };
+
+    await expect(guard.canActivate(createHttpContext(request))).rejects.toThrow(
+      new UnauthorizedException('Érvénytelen vagy hiányzó másodlagos azonosító (MFA)!')
+    );
+
+    expect(verifyAdminMfaToken).toHaveBeenCalledWith('user-1', 'invalid-mfa');
+    expect(contextualLogAdminOperation).toHaveBeenCalledWith(
+      'AdminGuard (canActivate)',
+      false,
+      '203.0.113.11',
+      'Admin admin@example.com failed MFA verification for GET /api/v1/admin/dashboard.'
     );
   });
 });

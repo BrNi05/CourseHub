@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { IAuthenticatedUser } from '../interfaces.js';
 import type { LoggerService } from '../../logger/logger.service.js';
+import type { AuthService } from '../auth.service.js';
 import { UserOwnershipGuard } from './ownership.guard.js';
 
 type GuardRequest = {
@@ -31,7 +32,7 @@ function createContext(request: GuardRequest, handlerName = 'updateUser'): Execu
 }
 
 describe('UserOwnershipGuard', () => {
-  it('rejects requests without an authenticated user on the request', () => {
+  it('rejects requests without an authenticated user on the request', async () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -40,23 +41,27 @@ describe('UserOwnershipGuard', () => {
       logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const guard = new UserOwnershipGuard(logger);
 
-    expect(() =>
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new UserOwnershipGuard(logger, authService);
+
+    await expect(
       guard.canActivate(
         createContext({
           params: { id: 'resource-user-id' },
           headers: {},
         })
       )
-    ).toThrow(new ForbiddenException('Érvénytelen azonosított állapot!'));
+    ).rejects.toThrow(new ForbiddenException('Érvénytelen azonosított állapot!'));
 
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'Missing authenticated user on request for resource resource-user-id'
     );
   });
 
-  it('allows the owner using the authenticated request user', () => {
+  it('allows the owner using the authenticated request user', async () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -65,6 +70,10 @@ describe('UserOwnershipGuard', () => {
       logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
+
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
     const request: GuardRequest = {
       params: { id: 'resource-user-id' },
       headers: { authorization: 'Bearer token' },
@@ -74,9 +83,9 @@ describe('UserOwnershipGuard', () => {
         isAdmin: false,
       },
     };
-    const guard = new UserOwnershipGuard(logger);
+    const guard = new UserOwnershipGuard(logger, authService);
 
-    const result = guard.canActivate(createContext(request));
+    const result = await guard.canActivate(createContext(request));
 
     expect(result).toBe(true);
     expect(request.user).toEqual({
@@ -86,7 +95,7 @@ describe('UserOwnershipGuard', () => {
     });
   });
 
-  it('allows admin override on non-restricted handlers', () => {
+  it('allows admin override on non-restricted handlers', async () => {
     const logAdminOperation = vi.fn();
     const scopedLogger = {
       warn: vi.fn(),
@@ -96,20 +105,29 @@ describe('UserOwnershipGuard', () => {
       logAdminOperation,
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
+
+    const verifyAdminMfaToken = vi.fn().mockResolvedValue(true);
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
     const request: GuardRequest = {
       params: { id: 'resource-user-id' },
-      headers: { authorization: 'Bearer token', 'cf-connecting-ip': '203.0.113.12' },
+      headers: {
+        authorization: 'Bearer token',
+        'cf-connecting-ip': '203.0.113.12',
+        'x-admin-api-mfa': 'valid-mfa',
+      },
       user: {
         id: 'admin-user-id',
         googleEmail: 'admin@example.com',
         isAdmin: true,
       },
     };
-    const guard = new UserOwnershipGuard(logger);
+    const guard = new UserOwnershipGuard(logger, authService);
 
-    const result = guard.canActivate(createContext(request, 'updateUser'));
+    const result = await guard.canActivate(createContext(request, 'updateUser'));
 
     expect(result).toBe(true);
+    expect(verifyAdminMfaToken).toHaveBeenCalledWith('admin-user-id', 'valid-mfa');
     expect(logAdminOperation).toHaveBeenCalledWith(
       'UserOwnershipGuard Admin Override',
       true,
@@ -123,7 +141,7 @@ describe('UserOwnershipGuard', () => {
     });
   });
 
-  it('blocks admin override on restricted handlers like ping', () => {
+  it('blocks admin override if MFA token is invalid or missing', async () => {
     const logAdminOperation = vi.fn();
     const scopedLogger = {
       warn: vi.fn(),
@@ -133,9 +151,55 @@ describe('UserOwnershipGuard', () => {
       logAdminOperation,
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const guard = new UserOwnershipGuard(logger);
 
-    expect(() =>
+    const verifyAdminMfaToken = vi.fn().mockResolvedValue(false);
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const request: GuardRequest = {
+      params: { id: 'resource-user-id' },
+      headers: {
+        authorization: 'Bearer token',
+        'cf-connecting-ip': '203.0.113.15',
+        'x-admin-api-mfa': 'invalid-mfa',
+      },
+      user: {
+        id: 'admin-user-id',
+        googleEmail: 'admin@example.com',
+        isAdmin: true,
+      },
+    };
+    const guard = new UserOwnershipGuard(logger, authService);
+
+    await expect(guard.canActivate(createContext(request, 'updateUser'))).rejects.toThrow(
+      new ForbiddenException('Érvénytelen vagy hiányzó másodlagos azonosító (MFA)!')
+    );
+
+    expect(verifyAdminMfaToken).toHaveBeenCalledWith('admin-user-id', 'invalid-mfa');
+    expect(logAdminOperation).toHaveBeenCalledWith(
+      'UserOwnershipGuard Admin Override',
+      false,
+      '203.0.113.15',
+      'Admin admin@example.com failed MFA verification during override for user resource resource-user-id.'
+    );
+  });
+
+  it('blocks admin override on restricted handlers like ping', async () => {
+    const logAdminOperation = vi.fn();
+    const scopedLogger = {
+      warn: vi.fn(),
+      debug: vi.fn(),
+    };
+    const logger = {
+      logAdminOperation,
+      forContext: vi.fn().mockReturnValue(scopedLogger),
+    } as unknown as LoggerService;
+
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new UserOwnershipGuard(logger, authService);
+
+    await expect(
       guard.canActivate(
         createContext(
           {
@@ -150,8 +214,9 @@ describe('UserOwnershipGuard', () => {
           'ping'
         )
       )
-    ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
+    ).rejects.toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
+    expect(verifyAdminMfaToken).not.toHaveBeenCalled();
     expect(logAdminOperation).toHaveBeenCalledWith(
       'UserOwnershipGuard Admin Override',
       false,
@@ -162,7 +227,7 @@ describe('UserOwnershipGuard', () => {
     expect(scopedLogger.warn).not.toHaveBeenCalled();
   });
 
-  it('rejects non-owner non-admin authenticated users', () => {
+  it('rejects non-owner non-admin authenticated users', async () => {
     const scopedLogger = {
       warn: vi.fn(),
       debug: vi.fn(),
@@ -171,9 +236,13 @@ describe('UserOwnershipGuard', () => {
       logAdminOperation: vi.fn(),
       forContext: vi.fn().mockReturnValue(scopedLogger),
     } as unknown as LoggerService;
-    const guard = new UserOwnershipGuard(logger);
 
-    expect(() =>
+    const verifyAdminMfaToken = vi.fn();
+    const authService = { verifyAdminMfaToken } as unknown as AuthService;
+
+    const guard = new UserOwnershipGuard(logger, authService);
+
+    await expect(
       guard.canActivate(
         createContext({
           method: 'PATCH',
@@ -187,8 +256,9 @@ describe('UserOwnershipGuard', () => {
           },
         })
       )
-    ).toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
+    ).rejects.toThrow(new ForbiddenException('Hozzáférés megtagadva!'));
 
+    expect(verifyAdminMfaToken).not.toHaveBeenCalled();
     expect(scopedLogger.warn).toHaveBeenCalledWith(
       'User other-user-id attempted to access resource resource-user-id. Context: HTTP PATCH /users/resource-user-id. IP: 203.0.113.14'
     );

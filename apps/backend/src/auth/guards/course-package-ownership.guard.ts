@@ -4,6 +4,7 @@ import type { RequestWithAuthenticatedUserAndIdParam } from '../interfaces.js';
 import { ContextualLogger, LoggerService } from '../../logger/logger.service.js';
 import { getClientIp } from '../../common/security/ip.resolver.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { AuthService } from '../auth.service.js';
 
 @Injectable()
 export class CoursePackageOwnershipGuard implements CanActivate {
@@ -11,7 +12,8 @@ export class CoursePackageOwnershipGuard implements CanActivate {
 
   constructor(
     private readonly auditLogger: LoggerService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly authService: AuthService
   ) {
     this.logger = auditLogger.forContext(CoursePackageOwnershipGuard.name);
   }
@@ -20,6 +22,7 @@ export class CoursePackageOwnershipGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithAuthenticatedUserAndIdParam>();
     const packageId = request.params?.id;
     const user = request.user;
+    const ipAddr = getClientIp(context);
 
     if (!packageId) throw new ForbiddenException('Hiányzó kurzus csomag azonosító!');
 
@@ -30,10 +33,26 @@ export class CoursePackageOwnershipGuard implements CanActivate {
 
     // Log if admin override access is granted
     if (user.isAdmin) {
+      const isMfaValid = await this.authService.verifyAdminMfaToken(
+        user.id,
+        request.headers['x-admin-api-mfa'] as string
+      );
+
+      if (!isMfaValid) {
+        this.auditLogger.logAdminOperation(
+          'CoursePackageOwnershipGuard Admin Override',
+          false,
+          ipAddr,
+          `Admin ${user.googleEmail} failed MFA verification accessing course package ${packageId}.`
+        );
+
+        throw new ForbiddenException('Érvénytelen vagy hiányzó másodlagos azonosító (MFA)!');
+      }
+
       this.auditLogger.logAdminOperation(
         'CoursePackageOwnershipGuard Admin Override',
         true,
-        getClientIp(context),
+        ipAddr,
         `Admin ${user.googleEmail} accessed course package ${packageId}.`
       );
       return true;

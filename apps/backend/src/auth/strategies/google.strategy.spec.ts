@@ -22,8 +22,11 @@ function createStrategy(options?: {
   createdUser?: GoogleUser;
 }) {
   const generateJwtToken = vi.fn().mockReturnValue('jwt-token');
+  const generateAndSendAdminMfaToken = vi.fn().mockResolvedValue(true);
+
   const authService = {
     generateJwtToken,
+    generateAndSendAdminMfaToken,
   } as unknown as AuthService;
 
   const contextualLogAdminOperation = vi.fn();
@@ -74,21 +77,34 @@ function createStrategy(options?: {
     oauthStateStore
   );
 
-  return { generateJwtToken, contextualLogAdminOperation, forContext, prisma, strategy };
+  return {
+    generateJwtToken,
+    generateAndSendAdminMfaToken,
+    contextualLogAdminOperation,
+    forContext,
+    prisma,
+    strategy,
+  };
 }
 
 describe('GoogleStrategy', () => {
-  it('logs successful admin logins with the callback request IP', async () => {
+  it('logs successful admin logins and generates tokens if MFA delivery succeeds', async () => {
     const existingUser = {
       id: 'admin-user-id',
       googleEmail: 'admin@example.com',
       isAdmin: true,
     };
-    const { generateJwtToken, contextualLogAdminOperation, forContext, prisma, strategy } =
-      createStrategy({
-        adminEmails: '',
-        existingUser,
-      });
+    const {
+      generateJwtToken,
+      generateAndSendAdminMfaToken,
+      contextualLogAdminOperation,
+      forContext,
+      prisma,
+      strategy,
+    } = createStrategy({
+      adminEmails: 'admin@example.com',
+      existingUser,
+    });
     const done = vi.fn();
 
     await strategy.validate(
@@ -101,12 +117,15 @@ describe('GoogleStrategy', () => {
 
     expect(prisma.user.create).not.toHaveBeenCalled();
     expect(forContext).toHaveBeenCalledWith('GoogleLogin');
+    expect(generateAndSendAdminMfaToken).toHaveBeenCalledWith('admin@example.com', 'admin-user-id');
+
     expect(contextualLogAdminOperation).toHaveBeenCalledWith(
       'Admin Login',
       true,
       '203.0.113.15',
-      'Admin admin@example.com logged in. Session will expire in 30 mins.'
+      'Admin admin@example.com logged in. Session and MFA will expire in 30 mins.'
     );
+
     expect(generateJwtToken).toHaveBeenCalledWith(
       expect.objectContaining({
         sub: 'admin-user-id',
@@ -116,8 +135,52 @@ describe('GoogleStrategy', () => {
     expect(done).toHaveBeenCalledWith(null, { accessToken: 'jwt-token' });
   });
 
+  it('aborts login with UnauthorizedException if MFA delivery fails', async () => {
+    const existingUser = {
+      id: 'admin-user-id',
+      googleEmail: 'admin@example.com',
+      isAdmin: true,
+    };
+    const {
+      generateJwtToken,
+      generateAndSendAdminMfaToken,
+      contextualLogAdminOperation,
+      strategy,
+    } = createStrategy({
+      adminEmails: 'admin@example.com',
+      existingUser,
+    });
+
+    generateAndSendAdminMfaToken.mockResolvedValue(false);
+
+    const done = vi.fn();
+
+    await strategy.validate(
+      { headers: { 'cf-connecting-ip': '203.0.113.15' }, socket: {} } as unknown as Request,
+      'access-token',
+      'refresh-token',
+      { id: 'google-id', emails: [{ value: 'admin@example.com' }] } as Profile,
+      done
+    );
+
+    expect(generateAndSendAdminMfaToken).toHaveBeenCalledWith('admin@example.com', 'admin-user-id');
+
+    expect(contextualLogAdminOperation).toHaveBeenCalledWith(
+      'Admin Login',
+      false,
+      '203.0.113.15',
+      'Admin admin@example.com login failed! MFA token could not be sent via Discord.'
+    );
+
+    expect(generateJwtToken).not.toHaveBeenCalled();
+    expect(done).toHaveBeenCalledWith(
+      new UnauthorizedException('Discord Timeout: Could not send MFA token.'),
+      false
+    );
+  });
+
   it('does not log admin login audit events for non-admin users', async () => {
-    const { contextualLogAdminOperation, strategy } = createStrategy({
+    const { contextualLogAdminOperation, generateAndSendAdminMfaToken, strategy } = createStrategy({
       adminEmails: '',
       existingUser: {
         id: 'user-id',
@@ -136,6 +199,7 @@ describe('GoogleStrategy', () => {
     );
 
     expect(contextualLogAdminOperation).not.toHaveBeenCalled();
+    expect(generateAndSendAdminMfaToken).not.toHaveBeenCalled();
     expect(done).toHaveBeenCalledWith(null, { accessToken: 'jwt-token' });
   });
 

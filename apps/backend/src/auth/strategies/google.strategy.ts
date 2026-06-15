@@ -61,11 +61,27 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
 
     if (user.isAdmin) {
+      const isMfaSent = await this.authService.generateAndSendAdminMfaToken(
+        user.googleEmail,
+        user.id
+      );
+
+      if (!isMfaSent) {
+        this.auditLogger.logAdminOperation(
+          'Admin Login',
+          false,
+          getClientIp(req),
+          `Admin ${email} login failed! MFA token could not be sent via Discord.`
+        );
+
+        return done(new UnauthorizedException('Discord Timeout: Could not send MFA token.'), false);
+      }
+
       this.auditLogger.logAdminOperation(
         'Admin Login',
         true,
         getClientIp(req),
-        `Admin ${email} logged in. Session will expire in 30 mins.`
+        `Admin ${email} logged in. Session and MFA will expire in 30 mins.`
       );
     }
 

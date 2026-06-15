@@ -69,6 +69,10 @@ const isOpenApiGeneration = process.env['OPENAPI_GENERATION'] === 'true';
           .uri()
           .required()
           .pattern(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/),
+        ADMIN_MFA_WEBHOOK_DISCORD_URL: Joi.string()
+          .uri()
+          .required()
+          .pattern(/^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/),
       }),
       validationOptions: {
         abortEarly: true,
