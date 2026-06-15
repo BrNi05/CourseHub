@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/sdk",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "description": "SDK for CourseHub",
   "type": "module",
   "main": "build/index.js",
