@@ -46,6 +46,7 @@ export const OPERATION_SUGGESTION_THROTTLE_LIMIT = 4;
 
 // University Controller
 export const UNIVERSITY_SEARCH_THROTTLE_LIMIT = 30000;
+export const UNIVERSITY_ADMIN_NORMAL_THROTTLE_LIMIT = 4;
 
 // User Controller
 export const ME_OPERATION_THROTTLE_LIMIT = 30000;

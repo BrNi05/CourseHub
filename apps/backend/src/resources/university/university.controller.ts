@@ -16,6 +16,7 @@ import { DeletedResponse } from '../../decorators/responses/deleted-response.dec
 import {
   ONE_MINUTE_THROTTLE_TTL,
   THROTTLE_LIMIT_ONE,
+  UNIVERSITY_ADMIN_NORMAL_THROTTLE_LIMIT,
   UNIVERSITY_SEARCH_THROTTLE_LIMIT,
 } from '../../common/throttling/throttling.constants.js';
 
@@ -82,7 +83,7 @@ export class UniversityController {
   })
   @ApiCreatedResponse({ type: University, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_ADMIN_NORMAL_THROTTLE_LIMIT)
   create(@Body() dto: CreateUniversityDto) {
     return this.universityService.create(dto);
   }
@@ -95,7 +96,7 @@ export class UniversityController {
   })
   @ApiOkResponse({ type: University, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_ADMIN_NORMAL_THROTTLE_LIMIT)
   update(@Param('id') id: string, @Body() dto: UpdateUniversityDto) {
     return this.universityService.update(id, dto);
   }
