@@ -264,11 +264,17 @@ The flow is:
 
 2. Google redirects back to `/api/auth/google/callback`.
 
-3. The backend creates and signs the JWT.
+3. **Admin Verification & MFA:** If the user has admin privileges (`isAdmin`), the backend generates a secure 32-byte MFA token and caches it in Redis. This token is dispatched via a Discord webhook. This uses a strict **Fail-Closed** design: if the Discord webhook fails or times out (5 seconds), the login is aborted completely with an `UnauthorizedException` and no JWT is issued.
 
-4. The JWT is written to an HTTP cookie.
+4. The backend creates and signs a JWT (containing fields: `sub` (user ID), `iat`, `exp` and `jti`).
 
-5. The user is redirected back to the frontend.
+5. The JWT is written to an HttpOnly cookie that is set for the client.
+
+6. The user is redirected back to the frontend.
+
+7. Protected API calls use that cookie. The `JwtStrategy` acts as a gateway and performs an $O(1)$ lookup in Redis to ensure the token has not been explicitly revoked (on logout based on `jti`).
+
+8. **Logout:** The backend verifies the existing token signature, calculates its remaining TTL, and stores its `jti` in a Redis blacklist before clearing the HTTP cookie.
 
 Important design choices:
 
@@ -278,11 +284,9 @@ Important design choices:
 
 - The backend exposes `/api/auth/me` to resolve the current session.
 
-- Logout is cookie invalidation, not client-only state clearing.
+- Logout is cookie and JWT invalidation, not just client-only state clearing.
 
-This reduces browser-side token exposure compared with storing bearer tokens in local storage.
-
-Admin status is intentionally persisted in the `User.isAdmin` database field. `ADMIN_EMAILS` is bootstrap configuration used when a Google-authenticated user is created for the first time; changing `ADMIN_EMAILS` later is not intended to automatically grant or revoke admin status for existing users. Existing admin changes should happen through the established admin/user management flow.
+- Admin status is intentionally persisted in the `User.isAdmin` database field. `ADMIN_EMAILS` is bootstrap configuration used when a Google-authenticated user is created for the first time; changing `ADMIN_EMAILS` later is not intended to automatically grant or revoke admin status for existing users. Existing admin changes should happen through the established admin/user management flow.
 
 ### Authorization and Roles
 
@@ -294,7 +298,7 @@ Current role model:
 
 - **Authenticated user endpoints:** session inspection, personal pinned-course sync, personal/shared course-package access, suggestions, client ping, error reports.
 
-- **Admin endpoints:** content management, logs, stats, backups, user list, accepting suggestions, cache resets
+- **Admin endpoints:** content management, logs, stats, backups, user list, accepting suggestions, cache resets. Protected by a secondary layer of authentication requiring the Discord-delivered MFA token via the `x-admin-api-mfa` header.
 
 There is also internal-only guard infrastructure for routes that should not be publicly callable, like metrics endpoint for Prometheus.
 
@@ -320,7 +324,7 @@ API throttling is incremental and strict. The rules are: 1 req/s for most admin 
 
 CourseHub uses more than one cache layer:
 
-- Redis-backed Nest cache for cross-request cached objects such as users and courses.
+- Redis-backed Nest cache for cross-request cached objects such as users and courses, as well as stateless token revocation handling and MFA token storage.
 
 - Process-local in-memory LRU cache for course search query results.
 
@@ -478,6 +482,18 @@ Security is a first-class design concern in the current backend. Existing contro
 
 - Cookie-based auth instead of storing tokens in localStorage.
 
+- Explicit, stateless JWT revocation via an $O(1)$ Redis blacklist, utilizing generated `jti` claims.
+
+- Protection against Redis cache poisoning by strictly verifying JWT signatures before adding them to the revocation blacklist.
+
+- Admin accounts are protected by a mandatory, time-limited MFA token delivered via a Discord webhook.
+
+- Fail-Closed network architectures: external webhook deliveries act as strict gates (e.g., login drops if MFA delivery fails).
+
+- Strict network timeouts (`AbortSignal.timeout()`) wrapped in `try...catch` blocks on external API calls to prevent unhandled promise rejections, thread starvation, and resource exhaustion via hanging TCP connections.
+
+- Fast-fail length validation on cryptographic inputs prior to Buffer allocation to prevent memory exhaustion DoS attacks.
+
 - Frontend post-login route continuation is constrained to validated same-origin CourseHub routes, and stored route intents are treated as one-time navigation hints rather than general redirect targets.
 
 - Narrow CORS configuration.
@@ -518,7 +534,7 @@ CourseHub implements a custom, context-aware logging framework designed for oper
 
 - **Local Audit Trail:** Full details, including the client IP address, target endpoint, and user email, are written exclusively to the local log file for GDPR-compliant security auditing and incident response.
 
-- **Real-Time Webhook Alerts:** An asynchronous alert is dispatched to a Discord webhook for immediate visibility. To comply with data minimization and avoid third-party data processing liabilities, this payload is strictly anonymized (containing only the action, status, and timestamp) and includes no Personally Identifiable Information (PII).
+- **Real-Time Webhook Alerts:** An asynchronous alert is dispatched to a Discord webhook for immediate visibility. To comply with data minimization and avoid third-party data processing liabilities, this payload is strictly anonymized (containing only the action, status, and timestamp) and includes no Personally Identifiable Information (PII). This alert is protected against socket exhaustion by an internal 15-second `AbortSignal` timeout, logging a local warning instead of crashing if Discord is degraded.
 
 - Unauthenticated request failures are not logged to prevent DDoS-related situations.
 

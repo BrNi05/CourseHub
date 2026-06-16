@@ -76,8 +76,14 @@ The repo is API-first in practice:
 - Keep client API requests credentialed. Existing API wrappers use `withCredentials: true`; preserve equivalent behavior.
 - Keep DTO validation, whitelisting, serialization, guards, filters, throttling, and security middleware intact.
 - Admin privileges are intentionally stored on the `User.isAdmin` database field at first Google login. `ADMIN_EMAILS` is bootstrap/configuration input for new users, not a live source of truth for existing users. Do not treat admin drift from later `ADMIN_EMAILS` changes as a bug unless the task explicitly asks to change the authorization model.
+- Admin login mandates a Multi-Factor Authentication (MFA) token delivered via a Discord webhook. This implements a strict **Fail-Closed** architecture: if the external webhook fails or times out, the login aborts and no JWT is issued.
+- External webhook calls (e.g., Discord alerts, MFA delivery) must be wrapped with an `AbortSignal.timeout()` and a `try...catch` block. This prevents Unhandled Promise Rejections and mitigates resource exhaustion (socket hanging DoS) if the external API degrades.
+- When verifying inputs against cryptographic buffers (e.g., `timingSafeEqual`), strictly validate the input length *before* buffer allocation to prevent Out-Of-Memory (OOM) DoS attacks via massive payloads.
 - CourseHub backend is intentionally deployed behind Cloudflare. Rate limiting currently trusts `cf-connecting-ip` as the client identifier, so do not flag this as a spoofing issue unless the deployment model changes or the backend becomes directly internet-reachable.
 - Keep admin-only and internal-only routes protected. Do not broaden access accidentally.
+- The `/logout` endpoint is intentionally protected by AuthGuards to prevent logout (JWT block) DDoS.
+- JWTs are strictly managed. Tokens are generated and validated using custom logic integrated with NestJS and Passport.
+- `crypto.randomUUID()` is used for the `jti`, that is - on logout - stored in a Redis blacklist with a precise TTL matching the token's remaining natural expiration.
 - Validate and sanitize all new inputs.
 - Prefer least privilege for new endpoints, jobs, and data access paths.
 - Do not expose secrets, stack traces, internal IDs, or operational details in user-facing responses unless the existing API already requires it.
@@ -105,14 +111,14 @@ The repo is API-first in practice:
 - Do not import Prisma directly in `*.service.ts` files; repo lint rules explicitly ban this. Follow the established `PrismaService` pattern.
 - Maintain throttling on endpoints. New mutation or admin endpoints should be reviewed for throttling needs.
 - When changing API shapes, also update generated OpenAPI and SDK outputs by running the proper `pnpm` command.
-- Use Nest HTTP exceptions for application-level API failures so responses stay consistent.
+- Use Nest HTTP exceptions for application-level API failures so responses stay consistent. Exceptions explicitly thrown by custom strategies (e.g., token revocation warnings) must be explicitly rethrown by their corresponding AuthGuards.
 - When changing Prisma schema:
   - add a migration
   - regenerate Prisma client
   - update tests affected by schema changes
 - Be aware that OpenAPI generation intentionally avoids opening a database connection via `OPENAPI_GENERATION=true`; do not break that path.
 - Preserve cache invalidation and event-driven behavior when changing course, faculty, university, or user flows.
-- Use ContextualLogger when implementing logging realted features.
+- Use ContextualLogger when implementing logging related features.
 
 ## Frontend Rules
 
@@ -120,6 +126,7 @@ The repo is API-first in practice:
 - Prefer existing API wrappers, store modules, and shared utilities over ad hoc fetch or axios usage.
 - Prefer the generated SDK plus `apiOptions()` over raw HTTP calls when consuming backend endpoints.
 - Keep auth/session behavior aligned with the backend’s cookie-based model.
+- The frontend intercepts `401 Unauthorized` responses to automatically log out the user and promt login. In this case, local saves are **not** cleared.
 - If a flow must survive login or reload, prefer the existing routing manager/local storage helpers over introducing page-local redirect persistence.
 - Avoid introducing security regressions through unsafe HTML rendering, looser URL handling, or storing sensitive server data in browser storage.
 - Keep changes consistent with the current Vue 3 + TypeScript structure.
