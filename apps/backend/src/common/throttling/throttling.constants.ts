@@ -1,0 +1,53 @@
+// General / Admin
+export const ONE_MINUTE_THROTTLE_TTL = 60;
+export const ONE_DAY_THROTTLE_TTL = 60 * 60 * 24; // 86400 sec
+export const THROTTLE_LIMIT_ONE = 1;
+
+// App Controller
+export const HEALTH_CHECK_THROTTLE_LIMIT = 100;
+export const METRICS_THROTTLE_LIMIT = 5;
+
+// Auth Controller
+export const GOOGLE_LOGINOUT_THROTTLE_LIMIT = 1000;
+export const AUTH_ME_THROTTLE_LIMIT = 20000;
+
+// Averages Controller
+export const AVERAGES_THROTTLE_LIMIT = 20000;
+export const AVERAGES_DELETE_THROTTLE_LIMIT = 200;
+export const AVERAGES_THROTTLE_LIMIT_ADMIN = 2;
+
+// Client Controller
+export const CLIENT_PING_THROTTLE_LIMIT = 2000;
+export const CLIENT_ERROR_REPORT_THROTTLE_LIMIT = 4;
+export const CLIENT_DELETE_ERROR_REPORT_THROTTLE_LIMIT = 4;
+
+// CoursePackages Controller
+export const COURSE_PACKAGE_CREATE_THROTTLE_LIMIT = 40;
+export const COURSE_PACKAGE_GET_THROTTLE_LIMIT = 20000;
+export const COURSE_PACKAGE_DELETE_THROTTLE_LIMIT = 20;
+export const COURSE_PACKAGE_ADMIN_NORMAL_THROTTLE_LIMIT = 5;
+
+// Course Controller
+export const COURSE_SEARCH_THROTTLE_LIMIT = 30000;
+export const COURSE_FIND_ONE_THROTTLE_LIMIT = 20000;
+export const COURSE_ADMIN_NORMAL_THROTTLE_LIMIT = 2;
+
+// Faculty Controller
+export const FACULTY_SEARCH_THROTTLE_LIMIT = 30000;
+export const FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT = 3;
+
+// News Controller
+export const NEWS_GET_THROTTLE_LIMIT = 30000;
+export const NEWS_ADMIN_NORMAL_THROTTLE_LIMIT = 2;
+
+// Suggestions Controller
+export const POST_SUGGESTION_THROTTLE_LIMIT = 100;
+export const OPERATION_SUGGESTION_THROTTLE_LIMIT = 4;
+
+// University Controller
+export const UNIVERSITY_SEARCH_THROTTLE_LIMIT = 30000;
+
+// User Controller
+export const ME_OPERATION_THROTTLE_LIMIT = 30000;
+export const USER_DELETE_THROTTLE_LIMIT = 20;
+export const ADMIN_USER_DELETE_THROTTLE_LIMIT = 2;

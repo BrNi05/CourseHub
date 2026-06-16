@@ -9,6 +9,12 @@ import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  NEWS_GET_THROTTLE_LIMIT,
+  NEWS_ADMIN_NORMAL_THROTTLE_LIMIT,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
@@ -20,7 +26,7 @@ export class NewsController {
   })
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
   @Header('Cache-Control', 'public, max-age=3600')
-  @Throttable(60, 40000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_GET_THROTTLE_LIMIT)
   async news(): Promise<string[]> {
     return await this.newsService.getAllNews();
   }
@@ -32,7 +38,7 @@ export class NewsController {
   })
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
   @Admin()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_ADMIN_NORMAL_THROTTLE_LIMIT)
   async createNews(@Body() createNewsDto: CreateNewsDto): Promise<string[]> {
     return await this.newsService.createNews(createNewsDto);
   }
@@ -44,7 +50,7 @@ export class NewsController {
   })
   @DeletedResponse('Oldest item deleted')
   @Admin()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_ADMIN_NORMAL_THROTTLE_LIMIT)
   async deleteOldestNews(): Promise<void> {
     return await this.newsService.deleteOldestNews();
   }
@@ -56,7 +62,7 @@ export class NewsController {
   })
   @DeletedResponse('Latest item deleted')
   @Admin()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_ADMIN_NORMAL_THROTTLE_LIMIT)
   async deleteNewestNews(): Promise<void> {
     return await this.newsService.deleteLatestNews();
   }
@@ -68,7 +74,7 @@ export class NewsController {
   })
   @DeletedResponse('All news items deleted')
   @Admin()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_ADMIN_NORMAL_THROTTLE_LIMIT)
   async deleteAllNews(): Promise<void> {
     return await this.newsService.deleteAllNews();
   }

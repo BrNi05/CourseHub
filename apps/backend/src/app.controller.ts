@@ -11,6 +11,12 @@ import { Throttable } from './common/throttling/throttler.decorator.js';
 import { InternalOnly } from './decorators/auth/internal.decorator.js';
 import { Serialize } from './decorators/serialize.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  HEALTH_CHECK_THROTTLE_LIMIT,
+  METRICS_THROTTLE_LIMIT,
+} from './common/throttling/throttling.constants.js';
+
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -26,7 +32,7 @@ export class AppController {
     type: HealthCheckDto,
     description: 'Returns health status of CourseHub server instance',
   })
-  @Throttable(60, 10)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, HEALTH_CHECK_THROTTLE_LIMIT)
   getHealth(): HealthCheckDto {
     return this.appService.getHealth();
   }
@@ -42,7 +48,7 @@ export class AppController {
     description: 'Returns Prometheus metrics in text format',
   })
   @InternalOnly()
-  @Throttable(60, 5)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, METRICS_THROTTLE_LIMIT)
   async getMetrics(@Res() res: Response): Promise<void> {
     res.setHeader('Content-Type', this.appService.getMetricsContentType());
     res.send(await this.appService.getMetrics());

@@ -28,6 +28,15 @@ import { SearchCoursePackageDto } from './dto/search-course-package.dto.js';
 import { SetCoursePackagePermanentDto } from './dto/set-course-package-permanent.dto.js';
 import { RequiresCoursePackageOwnership } from '../../decorators/auth/requires-course-package-ownership.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  COURSE_PACKAGE_ADMIN_NORMAL_THROTTLE_LIMIT,
+  COURSE_PACKAGE_CREATE_THROTTLE_LIMIT,
+  COURSE_PACKAGE_DELETE_THROTTLE_LIMIT,
+  COURSE_PACKAGE_GET_THROTTLE_LIMIT,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('course-packages')
 @Serialize(CoursePackage)
 export class CoursePackageController {
@@ -41,7 +50,7 @@ export class CoursePackageController {
   })
   @ApiCreatedResponse({ type: CoursePackage, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_CREATE_THROTTLE_LIMIT)
   async create(
     @AuthUserId() userId: string,
     @Body() dto: CreateCoursePackageDto
@@ -57,7 +66,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: [CoursePackage], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 2000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_GET_THROTTLE_LIMIT)
   async findMine(@AuthUserId() userId: string): Promise<CoursePackage[]> {
     return await this.coursePackageService.findMine(userId);
   }
@@ -70,7 +79,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: [CoursePackage], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_GET_THROTTLE_LIMIT)
   async search(@Query() query: SearchCoursePackageDto): Promise<CoursePackage[]> {
     return await this.coursePackageService.search(query);
   }
@@ -83,7 +92,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_GET_THROTTLE_LIMIT)
   async findOne(@Param('id') id: string): Promise<CoursePackage> {
     return await this.coursePackageService.findById(id);
   }
@@ -96,7 +105,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_ADMIN_NORMAL_THROTTLE_LIMIT)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCoursePackageDto
@@ -113,7 +122,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: CoursePackage, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_ADMIN_NORMAL_THROTTLE_LIMIT)
   async setPermanent(
     @Param('id') id: string,
     @Body() dto: SetCoursePackagePermanentDto
@@ -129,7 +138,7 @@ export class CoursePackageController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   deleteAllCache(): void {
     return this.coursePackageService.clearSearchQueryCache();
   }
@@ -142,7 +151,7 @@ export class CoursePackageController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_DELETE_THROTTLE_LIMIT)
   async remove(@Param('id') id: string): Promise<void> {
     await this.coursePackageService.remove(id);
   }
@@ -158,7 +167,7 @@ export class CoursePackageController {
     description: 'Usage timestamp updated',
   })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_GET_THROTTLE_LIMIT)
   async markAsUsed(@Param('id') id: string): Promise<void> {
     await this.coursePackageService.markAsUsed(id);
   }

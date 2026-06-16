@@ -16,6 +16,15 @@ import { DeletedResponse } from '../../decorators/responses/deleted-response.dec
 import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
 import { AuthUserId } from '../../decorators/auth/user-id.decorator.js';
 
+import {
+  ONE_DAY_THROTTLE_TTL,
+  ONE_MINUTE_THROTTLE_TTL,
+  ADMIN_USER_DELETE_THROTTLE_LIMIT,
+  ME_OPERATION_THROTTLE_LIMIT,
+  THROTTLE_LIMIT_ONE,
+  USER_DELETE_THROTTLE_LIMIT,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('users')
 @Serialize(User)
 export class UserController {
@@ -29,7 +38,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: UserResponseWithoutPinnedDto, isArray: true, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async readAll(): Promise<UserResponseWithoutPinnedDto[]> {
     return this.userService.getAllUsers();
   }
@@ -45,7 +54,7 @@ export class UserController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, ME_OPERATION_THROTTLE_LIMIT)
   async readOwnOne(@AuthUserId() userId: string): Promise<User> {
     return this.userService.getUserById(userId);
   }
@@ -61,7 +70,7 @@ export class UserController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, ME_OPERATION_THROTTLE_LIMIT)
   async readOne(@Param('id') id: string): Promise<User> {
     return this.userService.getUserById(id);
   }
@@ -74,7 +83,7 @@ export class UserController {
   })
   @ApiCreatedResponse({ type: User, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, ME_OPERATION_THROTTLE_LIMIT)
   async updateOwnPinnedCourses(
     @AuthUserId() userId: string,
     @Body() dto: UpdatePinnedCoursesDto
@@ -90,7 +99,7 @@ export class UserController {
   })
   @ApiCreatedResponse({ type: User, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, ME_OPERATION_THROTTLE_LIMIT)
   async updatePinnedCourses(
     @Param('id') id: string,
     @Body() dto: UpdatePinnedCoursesDto
@@ -106,7 +115,7 @@ export class UserController {
   })
   @ApiOkResponse({ type: User, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<User> {
     return this.userService.updateUser(id, dto);
   }
@@ -119,7 +128,7 @@ export class UserController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async deleteAll(): Promise<void> {
     return await this.userService.resetAllUsersCache();
   }
@@ -132,7 +141,7 @@ export class UserController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, USER_DELETE_THROTTLE_LIMIT)
   async deleteOwn(@AuthUserId() userId: string): Promise<void> {
     return this.userService.deleteUser(userId);
   }
@@ -145,7 +154,7 @@ export class UserController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 20)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, ADMIN_USER_DELETE_THROTTLE_LIMIT)
   async delete(@Param('id') id: string): Promise<void> {
     return this.userService.deleteUser(id);
   }

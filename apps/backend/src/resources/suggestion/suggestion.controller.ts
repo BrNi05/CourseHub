@@ -15,6 +15,13 @@ import { DeletedResponse } from '../../decorators/responses/deleted-response.dec
 import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
 import { AuthUserId } from '../../decorators/auth/user-id.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  OPERATION_SUGGESTION_THROTTLE_LIMIT,
+  POST_SUGGESTION_THROTTLE_LIMIT,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('suggestions')
 @Serialize(SuggestedCourse)
 export class SuggestionController {
@@ -28,7 +35,7 @@ export class SuggestionController {
   })
   @ApiOkResponse({ type: [SuggestedCourse], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, OPERATION_SUGGESTION_THROTTLE_LIMIT)
   async findAll(): Promise<SuggestedCourse[]> {
     return await this.suggestionService.findAll();
   }
@@ -41,7 +48,7 @@ export class SuggestionController {
   })
   @ApiCreatedResponse({ type: SuggestedCourse, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, POST_SUGGESTION_THROTTLE_LIMIT)
   async suggest(
     @AuthUserId() userId: string,
     @Body() createSuggestionDto: CreateSuggestionDto
@@ -57,7 +64,7 @@ export class SuggestionController {
   })
   @ApiOkResponse({ description: 'All accepted' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async acceptAll(): Promise<void> {
     await this.suggestionService.acceptAll();
   }
@@ -71,7 +78,7 @@ export class SuggestionController {
   })
   @ApiOkResponse({ type: Course, description: 'Accepted' })
   @DatabaseOperation()
-  @Throttable(60, 3)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, OPERATION_SUGGESTION_THROTTLE_LIMIT)
   async accept(@Param('id') id: string): Promise<Course> {
     return await this.suggestionService.accept(id);
   }
@@ -84,7 +91,7 @@ export class SuggestionController {
   })
   @ApiOkResponse({ type: SuggestedCourse, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, OPERATION_SUGGESTION_THROTTLE_LIMIT)
   async update(
     @Param('id') id: string,
     @Body() updateSuggestionDto: UpdateSuggestionDto
@@ -100,7 +107,7 @@ export class SuggestionController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 200)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, OPERATION_SUGGESTION_THROTTLE_LIMIT)
   async delete(@Param('id') id: string): Promise<void> {
     await this.suggestionService.delete(id);
   }

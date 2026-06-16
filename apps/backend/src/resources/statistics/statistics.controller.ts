@@ -12,6 +12,11 @@ import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { DatabaseOperation } from '../../decorators/responses/database-operation.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 
+import {
+  ONE_DAY_THROTTLE_TTL,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('statistics')
 export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
@@ -24,7 +29,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: PingsStatisticsResponseDto })
   @Admin()
   @DatabaseOperation()
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async pings(): Promise<PingsStatisticsResponseDto> {
     return await this.statisticsService.getPingStatistics();
   }
@@ -37,7 +42,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: CoursesPinnedDto, isArray: true })
   @Admin()
   @DatabaseOperation()
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async pins(): Promise<CoursesPinnedDto[]> {
     return await this.statisticsService.getPinStatistics();
   }
@@ -50,7 +55,7 @@ export class StatisticsController {
   @ApiOkResponse({ description: 'Success', type: UniversityUsersDto, isArray: true })
   @Admin()
   @DatabaseOperation()
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async users(): Promise<UniversityUsersDto[]> {
     return await this.statisticsService.getUserStatistics();
   }
@@ -67,7 +72,7 @@ export class StatisticsController {
   })
   @Admin()
   @DatabaseOperation()
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async courses(): Promise<UniversityCoursesDto[]> {
     return await this.statisticsService.getCourseStatistics();
   }

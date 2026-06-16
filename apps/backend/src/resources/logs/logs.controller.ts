@@ -11,6 +11,11 @@ import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { FileSystemOperation } from '../../decorators/responses/filesys-operation.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
+import {
+  ONE_DAY_THROTTLE_TTL,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('logs')
 export class LogsController {
   constructor(private readonly logsService: LogsService) {}
@@ -24,7 +29,7 @@ export class LogsController {
   @ApiProduces('text/plain')
   @ApiOkResponse({ description: 'Downloaded' })
   @FileSystemOperation()
-  @Throttable(86400, 1) // 1 download per day
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async downloadLogs(@Res() res: Response) {
     const stream = await this.logsService.getLogStream();
 
@@ -49,8 +54,8 @@ export class LogsController {
     description: 'Clears the log file of the application',
   })
   @DeletedResponse('cleared')
-  @Throttable(86400, 1) // 1 clear per day
   @FileSystemOperation()
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async clearLogs() {
     return this.logsService.clearLogs();
   }

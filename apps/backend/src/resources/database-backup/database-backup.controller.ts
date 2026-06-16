@@ -9,6 +9,11 @@ import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { FileSystemOperation } from '../../decorators/responses/filesys-operation.decorator.js';
 
+import {
+  ONE_DAY_THROTTLE_TTL,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('database-backup')
 export class DatabaseBackupController {
   constructor(private readonly databaseBackupService: DatabaseBackupService) {}
@@ -21,7 +26,7 @@ export class DatabaseBackupController {
   })
   @ApiProduces('application/octet-stream')
   @ApiOkResponse({ description: 'Downloaded' })
-  @Throttable(86400, 1)
+  @Throttable(ONE_DAY_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   @FileSystemOperation()
   async downloadBackup(@Res() res: Response): Promise<void> {
     const { fileName, filePath } = await this.databaseBackupService.createDownloadableBackup();

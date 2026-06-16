@@ -28,6 +28,11 @@ import { AuthSessionDto } from './dto/auth-session.dto.js';
 import { AuthService } from './auth.service.js';
 
 import { AUTH_COOKIE_NAME } from './auth.constants.js';
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  AUTH_ME_THROTTLE_LIMIT,
+  GOOGLE_LOGINOUT_THROTTLE_LIMIT,
+} from '../common/throttling/throttling.constants.js';
 
 @Controller('auth')
 // eslint-disable-next-line internal/no-serializer
@@ -38,16 +43,15 @@ export class AuthController {
   ) {}
 
   @Get('google')
-  @Throttable(60, 1000)
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'LOGIN', description: 'Redirects to Google for authentication' })
   @ApiOkResponse({ description: 'Success' })
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, GOOGLE_LOGINOUT_THROTTLE_LIMIT)
   async googleLogin(): Promise<void> {
     /* AuthGuard('google') triggers Passport, that handles the Google OAuth flow */
   }
 
   @Get('google/callback')
-  @Throttable(60, 1000)
   @UseGuards(AuthGuard('google'))
   @ApiOperation({
     summary: 'LOGIN',
@@ -59,6 +63,7 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({ description: 'Google authentication failed' })
   @DatabaseOperation()
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, GOOGLE_LOGINOUT_THROTTLE_LIMIT)
   googleCallback(@Req() req: Request, @Res() res: Response): void {
     const { accessToken } = req.user as GoogleCallbackDto;
     const frontendUrl = this.configService.get<string>('CORS_ORIGIN')!.trim();
@@ -79,20 +84,20 @@ export class AuthController {
   })
   @ApiOkResponse({ description: 'Authenticated user session', type: AuthSessionDto })
   @Header('Cache-Control', 'private, no-store')
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AUTH_ME_THROTTLE_LIMIT)
   async me(@AuthUserId() userId: string): Promise<AuthSessionDto> {
     return await Promise.resolve({ id: userId });
   }
 
   @Post('logout')
   @RequiresAuth()
-  @Throttable(60, 1000)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'LOGOUT',
     description: 'Blacklists the JWT and clears the authentication cookie.',
   })
   @ApiNoContentResponse({ description: 'Logged out' })
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, GOOGLE_LOGINOUT_THROTTLE_LIMIT)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
     // Blacklist the JWT
     const token = req.cookies?.[AUTH_COOKIE_NAME];

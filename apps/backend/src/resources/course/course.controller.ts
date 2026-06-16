@@ -13,6 +13,13 @@ import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { Serialize } from '../../decorators/serialize.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  COURSE_ADMIN_NORMAL_THROTTLE_LIMIT,
+  COURSE_FIND_ONE_THROTTLE_LIMIT,
+  COURSE_SEARCH_THROTTLE_LIMIT,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('courses')
 @Serialize(Course)
 export class CourseController {
@@ -25,7 +32,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: [Course], description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_SEARCH_THROTTLE_LIMIT)
   async search(@Query() query: CourseQueryDto): Promise<Course[]> {
     return this.courseService.findByQuery(query);
   }
@@ -37,7 +44,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: Course, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_FIND_ONE_THROTTLE_LIMIT)
   async findOne(@Param('id') id: string): Promise<Course> {
     return this.courseService.findById(id);
   }
@@ -50,7 +57,7 @@ export class CourseController {
   })
   @ApiCreatedResponse({ type: Course, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_ADMIN_NORMAL_THROTTLE_LIMIT)
   async create(@Body() dto: CreateCourseDto): Promise<Course> {
     return this.courseService.create(dto);
   }
@@ -63,7 +70,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: Course, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_ADMIN_NORMAL_THROTTLE_LIMIT)
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto): Promise<Course> {
     return this.courseService.update(id, dto);
   }
@@ -76,7 +83,7 @@ export class CourseController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_ADMIN_NORMAL_THROTTLE_LIMIT)
   deleteAll(): void {
     return this.courseService.clearSearchQueryCache();
   }
@@ -89,7 +96,7 @@ export class CourseController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_ADMIN_NORMAL_THROTTLE_LIMIT)
   async delete(@Param('id') id: string): Promise<void> {
     return this.courseService.remove(id);
   }

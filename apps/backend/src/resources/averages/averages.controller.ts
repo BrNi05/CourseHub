@@ -11,6 +11,12 @@ import { Throttable } from '../../common/throttling/throttler.decorator.js';
 
 import { AveragesCalculation, CREDIT_PROFILE_BODY_SCHEMA } from './entity/average.entity.js';
 import { AveragesService } from './averages.service.js';
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  AVERAGES_DELETE_THROTTLE_LIMIT,
+  AVERAGES_THROTTLE_LIMIT,
+  AVERAGES_THROTTLE_LIMIT_ADMIN,
+} from '../../common/throttling/throttling.constants.js';
 
 @Controller('averages')
 @Serialize(AveragesCalculation)
@@ -25,7 +31,7 @@ export class AveragesController {
   })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_THROTTLE_LIMIT)
   async findOwnCredits(@AuthUserId() userId: string): Promise<AveragesCalculation> {
     return await this.averagesService.findMine(userId);
   }
@@ -38,7 +44,7 @@ export class AveragesController {
   })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Success' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_THROTTLE_LIMIT_ADMIN)
   async findCreditsByUserId(@Param('id') id: string): Promise<AveragesCalculation> {
     return await this.averagesService.findByUserId(id);
   }
@@ -52,7 +58,7 @@ export class AveragesController {
   @ApiBody({ schema: CREDIT_PROFILE_BODY_SCHEMA })
   @ApiOkResponse({ type: AveragesCalculation, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_THROTTLE_LIMIT)
   async updateOwnCredits(
     @AuthUserId() userId: string,
     @Body() payload: unknown
@@ -68,7 +74,7 @@ export class AveragesController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 2000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_DELETE_THROTTLE_LIMIT)
   async deleteOwnCredits(@AuthUserId() userId: string): Promise<void> {
     await this.averagesService.deleteMine(userId);
   }
@@ -81,7 +87,7 @@ export class AveragesController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_THROTTLE_LIMIT_ADMIN)
   async deleteCreditsCacheByUserId(@Param('id') id: string): Promise<void> {
     await this.averagesService.clearCacheForUser(id);
   }
@@ -94,7 +100,7 @@ export class AveragesController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, AVERAGES_THROTTLE_LIMIT_ADMIN)
   async deleteCreditsByUserId(@Param('id') id: string): Promise<void> {
     await this.averagesService.deleteForUser(id);
   }

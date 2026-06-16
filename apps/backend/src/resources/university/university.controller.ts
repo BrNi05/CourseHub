@@ -13,6 +13,12 @@ import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  THROTTLE_LIMIT_ONE,
+  UNIVERSITY_SEARCH_THROTTLE_LIMIT,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('universities')
 @Serialize(University)
 export class UniversityController {
@@ -30,7 +36,7 @@ export class UniversityController {
   })
   @Header('Cache-Control', 'public, max-age=86400')
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_SEARCH_THROTTLE_LIMIT)
   findAll() {
     return this.universityService.findAll();
   }
@@ -47,7 +53,7 @@ export class UniversityController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   findAllWithFaculties() {
     return this.universityService.findAllWithFaculties();
   }
@@ -63,7 +69,7 @@ export class UniversityController {
   })
   @Header('Cache-Control', 'public, max-age=43200') // Cached for 12 hours
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_SEARCH_THROTTLE_LIMIT)
   findOne(@Param('id') id: string) {
     return this.universityService.findOne(id);
   }
@@ -76,7 +82,7 @@ export class UniversityController {
   })
   @ApiCreatedResponse({ type: University, description: 'Created' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   create(@Body() dto: CreateUniversityDto) {
     return this.universityService.create(dto);
   }
@@ -89,7 +95,7 @@ export class UniversityController {
   })
   @ApiOkResponse({ type: University, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   update(@Param('id') id: string, @Body() dto: UpdateUniversityDto) {
     return this.universityService.update(id, dto);
   }
@@ -102,7 +108,7 @@ export class UniversityController {
   })
   @DeletedResponse('Resetted')
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async deleteAll(): Promise<void> {
     return await this.universityService.resetAllCache();
   }
@@ -115,7 +121,7 @@ export class UniversityController {
   })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   async remove(@Param('id') id: string): Promise<void> {
     await this.universityService.remove(id);
   }

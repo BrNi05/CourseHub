@@ -14,6 +14,12 @@ import { Admin } from '../../decorators/auth/admin.decorator.js';
 import { Throttable } from '../../common/throttling/throttler.decorator.js';
 import { DeletedResponse } from '../../decorators/responses/deleted-response.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  FACULTY_SEARCH_THROTTLE_LIMIT,
+  FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('faculties')
 @Serialize(Faculty)
 export class FacultyController {
@@ -32,7 +38,7 @@ export class FacultyController {
   })
   @Header('Cache-Control', 'private, max-age=43200') // 12 hours
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_SEARCH_THROTTLE_LIMIT)
   async getAll(@Query() query: GetFacultiesQueryDto) {
     return this.facultyService.getAllByUniversity(query.universityId);
   }
@@ -48,7 +54,7 @@ export class FacultyController {
     description: 'Success',
   })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT)
   async getOneWithCourses(@Param('id') id: string) {
     return this.facultyService.getOneWithCourses(id);
   }
@@ -64,7 +70,7 @@ export class FacultyController {
   })
   @Header('Cache-Control', 'public, max-age=3600')
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_SEARCH_THROTTLE_LIMIT)
   async getOne(@Param('id') id: string) {
     return this.facultyService.getOne(id);
   }
@@ -80,7 +86,7 @@ export class FacultyController {
     type: FacultyWithoutCoursesDto,
     description: 'Created',
   })
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT)
   async create(@Body() dto: CreateFacultyDto) {
     return this.facultyService.create(dto);
   }
@@ -90,7 +96,7 @@ export class FacultyController {
   @ApiOperation({ summary: 'ADMIN', description: 'Update existing faculty' })
   @ApiOkResponse({ type: Faculty, description: 'Updated' })
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT)
   async update(@Param('id') id: string, @Body() dto: UpdateFacultyDto) {
     return this.facultyService.update(id, dto);
   }
@@ -100,7 +106,7 @@ export class FacultyController {
   @ApiOperation({ summary: 'ADMIN', description: 'Delete existing faculty' })
   @DeletedResponse()
   @DatabaseOperation()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, FACULTY_ADMIN_NORMAL_THROTTLE_LIMIT)
   async remove(@Param('id') id: string) {
     return this.facultyService.remove(id);
   }

@@ -20,6 +20,14 @@ import { DeletedResponse } from '../../decorators/responses/deleted-response.dec
 import { RequiresAuth } from '../../decorators/auth/auth.decorator.js';
 import { AuthUserId } from '../../decorators/auth/user-id.decorator.js';
 
+import {
+  ONE_MINUTE_THROTTLE_TTL,
+  CLIENT_PING_THROTTLE_LIMIT,
+  CLIENT_ERROR_REPORT_THROTTLE_LIMIT,
+  CLIENT_DELETE_ERROR_REPORT_THROTTLE_LIMIT,
+  THROTTLE_LIMIT_ONE,
+} from '../../common/throttling/throttling.constants.js';
+
 @Controller('client')
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
@@ -32,7 +40,7 @@ export class ClientController {
   @ApiOkResponse({ description: 'Client version is supported' })
   @HttpCode(HttpStatus.OK)
   @ApiIAmATeapotResponse({ description: 'Client version is not supported' })
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   checkVersion(@Body() dto: ClientIdDto): void {
     this.clientService.isVersionSupported(dto.platform, dto.version);
   }
@@ -47,7 +55,7 @@ export class ClientController {
   @ApiOkResponse({ description: 'Ping received' })
   @HttpCode(HttpStatus.OK)
   @DatabaseOperation()
-  @Throttable(60, 20000)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, CLIENT_PING_THROTTLE_LIMIT)
   async ping(@AuthUserId() userId: string, @Body() body: ClientIdDto) {
     await this.clientService.ping(userId, body.platform, body.version);
   }
@@ -60,7 +68,7 @@ export class ClientController {
       'Report a client error for later analysis. User is identified by the authenticated cookie session.',
   })
   @ApiCreatedResponse({ description: 'Error report received' })
-  @Throttable(60, 6)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, CLIENT_ERROR_REPORT_THROTTLE_LIMIT)
   @FileSystemOperation()
   async errorReport(@AuthUserId() userId: string, @Body() body: ErrorReportDto) {
     await this.clientService.reportError(userId, body);
@@ -73,7 +81,7 @@ export class ClientController {
     description: 'List all error report files content',
   })
   @ApiOkResponse({ description: 'Success', type: [ErrorReportResponseDto] })
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, THROTTLE_LIMIT_ONE)
   @FileSystemOperation()
   async listErrorReports(): Promise<ErrorReportResponseDto[]> {
     return await this.clientService.listErrorReports();
@@ -86,7 +94,7 @@ export class ClientController {
     description: 'Delete an error report',
   })
   @DeletedResponse()
-  @Throttable(60, 1)
+  @Throttable(ONE_MINUTE_THROTTLE_TTL, CLIENT_DELETE_ERROR_REPORT_THROTTLE_LIMIT)
   @FileSystemOperation()
   async deleteErrorReport(@Param('fileName') fileName: string): Promise<void> {
     await this.clientService.deleteErrorReport(fileName);
