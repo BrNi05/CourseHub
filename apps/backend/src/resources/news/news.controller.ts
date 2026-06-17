@@ -25,7 +25,7 @@ export class NewsController {
     description: 'Returns all news items (cached for 1 hour)',
   })
   @ApiOkResponse({ description: 'Success', type: String, isArray: true })
-  @Header('Cache-Control', 'public, max-age=3600')
+  @Header('Cache-Control', 'public, max-age=1800') // 30 minutes
   @Throttable(ONE_MINUTE_THROTTLE_TTL, NEWS_GET_THROTTLE_LIMIT)
   async news(): Promise<string[]> {
     return await this.newsService.getAllNews();

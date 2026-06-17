@@ -9,6 +9,7 @@ import {
   Put,
   Post,
   Query,
+  Header,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
@@ -79,6 +80,7 @@ export class CoursePackageController {
   })
   @ApiOkResponse({ type: [CoursePackage], description: 'Success' })
   @DatabaseOperation()
+  @Header('Cache-Control', 'public, max-age=300') // 5 minutes
   @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_PACKAGE_GET_THROTTLE_LIMIT)
   async search(@Query() query: SearchCoursePackageDto): Promise<CoursePackage[]> {
     return await this.coursePackageService.search(query);

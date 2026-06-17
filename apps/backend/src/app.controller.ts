@@ -1,5 +1,5 @@
 /* eslint-disable internal/no-serializer */
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Res, Header } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiProduces } from '@nestjs/swagger';
 import type { Response } from 'express';
 
@@ -32,6 +32,7 @@ export class AppController {
     type: HealthCheckDto,
     description: 'Returns health status of CourseHub server instance',
   })
+  @Header('Cache-Control', 'public, max-age=15') // 15 seconds
   @Throttable(ONE_MINUTE_THROTTLE_TTL, HEALTH_CHECK_THROTTLE_LIMIT)
   getHealth(): HealthCheckDto {
     return this.appService.getHealth();

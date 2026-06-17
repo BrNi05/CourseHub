@@ -35,7 +35,7 @@ export class UniversityController {
     isArray: true,
     description: 'Success',
   })
-  @Header('Cache-Control', 'public, max-age=86400')
+  @Header('Cache-Control', 'public, max-age=86400') // 1 day
   @DatabaseOperation()
   @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_SEARCH_THROTTLE_LIMIT)
   findAll() {
@@ -68,7 +68,7 @@ export class UniversityController {
     type: UniversityWithoutFacultiesDto,
     description: 'Success',
   })
-  @Header('Cache-Control', 'public, max-age=43200') // Cached for 12 hours
+  @Header('Cache-Control', 'public, max-age=86400') // 1 day
   @DatabaseOperation()
   @Throttable(ONE_MINUTE_THROTTLE_TTL, UNIVERSITY_SEARCH_THROTTLE_LIMIT)
   findOne(@Param('id') id: string) {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, Header } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiCreatedResponse } from '@nestjs/swagger';
 
 import { Course } from './entity/course.entity.js';
@@ -32,6 +32,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: [Course], description: 'Success' })
   @DatabaseOperation()
+  @Header('Cache-Control', 'public, max-age=3600') // 1 hour
   @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_SEARCH_THROTTLE_LIMIT)
   async search(@Query() query: CourseQueryDto): Promise<Course[]> {
     return this.courseService.findByQuery(query);
@@ -44,6 +45,7 @@ export class CourseController {
   })
   @ApiOkResponse({ type: Course, description: 'Success' })
   @DatabaseOperation()
+  @Header('Cache-Control', 'public, max-age=3600') // 1 hour
   @Throttable(ONE_MINUTE_THROTTLE_TTL, COURSE_FIND_ONE_THROTTLE_LIMIT)
   async findOne(@Param('id') id: string): Promise<Course> {
     return this.courseService.findById(id);

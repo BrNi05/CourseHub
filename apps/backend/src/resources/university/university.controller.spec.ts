@@ -83,7 +83,7 @@ describe('UniversityController', () => {
 
       expect(headers).toContainEqual({
         name: 'Cache-Control',
-        value: 'public, max-age=43200',
+        value: 'public, max-age=86400',
       });
     });
   });
