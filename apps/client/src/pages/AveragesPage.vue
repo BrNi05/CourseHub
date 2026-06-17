@@ -462,7 +462,7 @@ function calculateCorrectedCreditIndex(
 }
 
 function formatMetric(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return '-';
+  if (value === null || !Number.isFinite(value)) return '0';
   return METRIC_FORMATTER.format(value);
 }
 
