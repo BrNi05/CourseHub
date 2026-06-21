@@ -1,7 +1,9 @@
 # Build stage
+
+# Always the latest LTS thus Node is bumped with builds
 FROM node:lts-alpine AS base
 
-RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.8.0 --activate
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
 
@@ -20,7 +22,7 @@ RUN pnpm --filter @coursehub/backend --prod deploy /temp-prod
 
 RUN cp -r apps/backend/build /temp-prod/build
 
-# Production
+# Production stage
 FROM node:lts-alpine AS prod
 
 WORKDIR /app
