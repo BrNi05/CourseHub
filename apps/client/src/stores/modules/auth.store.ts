@@ -64,7 +64,7 @@ export async function logout(keepLocalSaves: boolean = false): Promise<void> {
   }
 
   clearSession();
-  clearCourseHubBrowserState({ keepLocalSaves });
+  clearCourseHubBrowserState({ keepLocalSaves, clearCookieAccepted: !keepLocalSaves }); // If local saves are cleared, also clear cookie accept state
 
   pushNotice('info', 'Kijelentkezve', 'A módosításaid innentől csak lokálisan lesznek mentve.');
 }
@@ -80,7 +80,7 @@ export async function deleteProfile(keepLocalSaves: boolean = false): Promise<bo
   try {
     await deleteCurrentUserProfile();
     clearSession();
-    clearCourseHubBrowserState({ keepLocalSaves });
+    clearCourseHubBrowserState({ keepLocalSaves, clearCookieAccepted: true });
 
     pushNotice(
       'success',

@@ -36,7 +36,7 @@ type ClearCourseHubBrowserStateOptions = {
 };
 
 export function clearCourseHubBrowserState(options: ClearCourseHubBrowserStateOptions = {}): void {
-  const { clearCookieAccepted = true, keepLocalSaves = false } = options;
+  const { clearCookieAccepted = false, keepLocalSaves = false } = options; // defaults
 
   for (const key of COURSEHUB_BROWSER_STATE_KEYS) {
     if (!clearCookieAccepted && key === COOKIE_BANNER_ACCEPTED_STORAGE_KEY) continue;
