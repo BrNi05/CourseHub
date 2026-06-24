@@ -13,7 +13,6 @@ import {
   createCoursePackage,
   deleteCoursePackage,
   fetchCoursePackageById,
-  fetchMyCoursePackages,
   markCoursePackageAsUsed,
   searchCoursePackages,
   updateCoursePackage,
@@ -22,6 +21,11 @@ import { rememberRouteIntent } from '@/router/routing-manager';
 import { appLifecycleState } from '@/stores/app-bootstrap';
 import { useAppStore } from '@/stores/composables/use-app-store';
 import { authState, handleUnauthorized } from '@/stores/modules/auth.store';
+import {
+  clearMyCoursePackages,
+  coursePackagesState,
+  loadMyCoursePackages,
+} from '@/stores/modules/course-packages.store';
 import { coursesState } from '@/stores/modules/courses.store';
 import { getErrorMessage } from '@/stores/shared/errors';
 import { hydrateSearchUniversityId } from '@/stores/shared/storage';
@@ -37,9 +41,7 @@ const app = useAppStore();
 const route = useRoute();
 const router = useRouter();
 
-const myPackages = ref<CoursePackage[]>([]);
 const searchResults = ref<CoursePackage[]>([]);
-const loadingMine = ref(false);
 const searching = ref(false);
 const hasSearched = ref(false);
 const saving = ref(false);
@@ -67,6 +69,15 @@ const selectedCourseIds = ref<Set<string>>(new Set());
 const searchFaculties = ref<FacultyWithoutCoursesDto[]>([]);
 const loadingSearchFaculties = ref(false);
 let searchFacultyRequestId = 0;
+
+const myPackages = computed<CoursePackage[]>(() => {
+  const packages: CoursePackage[] = coursePackagesState.myPackages;
+  return packages;
+});
+const loadingMine = computed<boolean>(() => {
+  const loading: boolean = coursePackagesState.loadingMyPackages;
+  return loading;
+});
 
 const editorCourses = computed<Course[]>(() => {
   const courses = new Map<string, Course>();
@@ -96,15 +107,6 @@ function getMissingCourseCount(packageItem: CoursePackage): number {
     .length;
 }
 
-function upsertPackageInList(list: CoursePackage[], nextPackage: CoursePackage): CoursePackage[] {
-  const nextEntries = new Map(list.map((entry) => [entry.id, entry]));
-  nextEntries.set(nextPackage.id, nextPackage);
-
-  return [...nextEntries.values()].sort(
-    (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
-  );
-}
-
 function removePackageFromList(list: CoursePackage[], packageId: string): CoursePackage[] {
   return list.filter((entry) => entry.id !== packageId);
 }
@@ -112,21 +114,7 @@ function removePackageFromList(list: CoursePackage[], packageId: string): Course
 async function loadMine() {
   if (!app.isAuthenticated()) return;
 
-  loadingMine.value = true;
-
-  try {
-    myPackages.value = await fetchMyCoursePackages();
-  } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 401) {
-      handleUnauthorized();
-      myPackages.value = [];
-      return;
-    }
-
-    app.notify('danger', 'Nem sikerült betölteni a csomagjaidat', getErrorMessage(error));
-  } finally {
-    loadingMine.value = false;
-  }
+  await loadMyCoursePackages();
 }
 
 function loginToContinue() {
@@ -221,7 +209,9 @@ async function savePackage(payload: CreateCoursePackageDto) {
       ? await updateCoursePackage(packageToEdit.value.id, payload)
       : await createCoursePackage(payload);
 
-    myPackages.value = upsertPackageInList(myPackages.value, savedPackage);
+    clearMyCoursePackages();
+    await loadMyCoursePackages();
+
     const nextSearchResults: CoursePackage[] = [];
 
     for (const entry of searchResults.value) {
@@ -268,7 +258,8 @@ async function confirmDeletePackage() {
 
   try {
     await deleteCoursePackage(packageToDelete.value.id);
-    myPackages.value = removePackageFromList(myPackages.value, packageToDelete.value.id);
+    clearMyCoursePackages();
+    await loadMyCoursePackages();
     searchResults.value = removePackageFromList(searchResults.value, packageToDelete.value.id);
 
     app.notify(
@@ -419,7 +410,7 @@ watch(
   () => [appInitialized.value, sessionAuthenticated.value] as const,
   ([initialized, authenticated]) => {
     if (!initialized || !authenticated) {
-      myPackages.value = [];
+      clearMyCoursePackages();
       return;
     }
     void loadMine();

@@ -10,6 +10,8 @@ import {
   logout,
 } from '../modules/auth.store';
 import { contentState } from '../modules/content.store';
+import { clearOwnCreditProfile } from '../modules/averages.store';
+import { clearMyCoursePackages } from '../modules/course-packages.store';
 import {
   addCourse,
   addCourses,
@@ -67,6 +69,8 @@ watchEffect(() => {
 async function logoutAndClearUser(keepLocalSaves: boolean = false): Promise<void> {
   await logout(keepLocalSaves);
   clearCurrentUser();
+  clearOwnCreditProfile();
+  clearMyCoursePackages();
   if (!keepLocalSaves) clearLocalCourseSaves();
 }
 
@@ -75,6 +79,8 @@ async function deleteProfileAndClearData(keepLocalSaves: boolean = false): Promi
 
   if (deleted) {
     clearCurrentUser();
+    clearOwnCreditProfile();
+    clearMyCoursePackages();
     if (!keepLocalSaves) clearLocalCourseSaves();
   }
 

@@ -4,13 +4,10 @@ import { computed, onBeforeUnmount, onMounted, reactive, watch, nextTick } from 
 
 import BaseButton from '@/components/BaseButton.vue';
 import BaseDialog from '@/components/BaseDialog.vue';
-import {
-  deleteOwnCreditProfile,
-  fetchOwnCreditProfile,
-  saveOwnCreditProfile,
-} from '@/api/averages.api';
+import { deleteOwnCreditProfile, saveOwnCreditProfile } from '@/api/averages.api';
 import { rememberRouteIntent } from '@/router/routing-manager';
 import { useAppStore } from '@/stores/composables/use-app-store';
+import { clearOwnCreditProfile, loadOwnCreditProfile } from '@/stores/modules/averages.store';
 import { handleUnauthorized } from '@/stores/modules/auth.store';
 import {
   AVERAGES_CALCULATOR_DIRTY_STORAGE_KEY,
@@ -204,6 +201,7 @@ watch(
       serverProfileLoadedForAuthenticatedSession = false;
       state.serverHasSavedProfile = false;
       state.loadedFromServer = false;
+      clearOwnCreditProfile();
       return;
     }
 
@@ -496,7 +494,9 @@ async function loadServerProfile(): Promise<void> {
   state.loadingServer = true;
 
   try {
-    const profile = await fetchOwnCreditProfile();
+    const profile = await loadOwnCreditProfile();
+    if (!profile) return;
+
     const data = normalizeCalculatorData(profile.data);
     state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
 
@@ -533,6 +533,7 @@ async function saveToServer(): Promise<void> {
     const profile = await saveOwnCreditProfile(serializeCalculator());
     applyCloudData(normalizeCalculatorData(profile.data));
     state.serverHasSavedProfile = hasSavedCalculatorData(profile.data);
+    clearOwnCreditProfile();
   } catch (error) {
     if (isAxiosError(error) && error.response?.status === 401) {
       rememberRouteIntent('/averages');
@@ -553,6 +554,7 @@ async function deleteFromServer(): Promise<void> {
 
   try {
     await deleteOwnCreditProfile();
+    clearOwnCreditProfile();
     state.serverHasSavedProfile = false;
     state.loadedFromServer = false;
 
