@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/sdk",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "description": "SDK for CourseHub",
   "type": "module",
   "main": "build/index.js",
@@ -8,7 +8,7 @@
   "author": "BrNi05",
   "license": "Apache-2.0",
   "private": true,
-  "packageManager": "pnpm@11.8.0+sha512.c1f5e7c4cb241c8f174b743851d82f42b802324afc8b0f116b96adb15aa06664948dde36960a3ba1079ba5b4b29dd0140135b94b5b5f5263592249d68e555f26",
+  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b",
   "scripts": {
     "prebuild": "rimraf tsconfig.tsbuildinfo",
     "build": "tsc -p tsconfig.json",
@@ -21,7 +21,7 @@
     }
   },
   "dependencies": {
-    "axios": "^1.18.0"
+    "axios": "^1.18.1"
   },
   "devDependencies": {
     "rimraf": "^6.1.3"

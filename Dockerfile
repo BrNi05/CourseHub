@@ -3,7 +3,7 @@
 # Always the latest LTS thus Node is bumped with builds
 FROM node:lts-alpine AS base
 
-RUN corepack enable && corepack prepare pnpm@11.8.0 --activate
+RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
 
