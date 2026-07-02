@@ -1,6 +1,6 @@
 {
   "name": "@coursehub/client",
-  "version": "1.9.8",
+  "version": "1.9.9",
   "description": "SPA frontend for CourseHub",
   "type": "module",
   "author": "BrNi05",
@@ -17,19 +17,19 @@
     "@fontsource-variable/open-sans": "^5.2.7",
     "axios": "^1.18.1",
     "qrcode.vue": "^3.10.0",
-    "vue": "^3.5.38",
+    "vue": "^3.5.39",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@types/node": "^25.9.4",
-    "@unocss/preset-wind3": "^66.7.2",
+    "@unocss/preset-wind3": "^66.7.4",
     "@vitejs/plugin-vue": "^6.0.7",
     "@vue/tsconfig": "^0.9.1",
     "globals": "^17.7.0",
-    "prettier": "^3.8.4",
+    "prettier": "^3.9.4",
     "typescript": "~6.0.3",
-    "unocss": "^66.7.2",
-    "vite": "^8.1.0",
-    "vue-tsc": "^3.3.5"
+    "unocss": "^66.7.4",
+    "vite": "^8.1.2",
+    "vue-tsc": "^3.3.6"
   }
 }
