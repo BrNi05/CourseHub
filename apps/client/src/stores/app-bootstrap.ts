@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 
-import { pingClient } from './modules/analytics.store';
+//! import { pingClient } from './modules/analytics.store';
 import { loadNews } from './modules/content.store';
 import {
   coursesState,
@@ -36,7 +36,7 @@ export async function initialize(): Promise<void> {
           replaceSelectedCourses(serverUser.selectedCourses);
         }
 
-        await pingClient();
+        //! await pingClient(); - will be reintroduced in the future
       } else if (hasLocalDraft) {
         pushNotice(
           'info',
