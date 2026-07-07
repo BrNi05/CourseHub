@@ -16,7 +16,7 @@ A CourseHub egy egyetemi kurzus aggregátor alkalmazás, ami segítségével a h
 
 - **Felelősség:** A Felhasználó felelős a saját eszközének és Google fiókjának biztonságáért. Az Üzemeltető nem vállal felelősséget a fiókhoz való jogosulatlan hozzáférésből eredő károkért, ha az a Felhasználó gondatlanságából ered.
 
-- **Inaktivitás:** Ahogy az [Adatkezelési Tájékoztatóban](https://github.com/BrNi05/CourseHub/blob/main/legal/privacy.md) is szerepel, 12 hónap inaktivitás után a fiók és a hozzá tartozó adatok (bizonyos kivételektől eltekintve) automatikusan törlésre kerülnek.
+- **Inaktivitás:** Az [Adatkezelési Tájékoztatóban](https://github.com/BrNi05/CourseHub/blob/main/legal/privacy.md) rögzített adattakarékossági alapelvekkel összhangban a 36 hónapot (3 évet) meghaladó, folyamatos inaktivitás esetén a felhasználói fiók, valamint a hozzá kapcsolódó személyes adatok automatikusan és véglegesen törlésre kerülnek.
 
 ## API használat és Adatkinyerés (Scraping)
 
