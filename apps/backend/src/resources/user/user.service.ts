@@ -153,22 +153,18 @@ export class UserService {
     this.logger.log('Reset all users cache due to university/faculty deletion.');
   }
 
-  // Remove users who haven't updated their profile in the last year (inactive users)
+  // Remove users who haven't updated their profile in the last 3 years (inactive users)
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async removeInactiveUsers(): Promise<void> {
     const now = new Date();
-    const oneYearAgo = new Date(
-      Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate())
+    const threeYearsAgo = new Date(
+      Date.UTC(now.getUTCFullYear() - 3, now.getUTCMonth(), now.getUTCDate())
     );
 
     const inactiveUsers = await this.prisma.user.findMany({
       where: {
-        updatedAt: { lt: oneYearAgo },
-        clientPings: {
-          none: {
-            date: { gte: oneYearAgo }, // date is indexed
-          },
-        },
+        updatedAt: { lt: threeYearsAgo },
+        isAdmin: false, // admin users should not be deleted automatically
       },
       select: { id: true },
     });

@@ -182,7 +182,6 @@ model ClientPing {
 }
 
 // ClientPlatform
-// Separate desktop releases for better usage statistics and error reporting
 enum ClientPlatform {
   windows
   linux

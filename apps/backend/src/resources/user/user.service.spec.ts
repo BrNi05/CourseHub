@@ -42,9 +42,6 @@ describe('UserService', () => {
         update: vi.fn(),
         delete: vi.fn(),
       },
-      clientPing: {
-        findMany: vi.fn(),
-      },
     };
 
     service = new UserService(
@@ -231,7 +228,7 @@ describe('UserService', () => {
   });
 
   describe('removeInactiveUsers', () => {
-    it('should remove inactive users who did not ping in the last year', async () => {
+    it('should remove inactive non-admin users who did not update their profile in the last 3 years', async () => {
       prismaMock.user.findMany.mockResolvedValue([{ id: 'user1' }, { id: 'user2' }]);
 
       const deleteSpy = vi.spyOn(service, 'deleteUser').mockResolvedValue(undefined);
@@ -239,20 +236,15 @@ describe('UserService', () => {
       await service.removeInactiveUsers();
 
       const query = prismaMock.user.findMany.mock.calls[0][0];
-      const oneYearAgo = query.where.updatedAt.lt;
+      const threeYearsAgo = query.where.updatedAt.lt;
 
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         where: {
-          updatedAt: { lt: oneYearAgo },
-          clientPings: {
-            none: {
-              date: { gte: oneYearAgo },
-            },
-          },
+          updatedAt: { lt: threeYearsAgo },
+          isAdmin: false,
         },
         select: { id: true },
       });
-      expect(prismaMock.clientPing.findMany).not.toHaveBeenCalled();
 
       expect(deleteSpy).toHaveBeenCalledTimes(2);
       expect(deleteSpy).toHaveBeenCalledWith('user1');
@@ -279,20 +271,20 @@ describe('UserService', () => {
       );
     });
 
-    it('should normalize the inactivity cutoff to UTC midnight', async () => {
+    it('should normalize the inactivity cutoff to UTC midnight 3 years ago', async () => {
       prismaMock.user.findMany.mockResolvedValue([]);
 
       await service.removeInactiveUsers();
 
       const query = prismaMock.user.findMany.mock.calls[0][0];
       const updatedAtCutoff = query.where.updatedAt.lt as Date;
-      const pingCutoff = query.where.clientPings.none.date.gte as Date;
+      const now = new Date();
 
-      expect(updatedAtCutoff).toEqual(pingCutoff);
       expect(updatedAtCutoff.getUTCHours()).toBe(0);
       expect(updatedAtCutoff.getUTCMinutes()).toBe(0);
       expect(updatedAtCutoff.getUTCSeconds()).toBe(0);
       expect(updatedAtCutoff.getUTCMilliseconds()).toBe(0);
+      expect(updatedAtCutoff.getUTCFullYear()).toBe(now.getUTCFullYear() - 3);
     });
   });
 });
