@@ -78,7 +78,7 @@
     "@types/passport-oauth2": "^1.8.0",
     "@types/pg": "^8.20.0",
     "@types/semver": "^7.7.1",
-    "@types/supertest": "^7.2.0",
+    "@types/supertest": "^7.2.1",
     "cross-env": "^10.1.0",
     "dotenv": "^17.4.2",
     "eslint": "^10.6.0",
@@ -94,6 +94,6 @@
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.23.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   }
 }
