@@ -1,12 +1,12 @@
 {
   "name": "@coursehub/client",
-  "version": "1.9.11",
+  "version": "1.9.12",
   "description": "SPA frontend for CourseHub",
   "type": "module",
   "author": "BrNi05",
   "license": "Apache-2.0",
   "private": true,
-  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72",
+  "packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
@@ -15,21 +15,21 @@
   "dependencies": {
     "@coursehub/sdk": "workspace:*",
     "@fontsource-variable/open-sans": "^5.3.0",
-    "axios": "^1.18.1",
+    "axios": "^1.19.0",
     "qrcode.vue": "^3.10.0",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "@unocss/preset-wind3": "^66.7.5",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
-    "globals": "^17.7.0",
+    "globals": "^17.8.0",
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",
     "unocss": "^66.7.5",
-    "vite": "^8.1.5",
-    "vue-tsc": "^3.3.8"
+    "vite": "^8.2.0",
+    "vue-tsc": "^3.3.9"
   }
 }
