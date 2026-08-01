@@ -27,7 +27,7 @@
     "@vue/tsconfig": "^0.9.1",
     "globals": "^17.8.0",
     "prettier": "^3.9.6",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "unocss": "^66.7.5",
     "vite": "^8.2.0",
     "vue-tsc": "^3.3.9"
