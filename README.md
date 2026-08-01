@@ -1,5 +1,9 @@
 # CourseHub
 
+> ⚠️ **Projekt állapota: Leállítva**
+> 
+> A CourseHub szolgáltatás, a weboldal elérhetősége és a kódbázis aktív fejlesztése, karbantartása **2026 augusztusától határozatlan időre megszűnt**. 
+
 **Egyetemi tárgyak, egyszerűen.**
 
 A CourseHub azért készült, mert az egyetemi élet digitális része gyakran szétszóródik különböző rendszerek, kurzusoldalak, Moodle-felületek, Teams-csoportok és beadó portálok között. A cél egyszerű: egy letisztult, gyors és megbízható belépési pontot adni ahhoz, amit egy hallgató nap mint nap keres.
