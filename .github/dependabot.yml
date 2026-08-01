@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'weekly'
+      interval: 'quarterly'
     commit-message:
       prefix: "ACTIONS: "
     labels:
@@ -12,7 +12,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/' # pnpm lockfile
     schedule:
-      interval: 'weekly'
+      interval: 'quarterly'
     commit-message:
       prefix: "PACKAGES: "
     labels:
